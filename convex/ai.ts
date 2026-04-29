@@ -736,6 +736,147 @@ export const generateVisualizations = action({
   },
 });
 
+export const generateInspirations = action({
+  args: { userId: v.id("users"), force: v.optional(v.boolean()) },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  handler: async (ctx, args): Promise<any> => {
+    const today = new Date().toISOString().split("T")[0];
+
+    if (!args.force) {
+      const existing = await ctx.runQuery(internal.aiInternal.getInspirationForDate, {
+        userId: args.userId,
+        date: today,
+      });
+      if (existing) return existing.stories;
+    } else {
+      await ctx.runMutation(internal.rateLimits.checkAndConsume, {
+        userId: args.userId,
+        action: "inspiration",
+      });
+    }
+
+    const [reports, goals, problems] = await Promise.all([
+      ctx.runQuery(internal.aiInternal.getRecentReportsForInsights, { userId: args.userId }),
+      ctx.runQuery(internal.aiInternal.getGoalsForVisualization, { userId: args.userId }),
+      ctx.runQuery(internal.aiInternal.getProblemsForVisualization, { userId: args.userId }),
+    ]);
+
+    const contextParts: string[] = [];
+
+    const dreamsMap = goals.dreams as Record<string, string[]>;
+    const dreamLines: string[] = [];
+    for (const [cat, titles] of Object.entries(dreamsMap)) {
+      for (const t of titles) dreamLines.push(`- [${cat}] ${t}`);
+    }
+    if (dreamLines.length) contextParts.push(`Life dreams:\n${dreamLines.join("\n")}`);
+
+    const goalLines = [
+      ...(goals.yearly as string[]).map((t) => `- [yearly] ${t}`),
+      ...(goals.monthly as string[]).map((t) => `- [monthly] ${t}`),
+      ...(goals.weekly as string[]).map((t) => `- [weekly] ${t}`),
+    ];
+    if (goalLines.length) contextParts.push(`Active goals:\n${goalLines.join("\n")}`);
+
+    if ((problems as string[]).length) {
+      contextParts.push(`Current challenges:\n${(problems as string[]).map((p) => `- ${p}`).join("\n")}`);
+    }
+
+    const recentDailyText = (reports.daily as { date: string; responses: unknown }[])
+      .slice(0, 10)
+      .map((r) => {
+        const res = r.responses as Record<string, unknown>;
+        const parts: string[] = [];
+        if (typeof res?.emotionalDrain === "string" && res.emotionalDrain.trim()) {
+          parts.push(`emotional drain: ${res.emotionalDrain}`);
+        }
+        if (typeof res?.dayActivity === "string" && res.dayActivity.trim()) {
+          parts.push(`activity: ${res.dayActivity.slice(0, 120)}`);
+        }
+        return parts.length ? `[${r.date}] ${parts.join(" | ")}` : null;
+      })
+      .filter(Boolean)
+      .join("\n");
+    if (recentDailyText) contextParts.push(`Recent patterns:\n${recentDailyText}`);
+
+    const userContext = contextParts.join("\n\n") || "No data yet — generate general Napoleon Hill wisdom stories.";
+
+    const PRINCIPLES = [
+      "Definiteness of Purpose",
+      "The Master Mind",
+      "Applied Faith",
+      "Going the Extra Mile",
+      "Personal Initiative",
+      "Positive Mental Attitude",
+      "Self-Discipline",
+      "Accurate Thinking",
+      "Creative Vision",
+      "Learning from Adversity and Defeat",
+      "Enthusiasm",
+      "Controlled Attention",
+      "Organized Planning",
+      "Decision",
+    ];
+
+    const openai = getOpenAI();
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are a master storyteller channeling the wisdom of Napoleon Hill.
+
+Generate exactly 5 short allegorical stories (180–220 words each). Each story must:
+1. Feature a vivid, timeless fictional protagonist in a specific, concrete setting
+2. Embody ONE distinct Napoleon Hill principle (choose 5 different ones from the list)
+3. Subtly mirror the user's real patterns, challenges, or dreams WITHOUT naming them directly — weave them in allegorically
+4. Reach a wise, earned resolution with a clear takeaway lesson
+5. Feel timeless — like a fable from a great mentor
+
+Available principles: ${PRINCIPLES.join(", ")}
+
+USER CONTEXT (use this to personalize the stories):
+${userContext}
+
+STYLE: Evocative, direct, rich with sensory detail. No platitudes — every sentence must earn its place. The story should make the reader feel seen and moved.
+
+Respond with this exact JSON:
+{
+  "stories": [
+    {
+      "title": "Short evocative title (4–6 words)",
+      "principle": "The Napoleon Hill principle",
+      "story": "The full allegorical story (180–220 words)"
+    }
+  ]
+}`,
+        },
+        { role: "user", content: "Generate today's 5 wisdom stories." },
+      ],
+      max_tokens: 3000,
+      response_format: { type: "json_object" },
+    });
+
+    const raw = completion.choices[0].message.content ?? '{"stories":[]}';
+    let stories: { title: string; principle: string; story: string }[] = [];
+    try {
+      const parsed = JSON.parse(raw);
+      stories = parsed.stories ?? [];
+    } catch {
+      stories = [];
+    }
+
+    if (stories.length > 0) {
+      await ctx.runMutation(internal.aiInternal.saveInspiration, {
+        userId: args.userId,
+        date: today,
+        stories: stories.slice(0, 5),
+      });
+    }
+
+    return stories;
+  },
+});
+
 export const generateVisualizationsInternal = internalAction({
   args: { userId: v.id("users"), date: v.string() },
   handler: async (ctx, args) => {

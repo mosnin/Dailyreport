@@ -17,6 +17,7 @@ import type * as emailInternal from "../emailInternal.js";
 import type * as subscriptions from "../subscriptions.js";
 import type * as crons from "../crons.js";
 import type * as dreams from "../dreams.js";
+import type * as giving from "../giving.js";
 import type * as goals from "../goals.js";
 import type * as problems from "../problems.js";
 import type * as pushNotifications from "../pushNotifications.js";
@@ -43,6 +44,7 @@ declare const fullApi: ApiFromModules<{
   subscriptions: typeof subscriptions;
   crons: typeof crons;
   dreams: typeof dreams;
+  giving: typeof giving;
   goals: typeof goals;
   problems: typeof problems;
   pushNotifications: typeof pushNotifications;

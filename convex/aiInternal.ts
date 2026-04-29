@@ -267,3 +267,50 @@ export const getRecentReportsForInsights = internalQuery({
     return { daily, weekly };
   },
 });
+
+export const getInspirationForDate = internalQuery({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, args) =>
+    ctx.db
+      .query("inspirations")
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId).eq("date", args.date))
+      .unique(),
+});
+
+export const getInspirationForDatePublic = query({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return null;
+    return ctx.db
+      .query("inspirations")
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId).eq("date", args.date))
+      .unique();
+  },
+});
+
+export const saveInspiration = internalMutation({
+  args: {
+    userId: v.id("users"),
+    date: v.string(),
+    stories: v.array(v.object({ title: v.string(), principle: v.string(), story: v.string() })),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("inspirations")
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId).eq("date", args.date))
+      .unique();
+    if (existing) {
+      await ctx.db.patch(existing._id, { stories: args.stories, generatedAt: Date.now() });
+    } else {
+      await ctx.db.insert("inspirations", {
+        userId: args.userId,
+        date: args.date,
+        stories: args.stories,
+        generatedAt: Date.now(),
+      });
+    }
+  },
+});

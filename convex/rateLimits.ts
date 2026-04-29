@@ -33,6 +33,11 @@ const LIMITS: Record<string, Record<string, number>> = {
     pro: 10,
     unlimited: 50,
   },
+  inspiration: {
+    free: 2,
+    pro: 5,
+    unlimited: 20,
+  },
 };
 
 /**

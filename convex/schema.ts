@@ -147,4 +147,20 @@ export default defineSchema({
     date: v.string(),
     count: v.number(),
   }).index("by_user_action_date", ["userId", "action", "date"]),
+
+  givingEntries: defineTable({
+    userId: v.id("users"),
+    date: v.string(),
+    text: v.string(),
+    createdAt: v.number(),
+  }).index("by_user_date", ["userId", "date"]),
+
+  inspirations: defineTable({
+    userId: v.id("users"),
+    date: v.string(),
+    stories: v.array(
+      v.object({ title: v.string(), principle: v.string(), story: v.string() })
+    ),
+    generatedAt: v.number(),
+  }).index("by_user_date", ["userId", "date"]),
 });

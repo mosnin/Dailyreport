@@ -25,6 +25,8 @@ import {
   ShieldAlert,
   LogOut,
   AlignJustify,
+  Heart,
+  Lightbulb,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -52,6 +54,7 @@ const navGroups = [
       { href: "/problems", label: "Problems", icon: AlertOctagon },
       { href: "/affirmations", label: "Affirmations", icon: Flame },
       { href: "/dreams", label: "Dreams", icon: Telescope },
+      { href: "/giving", label: "Giving", icon: Heart },
       { href: "/customize", label: "Personalize", icon: Paintbrush },
     ],
   },
@@ -59,6 +62,7 @@ const navGroups = [
     label: "Discover",
     items: [
       { href: "/insights", label: "AI Insights", icon: BrainCircuit },
+      { href: "/inspiration", label: "Inspiration", icon: Lightbulb },
       { href: "/chat", label: "Chat", icon: MessageSquare },
       { href: "/analytics", label: "Analytics", icon: LineChart },
       { href: "/search", label: "Search", icon: ScanSearch },

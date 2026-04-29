@@ -25,6 +25,8 @@ import {
   ShieldAlert,
   LogOut,
   ChevronLeft,
+  Heart,
+  Lightbulb,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -52,6 +54,7 @@ const navGroups = [
       { href: "/problems", label: "Problems", icon: AlertOctagon, practice: null as PracticeKey | null },
       { href: "/affirmations", label: "Affirmations", icon: Flame, practice: "affirm" as PracticeKey },
       { href: "/dreams", label: "Dreams", icon: Telescope, practice: "viz" as PracticeKey },
+      { href: "/giving", label: "Giving", icon: Heart, practice: null as PracticeKey | null },
       { href: "/customize", label: "Personalize", icon: Paintbrush, practice: null as PracticeKey | null },
     ],
   },
@@ -59,6 +62,7 @@ const navGroups = [
     label: "Discover",
     items: [
       { href: "/insights", label: "AI Insights", icon: BrainCircuit, practice: null as PracticeKey | null },
+      { href: "/inspiration", label: "Inspiration", icon: Lightbulb, practice: null as PracticeKey | null },
       { href: "/chat", label: "Chat", icon: MessageSquare, practice: null as PracticeKey | null },
       { href: "/analytics", label: "Analytics", icon: LineChart, practice: null as PracticeKey | null },
       { href: "/search", label: "Search", icon: ScanSearch, practice: null as PracticeKey | null },
