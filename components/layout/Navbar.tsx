@@ -12,59 +12,19 @@ import {
   NotepadText,
   BookOpen,
   Crosshair,
-  AlertOctagon,
   Flame,
   Telescope,
   BrainCircuit,
-  MessageSquare,
-  ScanSearch,
-  LineChart,
-  CalendarDays,
   SlidersHorizontal,
-  Paintbrush,
   ShieldAlert,
   LogOut,
   AlignJustify,
-  ChevronRight,
   Heart,
   Lightbulb,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-// ── Mobile folder group ───────────────────────────────────────────────────
-
-function MobileFolderGroup({
-  icon: Icon,
-  label,
-  onClose,
-  children,
-}: {
-  icon: React.ElementType;
-  label: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="space-y-0.5">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2.5 w-full px-3 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-      >
-        <Icon className="w-3.5 h-3.5 shrink-0" />
-        <span className="flex-1 text-left">{label}</span>
-        <ChevronRight className={cn("w-3 h-3 transition-transform duration-200", open && "rotate-90")} />
-      </button>
-      {open && (
-        <div className="pl-3 space-y-0.5 border-l border-border/40 ml-3">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function MobileNavItem({
   href,
@@ -98,7 +58,13 @@ function MobileNavItem({
   );
 }
 
-// ── Navbar ────────────────────────────────────────────────────────────────
+function MobileSection({ label }: { label: string }) {
+  return (
+    <p className="px-3 pt-4 pb-1 text-[10px] font-semibold tracking-[0.14em] uppercase text-muted-foreground/40 select-none">
+      {label}
+    </p>
+  );
+}
 
 export function Navbar() {
   const pathname = usePathname();
@@ -139,39 +105,38 @@ export function Navbar() {
                 <Image src="/logo-dark.png" alt="DailyReport" width={1800} height={400} quality={100} className="h-7 w-auto hidden dark:block" />
               </Link>
             </div>
+
             <ScrollArea className="flex-1 min-h-0">
-              <nav className="flex flex-col gap-1 p-3">
-                {/* Primary */}
-                <div className="space-y-0.5 mb-2">
-                  <MobileNavItem href="/dashboard" label="Dashboard" icon={Gauge} active={is("/dashboard")} onClose={close} />
-                  <MobileNavItem href="/reports/daily" label="Daily Report" icon={NotepadText} active={is("/reports/daily")} onClose={close} dot={reportDone ? true : false} />
+              <nav className="flex flex-col p-3">
+
+                {/* Core */}
+                <div className="space-y-0.5">
+                  <MobileNavItem href="/dashboard"     label="Today"        icon={Gauge}       active={is("/dashboard")}     onClose={close} />
+                  <MobileNavItem href="/reports/daily" label="Daily Report" icon={NotepadText} active={is("/reports/daily")} onClose={close} dot={reportDone} />
                 </div>
 
                 {/* Practice */}
-                <MobileFolderGroup icon={Flame} label="Practice" onClose={close}>
-                  <MobileNavItem href="/affirmations" label="Affirmations" icon={Flame} active={is("/affirmations")} onClose={close} dot={affirmDone ? true : false} />
-                  <MobileNavItem href="/dreams" label="Dreams & Vision" icon={Telescope} active={is("/dreams")} onClose={close} dot={vizDone ? true : false} />
-                  <MobileNavItem href="/reports/weekly" label="Weekly Report" icon={BookOpen} active={is("/reports/weekly")} onClose={close} />
-                </MobileFolderGroup>
+                <MobileSection label="Practice" />
+                <div className="space-y-0.5">
+                  <MobileNavItem href="/affirmations"   label="Affirmations"   icon={Flame}     active={is("/affirmations")}   onClose={close} dot={affirmDone} />
+                  <MobileNavItem href="/dreams"         label="Dreams & Vision" icon={Telescope} active={is("/dreams")}         onClose={close} dot={vizDone} />
+                  <MobileNavItem href="/reports/weekly" label="Weekly Review"  icon={BookOpen}  active={is("/reports/weekly")} onClose={close} />
+                </div>
 
                 {/* Build */}
-                <MobileFolderGroup icon={Crosshair} label="Build" onClose={close}>
-                  <MobileNavItem href="/goals" label="Goals" icon={Crosshair} active={is("/goals")} onClose={close} />
-                  <MobileNavItem href="/problems" label="Problems" icon={AlertOctagon} active={is("/problems")} onClose={close} />
-                  <MobileNavItem href="/giving" label="Giving" icon={Heart} active={is("/giving")} onClose={close} />
-                </MobileFolderGroup>
+                <MobileSection label="Build" />
+                <div className="space-y-0.5">
+                  <MobileNavItem href="/goals"  label="Goals"  icon={Crosshair} active={is("/goals")}  onClose={close} />
+                  <MobileNavItem href="/giving" label="Giving" icon={Heart}     active={is("/giving")} onClose={close} />
+                </div>
 
-                {/* Explore */}
-                <MobileFolderGroup icon={BrainCircuit} label="Explore" onClose={close}>
-                  <MobileNavItem href="/insights" label="AI Insights" icon={BrainCircuit} active={is("/insights")} onClose={close} />
-                  <MobileNavItem href="/inspiration" label="Inspiration" icon={Lightbulb} active={is("/inspiration")} onClose={close} />
-                  <MobileNavItem href="/chat" label="Chat" icon={MessageSquare} active={is("/chat")} onClose={close} />
-                  <MobileNavItem href="/analytics" label="Analytics" icon={LineChart} active={is("/analytics")} onClose={close} />
-                  <MobileNavItem href="/calendar" label="Calendar" icon={CalendarDays} active={is("/calendar")} onClose={close} />
-                  <MobileNavItem href="/search" label="Search" icon={ScanSearch} active={is("/search")} onClose={close} />
-                </MobileFolderGroup>
+                {/* Reflect */}
+                <MobileSection label="Reflect" />
+                <div className="space-y-0.5 mb-2">
+                  <MobileNavItem href="/insights"    label="AI Insights" icon={BrainCircuit} active={is("/insights")}    onClose={close} />
+                  <MobileNavItem href="/inspiration" label="Inspiration" icon={Lightbulb}   active={is("/inspiration")} onClose={close} />
+                </div>
 
-                <MobileNavItem href="/customize" label="Personalize" icon={Paintbrush} active={is("/customize")} onClose={close} />
               </nav>
             </ScrollArea>
 
