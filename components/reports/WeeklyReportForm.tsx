@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -71,6 +71,10 @@ function hydrateResponses(raw: Record<string, unknown>): WeeklyReportResponses {
   return d;
 }
 
+function wordCount(text: string): number {
+  return text.trim() === "" ? 0 : text.trim().split(/\s+/).length;
+}
+
 // ── Sub-components ─────────────────────────────────────────────────────────
 
 function QuestionCard({ number, title, children }: { number: number; title: string; children: React.ReactNode }) {
@@ -91,6 +95,8 @@ function QuestionCard({ number, title, children }: { number: number; title: stri
 
 // ── Main form ──────────────────────────────────────────────────────────────
 
+const DRAFT_KEY_PREFIX = "weeklyreport-draft-";
+
 export function WeeklyReportForm({
   userId,
   initialResponses,
@@ -98,11 +104,29 @@ export function WeeklyReportForm({
   userId: Id<"users">;
   initialResponses?: Record<string, unknown>;
 }) {
-  const [r, setR] = useState<WeeklyReportResponses>(
-    initialResponses ? hydrateResponses(initialResponses) : defaultResponses()
-  );
+  const weekStart = currentWeekStartString();
+  const draftKey = `${DRAFT_KEY_PREFIX}${weekStart}`;
+  const isFreshForm = !initialResponses;
+
+  const [r, setR] = useState<WeeklyReportResponses>(() => {
+    if (initialResponses) return hydrateResponses(initialResponses);
+    try {
+      const saved = localStorage.getItem(draftKey);
+      if (saved) return hydrateResponses(JSON.parse(saved));
+    } catch {}
+    return defaultResponses();
+  });
+
   const [saving, setSaving] = useState(false);
   const submitWeekly = useMutation(api.reports.submitWeekly);
+
+  // Autosave draft to localStorage on every change (fresh forms only)
+  useEffect(() => {
+    if (!isFreshForm) return;
+    try {
+      localStorage.setItem(draftKey, JSON.stringify(r));
+    } catch {}
+  }, [r, isFreshForm, draftKey]);
 
   function set<K extends keyof WeeklyReportResponses>(key: K, value: WeeklyReportResponses[K]) {
     setR((prev) => ({ ...prev, [key]: value }));
@@ -120,7 +144,8 @@ export function WeeklyReportForm({
     }
     setSaving(true);
     try {
-      await submitWeekly({ userId, weekStartDate: currentWeekStartString(), responses: r });
+      await submitWeekly({ userId, weekStartDate: weekStart, responses: r });
+      try { localStorage.removeItem(draftKey); } catch {}
       toast.success("Weekly report submitted!");
     } catch {
       toast.error("Failed to save. Please try again.");
@@ -205,12 +230,17 @@ export function WeeklyReportForm({
 
       {/* Q1 */}
       <QuestionCard number={1} title="What did you do this week and how did you spend your time?">
-        <Textarea
-          value={r.weekActivity}
-          onChange={(e) => set("weekActivity", e.target.value)}
-          placeholder="Walk through your week..."
-          className="min-h-[120px] resize-none"
-        />
+        <div>
+          <Textarea
+            value={r.weekActivity}
+            onChange={(e) => set("weekActivity", e.target.value)}
+            placeholder="Walk through your week..."
+            className="min-h-[120px] resize-none"
+          />
+          <p className="text-xs text-muted-foreground/60 mt-1 text-right">
+            {wordCount(r.weekActivity)} {wordCount(r.weekActivity) === 1 ? "word" : "words"}
+          </p>
+        </div>
       </QuestionCard>
 
       {/* Q2 */}
@@ -433,12 +463,17 @@ export function WeeklyReportForm({
 
       {/* Q7 */}
       <QuestionCard number={7} title="What do you plan on doing next week? Problems / challenges?">
-        <Textarea
-          value={r.nextWeekPlan}
-          onChange={(e) => set("nextWeekPlan", e.target.value)}
-          placeholder="Next week's plan, anticipated problems and challenges..."
-          className="min-h-[120px] resize-none"
-        />
+        <div>
+          <Textarea
+            value={r.nextWeekPlan}
+            onChange={(e) => set("nextWeekPlan", e.target.value)}
+            placeholder="Next week's plan, anticipated problems and challenges..."
+            className="min-h-[120px] resize-none"
+          />
+          <p className="text-xs text-muted-foreground/60 mt-1 text-right">
+            {wordCount(r.nextWeekPlan)} {wordCount(r.nextWeekPlan) === 1 ? "word" : "words"}
+          </p>
+        </div>
       </QuestionCard>
 
       <Separator />

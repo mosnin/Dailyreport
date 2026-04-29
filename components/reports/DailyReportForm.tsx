@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -71,6 +71,10 @@ function hydrateResponses(raw: Record<string, unknown>): DailyReportResponses {
   return d;
 }
 
+function wordCount(text: string): number {
+  return text.trim() === "" ? 0 : text.trim().split(/\s+/).length;
+}
+
 // ── Sub-components ─────────────────────────────────────────────────────────
 
 function QuestionCard({ number, title, children }: { number: number; title: string; children: React.ReactNode }) {
@@ -91,6 +95,8 @@ function QuestionCard({ number, title, children }: { number: number; title: stri
 
 // ── Main form ──────────────────────────────────────────────────────────────
 
+const DRAFT_KEY_PREFIX = "dailyreport-draft-";
+
 export function DailyReportForm({
   userId,
   initialResponses,
@@ -98,11 +104,28 @@ export function DailyReportForm({
   userId: Id<"users">;
   initialResponses?: Record<string, unknown>;
 }) {
-  const [r, setR] = useState<DailyReportResponses>(
-    initialResponses ? hydrateResponses(initialResponses) : defaultResponses()
-  );
+  const draftKey = `${DRAFT_KEY_PREFIX}${todayString()}`;
+  const isFreshForm = !initialResponses;
+
+  const [r, setR] = useState<DailyReportResponses>(() => {
+    if (initialResponses) return hydrateResponses(initialResponses);
+    try {
+      const saved = localStorage.getItem(draftKey);
+      if (saved) return hydrateResponses(JSON.parse(saved));
+    } catch {}
+    return defaultResponses();
+  });
+
   const [saving, setSaving] = useState(false);
   const submitDaily = useMutation(api.reports.submitDaily);
+
+  // Autosave draft to localStorage on every change (fresh forms only)
+  useEffect(() => {
+    if (!isFreshForm) return;
+    try {
+      localStorage.setItem(draftKey, JSON.stringify(r));
+    } catch {}
+  }, [r, isFreshForm, draftKey]);
 
   function set<K extends keyof DailyReportResponses>(key: K, value: DailyReportResponses[K]) {
     setR((prev) => ({ ...prev, [key]: value }));
@@ -121,6 +144,7 @@ export function DailyReportForm({
     setSaving(true);
     try {
       await submitDaily({ userId, date: todayString(), responses: r });
+      try { localStorage.removeItem(draftKey); } catch {}
       toast.success("Daily report submitted!");
     } catch {
       toast.error("Failed to save. Please try again.");
@@ -205,12 +229,17 @@ export function DailyReportForm({
 
       {/* Q1 */}
       <QuestionCard number={1} title="What did you do today and how did you spend your time?">
-        <Textarea
-          value={r.dayActivity}
-          onChange={(e) => set("dayActivity", e.target.value)}
-          placeholder="Walk through your day..."
-          className="min-h-[120px] resize-none"
-        />
+        <div>
+          <Textarea
+            value={r.dayActivity}
+            onChange={(e) => set("dayActivity", e.target.value)}
+            placeholder="Walk through your day..."
+            className="min-h-[120px] resize-none"
+          />
+          <p className="text-xs text-muted-foreground/60 mt-1 text-right">
+            {wordCount(r.dayActivity)} {wordCount(r.dayActivity) === 1 ? "word" : "words"}
+          </p>
+        </div>
       </QuestionCard>
 
       {/* Q2 */}
@@ -433,12 +462,17 @@ export function DailyReportForm({
 
       {/* Q7 */}
       <QuestionCard number={7} title="What do you plan on doing tomorrow? Problems / challenges?">
-        <Textarea
-          value={r.tomorrowPlan}
-          onChange={(e) => set("tomorrowPlan", e.target.value)}
-          placeholder="Tomorrow's plan, anticipated problems and challenges..."
-          className="min-h-[120px] resize-none"
-        />
+        <div>
+          <Textarea
+            value={r.tomorrowPlan}
+            onChange={(e) => set("tomorrowPlan", e.target.value)}
+            placeholder="Tomorrow's plan, anticipated problems and challenges..."
+            className="min-h-[120px] resize-none"
+          />
+          <p className="text-xs text-muted-foreground/60 mt-1 text-right">
+            {wordCount(r.tomorrowPlan)} {wordCount(r.tomorrowPlan) === 1 ? "word" : "words"}
+          </p>
+        </div>
       </QuestionCard>
 
       <Separator />
