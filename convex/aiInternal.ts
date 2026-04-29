@@ -99,9 +99,9 @@ export const getGoalsForVisualization = internalQuery({
     const now = new Date();
     const year = String(now.getFullYear());
     const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    const [lifelong, yearly, monthly] = await Promise.all([
-      ctx.db.query("goals").withIndex("by_user_category_period", (q) =>
-        q.eq("userId", args.userId).eq("category", "lifelong").eq("periodKey", "all")
+    const [allDreams, yearly, monthly] = await Promise.all([
+      ctx.db.query("dreams").withIndex("by_user_category", (q) =>
+        q.eq("userId", args.userId)
       ).collect(),
       ctx.db.query("goals").withIndex("by_user_category_period", (q) =>
         q.eq("userId", args.userId).eq("category", "yearly").eq("periodKey", year)
@@ -110,11 +110,40 @@ export const getGoalsForVisualization = internalQuery({
         q.eq("userId", args.userId).eq("category", "monthly").eq("periodKey", month)
       ).collect(),
     ]);
+    const dreamsByCategory: Record<string, string[]> = {
+      financial: [],
+      health: [],
+      relationships: [],
+      other: [],
+    };
+    for (const d of allDreams) {
+      dreamsByCategory[d.category]?.push(d.title);
+    }
     return {
-      lifelong: lifelong.map((g) => g.title),
+      dreams: dreamsByCategory,
       yearly: yearly.map((g) => g.title),
       monthly: monthly.map((g) => g.title),
     };
+  },
+});
+
+export const getAllDreams = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const dreams = await ctx.db
+      .query("dreams")
+      .withIndex("by_user_category", (q) => q.eq("userId", args.userId))
+      .collect();
+    const byCategory: Record<string, string[]> = {
+      financial: [],
+      health: [],
+      relationships: [],
+      other: [],
+    };
+    for (const d of dreams) {
+      byCategory[d.category]?.push(d.title);
+    }
+    return byCategory;
   },
 });
 

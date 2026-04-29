@@ -45,7 +45,12 @@ export const completeOnboarding = mutation({
     userId: v.id("users"),
     bio: v.string(),
     timezone: v.string(),
-    lifeGoals: v.array(v.string()),
+    dreams: v.object({
+      financial: v.optional(v.string()),
+      health: v.optional(v.string()),
+      relationships: v.optional(v.string()),
+      other: v.optional(v.string()),
+    }),
     yearlyGoal: v.string(),
   },
   handler: async (ctx, args) => {
@@ -61,15 +66,17 @@ export const completeOnboarding = mutation({
     });
 
     const now = Date.now();
-    for (const title of args.lifeGoals.filter((g) => g.trim())) {
-      await ctx.db.insert("goals", {
-        userId: args.userId,
-        category: "lifelong",
-        periodKey: "all",
-        title: title.trim(),
-        completed: false,
-        createdAt: now,
-      });
+    const dreamCategories = ["financial", "health", "relationships", "other"] as const;
+    for (const cat of dreamCategories) {
+      const title = args.dreams[cat]?.trim();
+      if (title) {
+        await ctx.db.insert("dreams", {
+          userId: args.userId,
+          category: cat,
+          title,
+          createdAt: now,
+        });
+      }
     }
 
     if (args.yearlyGoal.trim()) {

@@ -31,13 +31,11 @@ export function formatDateLabel(dateStr: string): string {
 
 // ── Goals period keys ────────────────────────────────────────────────────────
 
-export type GoalCategory = "lifelong" | "yearly" | "quarterly" | "monthly" | "weekly";
+export type GoalCategory = "yearly" | "quarterly" | "monthly" | "weekly";
 
 export function currentPeriodKey(category: GoalCategory): string {
   const now = new Date();
   switch (category) {
-    case "lifelong":
-      return "all";
     case "yearly":
       return String(now.getFullYear());
     case "quarterly": {
@@ -52,7 +50,6 @@ export function currentPeriodKey(category: GoalCategory): string {
 }
 
 export function previousPeriodKey(category: GoalCategory, periodKey: string): string | null {
-  if (category === "lifelong") return null;
   switch (category) {
     case "yearly":
       return String(parseInt(periodKey) - 1);
@@ -76,7 +73,6 @@ export function previousPeriodKey(category: GoalCategory, periodKey: string): st
 }
 
 export function nextPeriodKey(category: GoalCategory, periodKey: string): string | null {
-  if (category === "lifelong") return null;
   const current = currentPeriodKey(category);
   if (periodKey >= current) return null;
   switch (category) {
@@ -110,8 +106,6 @@ const QUARTER_MONTHS: Record<number, string> = {
 
 export function periodLabel(category: GoalCategory, periodKey: string): string {
   switch (category) {
-    case "lifelong":
-      return "All time";
     case "yearly":
       return periodKey; // "2026"
     case "quarterly": {

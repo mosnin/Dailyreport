@@ -172,16 +172,36 @@ export const generateAffirmations = action({
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handler: async (ctx, args): Promise<any> => {
-    const reports = await ctx.runQuery(internal.aiInternal.getRecentReportsForInsights, {
-      userId: args.userId,
-    });
+    const [dreams, reports] = await Promise.all([
+      ctx.runQuery(internal.aiInternal.getAllDreams, { userId: args.userId }),
+      ctx.runQuery(internal.aiInternal.getRecentReportsForInsights, { userId: args.userId }),
+    ]);
 
-    const recentDaily = reports.daily
-      .slice(0, 7)
-      .map((r: { date: string; responses: unknown }) => reportToText(r.responses))
+    const dreamLines: string[] = [];
+    const categoryLabels: Record<string, string> = {
+      financial: "Financial",
+      health: "Health",
+      relationships: "Relationships",
+      other: "Other",
+    };
+    for (const [cat, titles] of Object.entries(dreams as Record<string, string[]>)) {
+      for (const t of titles) {
+        dreamLines.push(`[${categoryLabels[cat]}] ${t}`);
+      }
+    }
+
+    const recentDaily = (reports.daily as { date: string; responses: unknown }[])
+      .slice(0, 5)
+      .map((r) => reportToText(r.responses))
       .join("\n\n");
 
     const count = args.count ?? 5;
+    const dreamsContext = dreamLines.length
+      ? `User's dreams:\n${dreamLines.join("\n")}`
+      : "";
+    const reportsContext = recentDaily ? `Recent daily context:\n${recentDaily}` : "";
+    const userContent = [dreamsContext, reportsContext].filter(Boolean).join("\n\n")
+      || "No dreams set yet. Generate general positive affirmations.";
 
     const openai = getOpenAI();
     const completion = await openai.chat.completions.create({
@@ -189,24 +209,29 @@ export const generateAffirmations = action({
       messages: [
         {
           role: "system",
-          content: `You are a life coach creating personalized affirmations.
-Based on the user's recent reports (their goals, challenges, activities), generate ${count} powerful, personal, present-tense affirmations.
-Make them specific to the user's actual context — reference their real goals and challenges.
-Respond with this exact JSON shape: {"affirmations": ["I am...", "I have...", ...]}`,
+          content: `You are a life coach creating deeply personal present-tense affirmations rooted in the user's actual dreams.
+
+Each affirmation MUST follow this exact pattern:
+"I am so happy and grateful that I am [restate the dream as a present reality]"
+
+Rules:
+- Root every affirmation directly in one of the user's stated dreams — don't invent new goals
+- Write as though the dream is already fully realized, not being worked toward
+- Keep each affirmation to one sentence
+- Make them feel joyful, confident, and specific — not generic
+- Generate exactly ${count} affirmations
+
+Respond with this exact JSON: {"affirmations": ["I am so happy and grateful that I am ...", ...]}`,
         },
-        {
-          role: "user",
-          content: recentDaily || "No reports yet. Generate general positive affirmations.",
-        },
+        { role: "user", content: userContent },
       ],
-      max_tokens: 400,
+      max_tokens: 600,
       response_format: { type: "json_object" },
     });
 
     const raw = completion.choices[0].message.content ?? '{"affirmations":[]}';
     try {
       const parsed = JSON.parse(raw);
-      // Handle both {"affirmations": [...]} and bare array responses
       return Array.isArray(parsed) ? parsed : (parsed.affirmations ?? []);
     } catch {
       return [];
@@ -420,15 +445,22 @@ export const generateOnboardingAffirmations = action({
   args: {
     userId: v.id("users"),
     bio: v.string(),
-    lifeGoals: v.array(v.string()),
+    dreams: v.object({
+      financial: v.optional(v.string()),
+      health: v.optional(v.string()),
+      relationships: v.optional(v.string()),
+      other: v.optional(v.string()),
+    }),
     yearlyGoal: v.string(),
   },
   handler: async (ctx, args) => {
+    const dreamLines = Object.entries(args.dreams)
+      .filter(([, v]) => v?.trim())
+      .map(([cat, v]) => `- [${cat}] ${v}`);
+
     const context = [
       args.bio ? `About me: ${args.bio}` : "",
-      args.lifeGoals.length
-        ? `Life goals:\n${args.lifeGoals.map((g) => `- ${g}`).join("\n")}`
-        : "",
+      dreamLines.length ? `My dreams:\n${dreamLines.join("\n")}` : "",
       args.yearlyGoal ? `This year's focus: ${args.yearlyGoal}` : "",
     ]
       .filter(Boolean)
@@ -441,9 +473,17 @@ export const generateOnboardingAffirmations = action({
         {
           role: "system",
           content: `You are a life coach creating deeply personal affirmations for someone just starting their accountability journey.
-Based on their bio, life goals, and yearly focus, generate 5 powerful, personal, present-tense affirmations.
-Make them specific to who they actually are and what they're working toward — not generic.
-Respond with this exact JSON: {"affirmations": ["I am...", ...]}`,
+
+Each affirmation MUST follow this exact pattern:
+"I am so happy and grateful that I am [restate the dream as a present reality]"
+
+Rules:
+- Root every affirmation directly in one of the user's stated dreams — don't invent new goals
+- Write as though the dream is already fully realized
+- Keep each to one sentence, specific and joyful
+- Generate exactly 5 affirmations
+
+Respond with this exact JSON: {"affirmations": ["I am so happy and grateful that I am ...", ...]}`,
         },
         { role: "user", content: context || "Generate 5 powerful positive affirmations." },
       ],
@@ -495,15 +535,29 @@ async function doGenerateVisualizations(
   ]);
 
   const contextParts: string[] = [];
-  const allGoals = [
-    ...(goals.lifelong as string[]).map((t) => `- [lifelong] ${t}`),
+
+  const dreamsMap = goals.dreams as Record<string, string[]>;
+  const dreamLines: string[] = [];
+  const categoryLabels: Record<string, string> = {
+    financial: "Financial dream",
+    health: "Health dream",
+    relationships: "Relationships dream",
+    other: "Dream",
+  };
+  for (const [cat, titles] of Object.entries(dreamsMap)) {
+    for (const t of titles) dreamLines.push(`- [${categoryLabels[cat]}] ${t}`);
+  }
+  if (dreamLines.length) contextParts.push(`Life dreams:\n${dreamLines.join("\n")}`);
+
+  const goalLines = [
     ...(goals.yearly as string[]).map((t) => `- [this year] ${t}`),
     ...(goals.monthly as string[]).map((t) => `- [this month] ${t}`),
   ];
-  if (allGoals.length) contextParts.push(`Goals:\n${allGoals.join("\n")}`);
+  if (goalLines.length) contextParts.push(`Current goals:\n${goalLines.join("\n")}`);
+
   if ((problems as string[]).length)
     contextParts.push(
-      `Current challenges:\n${(problems as string[]).map((p) => `- ${p}`).join("\n")}`
+      `Current challenges to overcome:\n${(problems as string[]).map((p) => `- ${p}`).join("\n")}`
     );
 
   const openai = getOpenAI();
@@ -512,20 +566,22 @@ async function doGenerateVisualizations(
     messages: [
       {
         role: "system",
-        content: `You are creating personalized 60-second visualization scenarios for a daily mental rehearsal practice.
-Generate 10 vivid, grounded scenarios based on the user's goals and challenges.
+        content: `You are creating intensely personal 60-second visualization scenarios for a daily mental rehearsal practice.
 
-Each scenario must:
-- Be written in second person present tense ("You are...", "You walk into...", "You feel...")
-- Place the user inside a specific, concrete moment of success, clarity, or breakthrough
-- Be 2-3 sentences — brief enough to read in 15 seconds, rich enough to visualize for 60
-- Connect directly to an actual goal or challenge listed (not generic positivity)
-- Feel earned and real, like a moment the user is actively working toward
+Generate 10 sensory-immersive scenarios. Each must:
+- Place the user inside a SPECIFIC, CONCRETE moment where they have ALREADY achieved or solved the thing
+- Use rich sensory detail: what they see, hear, feel in their body, smell, the emotional weight of the moment
+- Write in second person present tense ("You are...", "You feel the weight of...")
+- Be 3-4 sentences — enough texture to close your eyes and be there for 60 seconds
+- Draw directly from the user's actual dreams, goals, or problems — not generic positivity
+- Frame problems as the moment they are fully solved (not the struggle)
+- Cover a mix of their dreams AND problems across the scenarios (not just one area)
+- Use language that makes the achievement feel REAL and FELT, not aspirational
 
 Respond with exactly this JSON:
 {
   "scenarios": [
-    { "title": "Short evocative title (4-6 words)", "description": "2-3 sentence vivid scene in second person present tense." }
+    { "title": "Short evocative title (4-6 words)", "description": "3-4 sentence sensory scene in second person present tense." }
   ]
 }`,
       },
@@ -533,10 +589,10 @@ Respond with exactly this JSON:
         role: "user",
         content: contextParts.length
           ? contextParts.join("\n\n")
-          : "No goals set yet. Generate 10 grounded success visualization scenarios for someone building better daily habits.",
+          : "No dreams set yet. Generate 10 sensory-immersive success visualization scenarios for someone building their ideal life.",
       },
     ],
-    max_tokens: 2000,
+    max_tokens: 2500,
     response_format: { type: "json_object" },
   });
 

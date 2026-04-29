@@ -1,13 +1,11 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-type GoalCategory = "lifelong" | "yearly" | "quarterly" | "monthly" | "weekly";
+type GoalCategory = "yearly" | "quarterly" | "monthly" | "weekly";
 
 function periodKeyFor(category: GoalCategory): string {
   const now = new Date();
   switch (category) {
-    case "lifelong":
-      return "all";
     case "yearly":
       return String(now.getFullYear());
     case "quarterly": {
@@ -32,13 +30,13 @@ function periodKeyFor(category: GoalCategory): string {
 }
 
 const CATEGORY = v.union(
-  v.literal("lifelong"),
   v.literal("yearly"),
   v.literal("quarterly"),
   v.literal("monthly"),
   v.literal("weekly")
 );
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function assertOwner(ctx: any, userId: string) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
@@ -54,7 +52,7 @@ export const getCurrentSummary = query({
     const user = await ctx.db.get(args.userId);
     if (!user || user.clerkId !== identity.subject) return null;
 
-    const categories: GoalCategory[] = ["lifelong", "yearly", "quarterly", "monthly", "weekly"];
+    const categories: GoalCategory[] = ["yearly", "quarterly", "monthly", "weekly"];
     const result: Record<string, { total: number; completed: number; periodKey: string }> = {};
 
     for (const category of categories) {

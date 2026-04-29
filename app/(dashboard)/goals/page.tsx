@@ -8,10 +8,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { type GoalCategory, periodLabel } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
-const CATEGORIES: GoalCategory[] = ["lifelong", "yearly", "quarterly", "monthly", "weekly"];
+const CATEGORIES: GoalCategory[] = ["yearly", "quarterly", "monthly", "weekly"];
 
 const CATEGORY_META: Record<GoalCategory, { label: string; color: string; dot: string }> = {
-  lifelong: { label: "Life", color: "text-purple-500", dot: "bg-purple-500" },
   yearly: { label: "Year", color: "text-blue-500", dot: "bg-blue-500" },
   quarterly: { label: "Quarter", color: "text-indigo-500", dot: "bg-indigo-500" },
   monthly: { label: "Month", color: "text-teal-500", dot: "bg-teal-500" },
@@ -30,7 +29,7 @@ export default function GoalsPage() {
       <div className="space-y-4 max-w-3xl">
         <Skeleton className="h-8 w-32" />
         <Skeleton className="h-20 w-full" />
-        {[0, 1, 2, 3, 4].map((i) => (
+        {[0, 1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-48 w-full" />
         ))}
       </div>
@@ -42,12 +41,12 @@ export default function GoalsPage() {
       <div>
         <h1 className="text-2xl font-bold">Goals</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Track what matters across every time horizon.
+          Track what you&apos;re working toward across every time horizon.
         </p>
       </div>
 
       {/* Overview strip */}
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         {CATEGORIES.map((cat) => {
           const meta = CATEGORY_META[cat];
           const data = summary?.[cat];
@@ -86,7 +85,7 @@ export default function GoalsPage() {
               )}
               {pk && (
                 <p className="text-[10px] text-muted-foreground/70 truncate leading-tight">
-                  {cat === "lifelong" ? "All time" : periodLabel(cat, pk)}
+                  {periodLabel(cat, pk)}
                 </p>
               )}
             </div>

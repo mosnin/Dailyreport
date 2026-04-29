@@ -6,7 +6,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
 import confetti from "canvas-confetti";
-import { Plus, X, ChevronRight, Loader2, Sparkles, Check } from "lucide-react";
+import { ChevronRight, Loader2, Sparkles, Check } from "lucide-react";
 
 function fireSideCannon() {
   const colors = ["#bb0000", "#0000ee"];
@@ -22,27 +22,45 @@ function fireSideCannon() {
 const TIMEZONES = Intl.supportedValuesOf
   ? Intl.supportedValuesOf("timeZone")
   : [
-      "America/New_York",
-      "America/Chicago",
-      "America/Denver",
-      "America/Los_Angeles",
-      "America/Anchorage",
-      "Pacific/Honolulu",
-      "Europe/London",
-      "Europe/Paris",
-      "Europe/Berlin",
-      "Asia/Tokyo",
-      "Asia/Shanghai",
-      "Asia/Kolkata",
-      "Australia/Sydney",
-      "Pacific/Auckland",
+      "America/New_York", "America/Chicago", "America/Denver",
+      "America/Los_Angeles", "America/Anchorage", "Pacific/Honolulu",
+      "Europe/London", "Europe/Paris", "Europe/Berlin",
+      "Asia/Tokyo", "Asia/Shanghai", "Asia/Kolkata",
+      "Australia/Sydney", "Pacific/Auckland",
     ];
 
 const STEPS = [
   { title: "About You", subtitle: "Tell us who you are and what drives you" },
-  { title: "Life Goals", subtitle: "What are you working toward in the long run?" },
+  { title: "Your Dreams", subtitle: "What does your ideal life look like?" },
   { title: "This Year", subtitle: "What's your main focus for this year?" },
   { title: "Your Timezone", subtitle: "We'll send reminders at 8pm in your local time" },
+];
+
+const DREAM_FIELDS = [
+  {
+    key: "financial" as const,
+    emoji: "💰",
+    label: "Financial",
+    placeholder: "e.g. Be worth multiple millions, own my dream home...",
+  },
+  {
+    key: "health" as const,
+    emoji: "❤️",
+    label: "Health",
+    placeholder: "e.g. Feel vibrant and energized every day, run a marathon...",
+  },
+  {
+    key: "relationships" as const,
+    emoji: "🤝",
+    label: "Relationships",
+    placeholder: "e.g. Have a deeply loving family, lifelong friendships...",
+  },
+  {
+    key: "other" as const,
+    emoji: "✨",
+    label: "Other",
+    placeholder: "e.g. Travel the world freely, leave a lasting legacy...",
+  },
 ];
 
 interface Props {
@@ -52,7 +70,7 @@ interface Props {
 export function OnboardingFlow({ userId }: Props) {
   const [step, setStep] = useState(0);
   const [bio, setBio] = useState("");
-  const [lifeGoals, setLifeGoals] = useState<string[]>([""]);
+  const [dreams, setDreams] = useState({ financial: "", health: "", relationships: "", other: "" });
   const [yearlyGoal, setYearlyGoal] = useState("");
   const [timezone, setTimezone] = useState(
     () => Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -64,27 +82,9 @@ export function OnboardingFlow({ userId }: Props) {
   const completeOnboarding = useMutation(api.users.completeOnboarding);
   const generateAffirmations = useAction(api.ai.generateOnboardingAffirmations);
 
-  function addGoal() {
-    if (lifeGoals.length < 5) setLifeGoals([...lifeGoals, ""]);
-  }
-
-  function updateGoal(i: number, value: string) {
-    const updated = [...lifeGoals];
-    updated[i] = value;
-    setLifeGoals(updated);
-  }
-
-  function removeGoal(i: number) {
-    if (lifeGoals.length === 1) {
-      setLifeGoals([""]);
-    } else {
-      setLifeGoals(lifeGoals.filter((_, idx) => idx !== i));
-    }
-  }
-
   function canAdvance() {
     if (step === 0) return bio.trim().length > 0;
-    if (step === 1) return lifeGoals.some((g) => g.trim().length > 0);
+    if (step === 1) return Object.values(dreams).some((v) => v.trim().length > 0);
     if (step === 2) return yearlyGoal.trim().length > 0;
     if (step === 3) return Boolean(timezone);
     return false;
@@ -94,16 +94,15 @@ export function OnboardingFlow({ userId }: Props) {
     setSubmitting(true);
     setError(null);
     try {
-      const validGoals = lifeGoals.filter((g) => g.trim());
-      await completeOnboarding({
-        userId,
-        bio,
-        timezone,
-        lifeGoals: validGoals,
-        yearlyGoal,
-      });
+      const dreamsPayload = {
+        financial: dreams.financial.trim() || undefined,
+        health: dreams.health.trim() || undefined,
+        relationships: dreams.relationships.trim() || undefined,
+        other: dreams.other.trim() || undefined,
+      };
+      await completeOnboarding({ userId, bio, timezone, dreams: dreamsPayload, yearlyGoal });
       try {
-        await generateAffirmations({ userId, bio, lifeGoals: validGoals, yearlyGoal });
+        await generateAffirmations({ userId, bio, dreams: dreamsPayload, yearlyGoal });
       } catch {
         // affirmation failure is non-fatal
       }
@@ -126,9 +125,9 @@ export function OnboardingFlow({ userId }: Props) {
             <Check className="w-8 h-8" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">You're all set!</h1>
+            <h1 className="text-2xl font-bold">You&apos;re all set!</h1>
             <p className="text-muted-foreground mt-2">
-              Your goals and personalized affirmations are ready. Start your first daily report.
+              Your dreams and personalized affirmations are ready. Start your first daily report.
             </p>
           </div>
           <a
@@ -177,9 +176,7 @@ export function OnboardingFlow({ userId }: Props) {
         <div className="bg-card border border-border rounded-xl p-6 space-y-4">
           {step === 0 && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Tell us about yourself
-              </label>
+              <label className="text-sm font-medium">Tell us about yourself</label>
               <textarea
                 autoFocus
                 value={bio}
@@ -189,53 +186,31 @@ export function OnboardingFlow({ userId }: Props) {
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-muted-foreground"
               />
               <p className="text-xs text-muted-foreground">
-                Be honest and personal — this helps personalize your affirmations.
+                Be honest and personal — this helps personalize your affirmations and visualizations.
               </p>
             </div>
           )}
 
           {step === 1 && (
-            <div className="space-y-3">
-              <label className="text-sm font-medium">
-                Your lifelong goals (up to 5)
-              </label>
-              <div className="space-y-2">
-                {lifeGoals.map((goal, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <input
-                      autoFocus={i === 0}
-                      type="text"
-                      value={goal}
-                      onChange={(e) => updateGoal(i, e.target.value)}
-                      placeholder={`Goal ${i + 1}`}
-                      className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-muted-foreground"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          if (i === lifeGoals.length - 1) addGoal();
-                        }
-                      }}
-                    />
-                    {lifeGoals.length > 1 && (
-                      <button
-                        onClick={() => removeGoal(i)}
-                        className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              {lifeGoals.length < 5 && (
-                <button
-                  onClick={addGoal}
-                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add another goal
-                </button>
-              )}
+            <div className="space-y-4">
+              <p className="text-xs text-muted-foreground">
+                Fill in at least one category. You can add more dreams anytime on the Dreams page.
+              </p>
+              {DREAM_FIELDS.map(({ key, emoji, label, placeholder }) => (
+                <div key={key} className="space-y-1.5">
+                  <label className="flex items-center gap-1.5 text-sm font-medium">
+                    <span>{emoji}</span>
+                    {label}
+                  </label>
+                  <input
+                    type="text"
+                    value={dreams[key]}
+                    onChange={(e) => setDreams((d) => ({ ...d, [key]: e.target.value }))}
+                    placeholder={placeholder}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-muted-foreground"
+                  />
+                </div>
+              ))}
             </div>
           )}
 
@@ -275,9 +250,7 @@ export function OnboardingFlow({ userId }: Props) {
             </div>
           )}
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 
         {/* Navigation */}

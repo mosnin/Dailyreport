@@ -19,11 +19,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Trash2, CheckCircle2, Circle, ChevronLeft, ChevronRight } from "lucide-react";
 
 const CATEGORY_META: Record<GoalCategory, { label: string; description: string; color: string }> = {
-  lifelong: {
-    label: "Life Goals",
-    description: "What you want to achieve across your lifetime",
-    color: "text-purple-500",
-  },
   yearly: {
     label: "Yearly Goals",
     description: "What you want to accomplish this year",
@@ -109,7 +104,7 @@ export function GoalSection({
           {/* Period navigator */}
           <div className="shrink-0 flex flex-col items-end gap-1">
             <div className="flex items-center gap-1">
-              {prevKey && category !== "lifelong" && (
+              {prevKey && (
                 <button
                   onClick={() => setPeriodKey(prevKey)}
                   className="p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"

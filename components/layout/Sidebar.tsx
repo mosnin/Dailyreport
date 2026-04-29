@@ -41,7 +41,7 @@ const navGroups = [
       { href: "/goals", label: "Goals", icon: Target },
       { href: "/problems", label: "Problems", icon: TriangleAlert },
       { href: "/affirmations", label: "Affirmations", icon: Star },
-      { href: "/dreams", label: "Visualizations", icon: Eye },
+      { href: "/dreams", label: "Dreams", icon: Eye },
     ],
   },
   {

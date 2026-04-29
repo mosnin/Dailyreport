@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CheckCircle2, Eye, RefreshCw, Play, ChevronRight, Loader2 } from "lucide-react";
+import { DreamsManagement } from "./DreamsManagement";
 
 // ── Countdown ring ─────────────────────────────────────────────────────────
 
@@ -201,29 +202,41 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
 
   if (viz === undefined || (viz === null && generating)) {
     return (
-      <div className="max-w-3xl mx-auto">
-        <div className="flex items-center gap-3 mb-8">
-          <Eye className="w-5 h-5 text-sky-500" />
-          <h1 className="text-xl font-semibold">Today&apos;s Visualizations</h1>
-        </div>
-        <div className="flex flex-col items-center justify-center py-24 gap-4">
-          <Loader2 className="w-6 h-6 text-sky-500 animate-spin" />
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            Generating your visualizations&hellip;
-          </p>
+      <div className="max-w-3xl mx-auto space-y-10">
+        <DreamsManagement userId={userId} />
+        <div className="border-t border-border" />
+        <div>
+          <div className="flex items-center gap-3 mb-8">
+            <Eye className="w-5 h-5 text-sky-500" />
+            <h2 className="text-xl font-semibold">Today&apos;s Visualizations</h2>
+          </div>
+          <div className="flex flex-col items-center justify-center py-16 gap-4">
+            <Loader2 className="w-6 h-6 text-sky-500 animate-spin" />
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              Generating your visualizations&hellip;
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto space-y-10">
+      {/* ── Dream management ── */}
+      <DreamsManagement userId={userId} />
+
+      {/* ── Divider ── */}
+      <div className="border-t border-border" />
+
+      {/* ── Visualizations ── */}
+      <div>
       {/* ── Header ── */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
             <Eye className="w-5 h-5 text-sky-500" />
-            <h1 className="text-xl font-semibold">Today&apos;s Visualizations</h1>
+            <h2 className="text-xl font-semibold">Today&apos;s Visualizations</h2>
           </div>
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
             {new Date().toLocaleDateString("en-US", {
@@ -401,6 +414,7 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
           </div>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }
