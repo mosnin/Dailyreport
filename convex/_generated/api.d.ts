@@ -11,6 +11,7 @@
 import type * as affirmations from "../affirmations.js";
 import type * as ai from "../ai.js";
 import type * as aiInternal from "../aiInternal.js";
+import type * as analytics from "../analytics.js";
 import type * as crons from "../crons.js";
 import type * as dreams from "../dreams.js";
 import type * as goals from "../goals.js";
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   affirmations: typeof affirmations;
   ai: typeof ai;
   aiInternal: typeof aiInternal;
+  analytics: typeof analytics;
   crons: typeof crons;
   dreams: typeof dreams;
   goals: typeof goals;

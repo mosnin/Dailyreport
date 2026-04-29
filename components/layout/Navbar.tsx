@@ -18,6 +18,7 @@ import {
   Telescope,
   BrainCircuit,
   ScanSearch,
+  LineChart,
   SlidersHorizontal,
   Paintbrush,
   LogOut,
@@ -56,6 +57,7 @@ const navGroups = [
     label: "Discover",
     items: [
       { href: "/insights", label: "AI Insights", icon: BrainCircuit },
+      { href: "/analytics", label: "Analytics", icon: LineChart },
       { href: "/search", label: "Search", icon: ScanSearch },
     ],
   },
