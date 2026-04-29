@@ -474,6 +474,105 @@ Respond with this exact JSON: {"affirmations": ["I am...", ...]}`,
   },
 });
 
+async function doGenerateVisualizations(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ctx: any,
+  userId: string,
+  date: string,
+  force: boolean
+) {
+  if (!force) {
+    const existing = await ctx.runQuery(internal.aiInternal.getVisualizationForDate, {
+      userId,
+      date,
+    });
+    if (existing) return;
+  }
+
+  const [goals, problems] = await Promise.all([
+    ctx.runQuery(internal.aiInternal.getGoalsForVisualization, { userId }),
+    ctx.runQuery(internal.aiInternal.getProblemsForVisualization, { userId }),
+  ]);
+
+  const contextParts: string[] = [];
+  const allGoals = [
+    ...(goals.lifelong as string[]).map((t) => `- [lifelong] ${t}`),
+    ...(goals.yearly as string[]).map((t) => `- [this year] ${t}`),
+    ...(goals.monthly as string[]).map((t) => `- [this month] ${t}`),
+  ];
+  if (allGoals.length) contextParts.push(`Goals:\n${allGoals.join("\n")}`);
+  if ((problems as string[]).length)
+    contextParts.push(
+      `Current challenges:\n${(problems as string[]).map((p) => `- ${p}`).join("\n")}`
+    );
+
+  const openai = getOpenAI();
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      {
+        role: "system",
+        content: `You are creating personalized 60-second visualization scenarios for a daily mental rehearsal practice.
+Generate 10 vivid, grounded scenarios based on the user's goals and challenges.
+
+Each scenario must:
+- Be written in second person present tense ("You are...", "You walk into...", "You feel...")
+- Place the user inside a specific, concrete moment of success, clarity, or breakthrough
+- Be 2-3 sentences — brief enough to read in 15 seconds, rich enough to visualize for 60
+- Connect directly to an actual goal or challenge listed (not generic positivity)
+- Feel earned and real, like a moment the user is actively working toward
+
+Respond with exactly this JSON:
+{
+  "scenarios": [
+    { "title": "Short evocative title (4-6 words)", "description": "2-3 sentence vivid scene in second person present tense." }
+  ]
+}`,
+      },
+      {
+        role: "user",
+        content: contextParts.length
+          ? contextParts.join("\n\n")
+          : "No goals set yet. Generate 10 grounded success visualization scenarios for someone building better daily habits.",
+      },
+    ],
+    max_tokens: 2000,
+    response_format: { type: "json_object" },
+  });
+
+  const raw = completion.choices[0].message.content ?? '{"scenarios":[]}';
+  let scenarios: { title: string; description: string }[] = [];
+  try {
+    const parsed = JSON.parse(raw);
+    scenarios = parsed.scenarios ?? [];
+  } catch {
+    scenarios = [];
+  }
+
+  if (scenarios.length === 0) return;
+
+  await ctx.runMutation(internal.aiInternal.saveVisualizationScenarios, {
+    userId,
+    date,
+    scenarios: scenarios.slice(0, 10),
+  });
+}
+
+export const generateVisualizations = action({
+  args: { userId: v.id("users"), force: v.optional(v.boolean()) },
+  handler: async (ctx, args) => {
+    const today = new Date().toISOString().split("T")[0];
+    await doGenerateVisualizations(ctx, args.userId, today, args.force ?? false);
+  },
+});
+
+export const generateVisualizationsInternal = internalAction({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, args) => {
+    await doGenerateVisualizations(ctx, args.userId, args.date, false);
+  },
+});
+
 export const chat = action({
   args: {
     userId: v.id("users"),

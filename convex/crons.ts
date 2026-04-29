@@ -7,6 +7,7 @@ import { v } from "convex/values";
 const crons = cronJobs();
 
 crons.hourly("check-8pm-notifications", { minuteUTC: 0 }, internal.crons.checkNotifications);
+crons.daily("generate-daily-visualizations", { hourUTC: 0, minuteUTC: 0 }, internal.crons.generateVisualizationsForAllUsers);
 
 export default crons;
 
@@ -96,6 +97,25 @@ export const generateInsightsForAllUsers = internalAction({
         userId: user._id,
         weekStartDate,
       });
+    }
+  },
+});
+
+export const generateVisualizationsForAllUsers = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.runQuery(internal.crons.getAllUsers);
+    const today = new Date().toISOString().split("T")[0];
+    for (const user of users) {
+      if (!user.onboardingComplete) continue;
+      try {
+        await ctx.runAction(internal.ai.generateVisualizationsInternal, {
+          userId: user._id,
+          date: today,
+        });
+      } catch (err) {
+        console.error(`generateVisualizationsForAllUsers failed for ${user._id}:`, err);
+      }
     }
   },
 });

@@ -93,6 +93,100 @@ export const getLatestInsight = query({
   },
 });
 
+export const getGoalsForVisualization = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const now = new Date();
+    const year = String(now.getFullYear());
+    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const [lifelong, yearly, monthly] = await Promise.all([
+      ctx.db.query("goals").withIndex("by_user_category_period", (q) =>
+        q.eq("userId", args.userId).eq("category", "lifelong").eq("periodKey", "all")
+      ).collect(),
+      ctx.db.query("goals").withIndex("by_user_category_period", (q) =>
+        q.eq("userId", args.userId).eq("category", "yearly").eq("periodKey", year)
+      ).collect(),
+      ctx.db.query("goals").withIndex("by_user_category_period", (q) =>
+        q.eq("userId", args.userId).eq("category", "monthly").eq("periodKey", month)
+      ).collect(),
+    ]);
+    return {
+      lifelong: lifelong.map((g) => g.title),
+      yearly: yearly.map((g) => g.title),
+      monthly: monthly.map((g) => g.title),
+    };
+  },
+});
+
+export const getProblemsForVisualization = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const reports = await ctx.db
+      .query("dailyReports")
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .take(7);
+    const seen = new Set<string>();
+    const problems: string[] = [];
+    for (const report of reports) {
+      const responses = report.responses as Record<string, unknown>;
+      if (Array.isArray(responses?.problemsToSolve)) {
+        for (const p of responses.problemsToSolve as Array<{ title?: string }>) {
+          const key = p.title?.trim().toLowerCase();
+          if (key && !seen.has(key)) {
+            seen.add(key);
+            problems.push(p.title!.trim());
+          }
+        }
+      }
+    }
+    return problems.slice(0, 5);
+  },
+});
+
+export const getVisualizationForDate = internalQuery({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, args) => {
+    return ctx.db
+      .query("visualizations")
+      .withIndex("by_user_date", (q) =>
+        q.eq("userId", args.userId).eq("date", args.date)
+      )
+      .unique();
+  },
+});
+
+export const saveVisualizationScenarios = internalMutation({
+  args: {
+    userId: v.id("users"),
+    date: v.string(),
+    scenarios: v.array(v.object({ title: v.string(), description: v.string() })),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("visualizations")
+      .withIndex("by_user_date", (q) =>
+        q.eq("userId", args.userId).eq("date", args.date)
+      )
+      .unique();
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        scenarios: args.scenarios,
+        completedIndexes: [],
+        generatedAt: Date.now(),
+      });
+    } else {
+      await ctx.db.insert("visualizations", {
+        userId: args.userId,
+        date: args.date,
+        scenarios: args.scenarios,
+        completedIndexes: [],
+        generatedAt: Date.now(),
+      });
+    }
+  },
+});
+
 export const getRecentReportsForInsights = internalQuery({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {

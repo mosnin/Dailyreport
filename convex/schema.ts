@@ -79,6 +79,16 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_user_title", ["userId", "problemTitle"]),
 
+  visualizations: defineTable({
+    userId: v.id("users"),
+    date: v.string(),
+    scenarios: v.array(
+      v.object({ title: v.string(), description: v.string() })
+    ),
+    completedIndexes: v.array(v.number()),
+    generatedAt: v.number(),
+  }).index("by_user_date", ["userId", "date"]),
+
   goals: defineTable({
     userId: v.id("users"),
     category: v.union(
