@@ -201,10 +201,7 @@ export default function CustomizePage() {
     <div className="max-w-2xl space-y-10">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2.5">
-          <Paintbrush className="w-6 h-6 text-primary" />
-          Personalize
-        </h1>
+        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Personalize</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Choose how your affirmations and visualizations are written. Applied the next time you generate.
         </p>

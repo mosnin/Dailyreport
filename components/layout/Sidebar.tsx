@@ -19,9 +19,9 @@ import {
   ShieldAlert,
   LogOut,
   ChevronLeft,
-  ChevronRight,
   Heart,
   Lightbulb,
+  AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -180,8 +180,9 @@ export function Sidebar() {
         {/* Build */}
         <Section label="Build" collapsed={collapsed} />
         <div className="space-y-0.5">
-          <NavItem href="/goals"  label="Goals"  icon={Crosshair} active={is("/goals")}  collapsed={collapsed} />
-          <NavItem href="/giving" label="Giving" icon={Heart}     active={is("/giving")} collapsed={collapsed} />
+          <NavItem href="/goals"    label="Goals"    icon={Crosshair}   active={is("/goals")}    collapsed={collapsed} />
+          <NavItem href="/problems" label="Problems" icon={AlertCircle} active={is("/problems")} collapsed={collapsed} />
+          <NavItem href="/giving"   label="Giving"   icon={Heart}       active={is("/giving")}   collapsed={collapsed} />
         </div>
 
         {/* Reflect */}

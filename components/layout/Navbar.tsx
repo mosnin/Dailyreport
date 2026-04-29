@@ -21,6 +21,7 @@ import {
   AlignJustify,
   Heart,
   Lightbulb,
+  AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -126,8 +127,9 @@ export function Navbar() {
                 {/* Build */}
                 <MobileSection label="Build" />
                 <div className="space-y-0.5">
-                  <MobileNavItem href="/goals"  label="Goals"  icon={Crosshair} active={is("/goals")}  onClose={close} />
-                  <MobileNavItem href="/giving" label="Giving" icon={Heart}     active={is("/giving")} onClose={close} />
+                  <MobileNavItem href="/goals"    label="Goals"    icon={Crosshair}   active={is("/goals")}    onClose={close} />
+                  <MobileNavItem href="/problems" label="Problems" icon={AlertCircle} active={is("/problems")} onClose={close} />
+                  <MobileNavItem href="/giving"   label="Giving"   icon={Heart}       active={is("/giving")}   onClose={close} />
                 </div>
 
                 {/* Reflect */}

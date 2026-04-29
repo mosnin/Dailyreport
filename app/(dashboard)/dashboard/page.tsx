@@ -13,7 +13,7 @@ import { ScoreChart } from "@/components/dashboard/ScoreChart";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { todayString } from "@/lib/utils";
-import { Bell, ArrowRight, Flame, Check, BookOpen, Sparkles } from "lucide-react";
+import { Bell, ArrowRight, Flame, Check, BookOpen, Sparkles, AlertCircle } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
@@ -100,6 +100,10 @@ export default function DashboardPage() {
     api.aiInternal.getDailyBriefPublic,
     convexUserId ? { userId: convexUserId, date: todayString() } : "skip"
   );
+  const allProblems = useQuery(
+    api.problems.getAllProblems,
+    convexUserId ? { userId: convexUserId } : "skip"
+  ) as Array<{ solvedManually: boolean | null; aiResolved: boolean | null }> | undefined;
   const generateBrief = useAction(api.ai.generateMorningBrief);
   const briefTriggered = useRef(false);
 
@@ -118,6 +122,9 @@ export default function DashboardPage() {
 
   const firstName = user?.firstName ?? null;
   const allDone = reportDone && affirmDone && vizDone;
+  const openProblems = (allProblems ?? []).filter(
+    (p) => p.solvedManually !== true && !(p.solvedManually === null && p.aiResolved === true)
+  ).length;
 
   return (
     <div className="max-w-lg space-y-8">
@@ -230,6 +237,24 @@ export default function DashboardPage() {
               <RitualStep done={affirmDone} label="Affirmations"   sub="5 rounds" href="/affirmations" icon={Sparkles} index={1} />
               <RitualStep done={vizDone}    label="Visualizations"  sub="60-second scenes" href="/dreams" icon={BookOpen} index={2} />
             </div>
+
+            {/* Open problems nudge */}
+            {openProblems > 0 && (
+              <motion.div {...fadeUp(0.28)}>
+                <Link
+                  href="/problems"
+                  className="flex items-center justify-between rounded-xl px-4 py-3 bg-muted/40 hover:bg-muted/60 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span className="text-sm text-muted-foreground">
+                      {openProblems} open problem{openProblems === 1 ? "" : "s"}
+                    </span>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground/40" />
+                </Link>
+              </motion.div>
+            )}
 
             {/* Stats + history */}
             <motion.div {...fadeUp(0.3)}><StatsBar userId={convexUserId} /></motion.div>

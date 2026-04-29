@@ -210,7 +210,7 @@ export default function ProblemsPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Problems</h1>
+          <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Problems</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             All problems you&apos;ve logged across your daily reports, tracked in one place.
           </p>

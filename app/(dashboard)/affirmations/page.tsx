@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import Link from "next/link";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -389,7 +390,7 @@ function AddRow({
 // ── Main page ─────────────────────────────────────────────────────────────
 
 export default function AffirmationsPage() {
-  const { convexUserId, isLoading } = useConvexUser();
+  const { convexUserId, convexUser, isLoading } = useConvexUser();
   const todayStr = today();
 
   const affirmations = useQuery(
@@ -668,24 +669,36 @@ export default function AffirmationsPage() {
       </div>
 
       {/* AI generate */}
-      <div className="rounded-2xl border border-border bg-card p-4 flex items-center justify-between gap-4">
-        <div>
-          <p className="text-sm font-medium flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-sky-500" />
-            Generate with AI
-          </p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Craft 5 affirmations from your dreams — added to your practice pool.
-          </p>
+      <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-sky-500" />
+              Generate with AI
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Craft 5 affirmations from your dreams — added to your practice pool.
+            </p>
+          </div>
+          <button
+            onClick={handleGenerate}
+            disabled={generating}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-border hover:bg-accent transition-colors disabled:opacity-50 shrink-0"
+          >
+            {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+            {generating ? "Generating…" : "Generate"}
+          </button>
         </div>
-        <button
-          onClick={handleGenerate}
-          disabled={generating}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-border hover:bg-accent transition-colors disabled:opacity-50 shrink-0"
-        >
-          {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-          {generating ? "Generating…" : "Generate"}
-        </button>
+        <div className="flex items-center justify-between border-t border-border/40 pt-2.5">
+          <span className="text-xs text-muted-foreground/50">
+            Style: <span className="text-muted-foreground capitalize">
+              {((convexUser as { affirmationStyle?: string } | null | undefined)?.affirmationStyle ?? "grateful").replace(/_/g, " ")}
+            </span>
+          </span>
+          <Link href="/customize" className="text-xs text-muted-foreground/50 hover:text-primary transition-colors">
+            Personalize →
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CheckCircle2, Eye, RefreshCw, Play, ChevronRight, Loader2 } from "lucide-react";
+import Link from "next/link";
 import { DreamsManagement } from "./DreamsManagement";
 
 // ── Countdown ring ─────────────────────────────────────────────────────────
@@ -247,14 +248,22 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
           </p>
         </div>
 
-        <button
-          onClick={handleRegenerate}
-          disabled={generating}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-neutral-200 dark:border-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className={cn("w-3 h-3", generating && "animate-spin")} />
-          Regenerate
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/customize"
+            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-neutral-200 dark:border-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors"
+          >
+            Style →
+          </Link>
+          <button
+            onClick={handleRegenerate}
+            disabled={generating}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-neutral-200 dark:border-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={cn("w-3 h-3", generating && "animate-spin")} />
+            Regenerate
+          </button>
+        </div>
       </div>
 
       {/* ── Progress ── */}
