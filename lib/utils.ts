@@ -14,6 +14,17 @@ export function currentWeekStartString(): string {
   return format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
 }
 
+export function isSunday(date: Date = new Date()): boolean {
+  return date.getDay() === 0;
+}
+
+export function nextSundayDate(): Date {
+  const d = new Date();
+  const daysUntilSunday = (7 - d.getDay()) % 7 || 7;
+  d.setDate(d.getDate() + daysUntilSunday);
+  return d;
+}
+
 export function formatDateLabel(dateStr: string): string {
   return format(new Date(dateStr + "T12:00:00"), "MMMM d, yyyy");
 }

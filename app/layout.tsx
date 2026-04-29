@@ -11,6 +11,12 @@ export const metadata: Metadata = {
   title: "Daily Report",
   description: "Accountability through daily and weekly reporting",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon.png", type: "image/png" },
+    ],
+    apple: [{ url: "/favicon.png" }],
+  },
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Daily Report" },
 };
 
