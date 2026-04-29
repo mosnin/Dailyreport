@@ -126,6 +126,28 @@ export const migrateLifelongGoals = mutation({
   },
 });
 
+export const updateStyles = mutation({
+  args: {
+    userId: v.id("users"),
+    affirmationStyle: v.optional(v.string()),
+    affirmationCustomInstructions: v.optional(v.string()),
+    visualizationStyle: v.optional(v.string()),
+    visualizationCustomInstructions: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+    await ctx.db.patch(args.userId, {
+      affirmationStyle: args.affirmationStyle,
+      affirmationCustomInstructions: args.affirmationCustomInstructions,
+      visualizationStyle: args.visualizationStyle,
+      visualizationCustomInstructions: args.visualizationCustomInstructions,
+    });
+  },
+});
+
 export const updateTimezone = mutation({
   args: { userId: v.id("users"), timezone: v.string() },
   handler: async (ctx, args) => {

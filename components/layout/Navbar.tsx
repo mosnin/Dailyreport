@@ -19,6 +19,7 @@ import {
   BrainCircuit,
   ScanSearch,
   SlidersHorizontal,
+  Paintbrush,
   LogOut,
   AlignJustify,
 } from "lucide-react";
@@ -48,6 +49,7 @@ const navGroups = [
       { href: "/problems", label: "Problems", icon: AlertOctagon },
       { href: "/affirmations", label: "Affirmations", icon: Flame },
       { href: "/dreams", label: "Dreams", icon: Telescope },
+      { href: "/customize", label: "Personalize", icon: Paintbrush },
     ],
   },
   {

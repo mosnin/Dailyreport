@@ -10,6 +10,10 @@ export default defineSchema({
     bio: v.optional(v.string()),
     onboardingComplete: v.optional(v.boolean()),
     lifelongMigrated: v.optional(v.boolean()),
+    affirmationStyle: v.optional(v.string()),
+    affirmationCustomInstructions: v.optional(v.string()),
+    visualizationStyle: v.optional(v.string()),
+    visualizationCustomInstructions: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_clerk_id", ["clerkId"]),
 

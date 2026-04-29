@@ -93,6 +93,19 @@ export const getLatestInsight = query({
   },
 });
 
+export const getUserStyles = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    return {
+      affirmationStyle: user?.affirmationStyle ?? "grateful",
+      affirmationCustomInstructions: user?.affirmationCustomInstructions ?? null,
+      visualizationStyle: user?.visualizationStyle ?? "cinematic",
+      visualizationCustomInstructions: user?.visualizationCustomInstructions ?? null,
+    };
+  },
+});
+
 export const getGoalsForVisualization = internalQuery({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {

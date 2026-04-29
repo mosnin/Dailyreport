@@ -9,6 +9,69 @@ function getOpenAI() {
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
 
+function affirmationStylePrompt(style: string, customInstructions: string | null): string {
+  switch (style) {
+    case "power":
+      return `Each affirmation must be short, commanding, and declarative (2–3 short punchy sentences max).
+Present tense only. No soft language — bold, direct, owned.
+Example: "I run a seven-figure business. Every move I make compounds my power. I am built for this."`;
+    case "spiritual":
+      return `Each affirmation should feel deeply spiritual and energetically resonant.
+Use language around universal alignment, divine flow, energy, and infinite abundance.
+Example: "The universe has already delivered this into my reality. I am a vessel of infinite abundance, in perfect alignment with all I desire."`;
+    case "poetic":
+      return `Each affirmation should be beautifully written with original metaphor and lyrical language.
+Avoid clichés. Use evocative imagery rooted in the user's specific dream or goal.
+Example: "Like a river that carves through stone with patient certainty, I have carved my path — and wealth flows to me as naturally as water finds the sea."`;
+    case "identity":
+      return `Each affirmation should focus on the identity of the person — WHO they are, not just what they have.
+Begin with or include phrases like "I am the kind of person who..." or ground in a core identity statement.
+Example: "I am the kind of person who builds extraordinary things. Creating wealth isn't something I chase — it's simply who I am at my core."`;
+    case "custom":
+      return customInstructions?.trim()
+        ? customInstructions.trim()
+        : `Write powerful, personal affirmations in present tense rooted in the user's dreams and goals.`;
+    default: // "grateful"
+      return `Each affirmation MUST follow this exact pattern:
+"I am so happy and grateful that I am [restate the dream/goal as a present reality]"
+Write as though the dream is already fully realized. Keep each to one joyful, specific sentence.`;
+  }
+}
+
+function visualizationStylePrompt(style: string, customInstructions: string | null): string {
+  switch (style) {
+    case "meditative":
+      return `Generate calm, meditative visualization scenarios. Slow pace, breath-anchored, gentle body awareness.
+No high drama or peak performance — pure peaceful knowing that the dream has arrived.
+Use soft, present-moment sensory detail: warmth in the chest, settled breathing, quiet joy, spaciousness.
+Write in second person present tense, 3–4 sentences.`;
+    case "athletic":
+      return `Generate high-energy, peak-performance visualization scenarios. Adrenaline, physical power, sharp mental focus, the electricity of being completely dialed in.
+The user is operating at their absolute best — a warrior, a champion at the moment of victory.
+Use intense, kinetic language. Heart rate, breath, muscle memory, the surge of winning.
+Write in second person present tense, 3–4 sentences.`;
+    case "spiritual":
+      return `Generate spiritually-oriented visualization scenarios. Light expanding from the heart center, energy fields, divine alignment, the higher self witnessing the fulfilled dream.
+Use language of universal love, quantum possibility, divine timing, and energetic truth.
+The scene should feel transcendent and deeply connected to something larger than the individual.
+Write in second person present tense, 3–4 sentences.`;
+    case "narrative":
+      return `Generate first-person narrative scenarios with a brief story arc: first a flash of remembering the struggle, then arriving fully in the moment of resolution.
+The story has a beginning (a nod to who you were), a turning point, and an ending (the present reality of achievement).
+Make it emotionally resonant — the contrast between the past doubt and present truth.
+Write in second person present tense, 3–4 sentences.`;
+    case "custom":
+      return customInstructions?.trim()
+        ? customInstructions.trim()
+        : `Generate vivid, sensory-immersive visualization scenarios in second person present tense, 3–4 sentences each.`;
+    default: // "cinematic"
+      return `Generate intensely sensory, cinematic visualization scenarios.
+Each must place the user inside a SPECIFIC, CONCRETE moment where the dream is already achieved.
+Use rich sensory detail: what they see, hear, feel in their body, the emotional weight of the moment.
+Write in second person present tense ("You are...", "You feel the weight of..."), 3–4 sentences.`;
+  }
+}
+
 async function getEmbedding(text: string): Promise<number[]> {
   const openai = getOpenAI();
   const res = await openai.embeddings.create({
@@ -172,10 +235,11 @@ export const generateAffirmations = action({
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handler: async (ctx, args): Promise<any> => {
-    const [dreams, goals, reports] = await Promise.all([
+    const [dreams, goals, reports, styles] = await Promise.all([
       ctx.runQuery(internal.aiInternal.getAllDreams, { userId: args.userId }),
       ctx.runQuery(internal.aiInternal.getGoalsForVisualization, { userId: args.userId }),
       ctx.runQuery(internal.aiInternal.getRecentReportsForInsights, { userId: args.userId }),
+      ctx.runQuery(internal.aiInternal.getUserStyles, { userId: args.userId }),
     ]);
 
     const dreamLines: string[] = [];
@@ -213,26 +277,30 @@ export const generateAffirmations = action({
     const userContent = [dreamsContext, goalsContext, reportsContext].filter(Boolean).join("\n\n")
       || "No dreams or goals set yet. Generate general positive affirmations.";
 
+    const styleInstructions = affirmationStylePrompt(
+      styles.affirmationStyle,
+      styles.affirmationCustomInstructions
+    );
+
     const openai = getOpenAI();
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: `You are a life coach creating deeply personal present-tense affirmations rooted in the user's actual dreams and current goals.
+          content: `You are a life coach creating deeply personal affirmations rooted in the user's actual dreams and current goals.
 
-Each affirmation MUST follow this exact pattern:
-"I am so happy and grateful that I am [restate the dream/goal as a present reality]"
+STYLE INSTRUCTIONS — follow these exactly when writing each affirmation:
+${styleInstructions}
 
-Rules:
+Rules that always apply:
 - Root every affirmation in one of the user's stated dreams or current active goals — don't invent new ones
-- Prioritize big life dreams for most affirmations; use current goals when they are vision-worthy
-- Write as though the dream or goal is already fully realized, not being worked toward
-- Keep each affirmation to one sentence
-- Make them feel joyful, confident, and specific — not generic
+- Prioritize big life dreams; use current goals when they are vision-worthy
+- Write as though the dream or goal is already fully realized
+- Make them specific and personal, not generic
 - Generate exactly ${count} affirmations
 
-Respond with this exact JSON: {"affirmations": ["I am so happy and grateful that I am ...", ...]}`,
+Respond with this exact JSON: {"affirmations": ["...", ...]}`,
         },
         { role: "user", content: userContent },
       ],
@@ -548,9 +616,10 @@ async function doGenerateVisualizations(
     if (existing) return;
   }
 
-  const [goals, problems] = await Promise.all([
+  const [goals, problems, styles] = await Promise.all([
     ctx.runQuery(internal.aiInternal.getGoalsForVisualization, { userId }),
     ctx.runQuery(internal.aiInternal.getProblemsForVisualization, { userId }),
+    ctx.runQuery(internal.aiInternal.getUserStyles, { userId }),
   ]);
 
   const contextParts: string[] = [];
@@ -580,6 +649,11 @@ async function doGenerateVisualizations(
       `Current challenges to overcome:\n${(problems as string[]).map((p) => `- ${p}`).join("\n")}`
     );
 
+  const vizStyleInstructions = visualizationStylePrompt(
+    styles.visualizationStyle,
+    styles.visualizationCustomInstructions
+  );
+
   const openai = getOpenAI();
   const completion = await openai.chat.completions.create({
     model: "gpt-4o",
@@ -588,20 +662,20 @@ async function doGenerateVisualizations(
         role: "system",
         content: `You are creating intensely personal 60-second visualization scenarios for a daily mental rehearsal practice.
 
-Generate 10 sensory-immersive scenarios. Each must:
-- Place the user inside a SPECIFIC, CONCRETE moment where they have ALREADY achieved or solved the thing
-- Use rich sensory detail: what they see, hear, feel in their body, smell, the emotional weight of the moment
-- Write in second person present tense ("You are...", "You feel the weight of...")
-- Be 3-4 sentences — enough texture to close your eyes and be there for 60 seconds
+STYLE INSTRUCTIONS — follow these exactly for every scenario:
+${vizStyleInstructions}
+
+Rules that always apply:
 - Draw directly from the user's actual dreams, goals, or problems — not generic positivity
 - Frame problems as the moment they are fully solved (not the struggle)
-- Cover a mix of their dreams AND problems across the scenarios (not just one area)
-- Use language that makes the achievement feel REAL and FELT, not aspirational
+- Cover a mix of their dreams AND problems across the 10 scenarios
+- Each scenario title should be short and evocative (4–6 words)
+- Generate exactly 10 scenarios
 
 Respond with exactly this JSON:
 {
   "scenarios": [
-    { "title": "Short evocative title (4-6 words)", "description": "3-4 sentence sensory scene in second person present tense." }
+    { "title": "Short evocative title (4-6 words)", "description": "3-4 sentence scene." }
   ]
 }`,
       },
