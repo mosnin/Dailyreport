@@ -172,8 +172,9 @@ export const generateAffirmations = action({
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handler: async (ctx, args): Promise<any> => {
-    const [dreams, reports] = await Promise.all([
+    const [dreams, goals, reports] = await Promise.all([
       ctx.runQuery(internal.aiInternal.getAllDreams, { userId: args.userId }),
+      ctx.runQuery(internal.aiInternal.getGoalsForVisualization, { userId: args.userId }),
       ctx.runQuery(internal.aiInternal.getRecentReportsForInsights, { userId: args.userId }),
     ]);
 
@@ -190,6 +191,12 @@ export const generateAffirmations = action({
       }
     }
 
+    const goalLines: string[] = [
+      ...(goals.yearly as string[]).map((t: string) => `[This year] ${t}`),
+      ...(goals.monthly as string[]).map((t: string) => `[This month] ${t}`),
+      ...(goals.weekly as string[]).map((t: string) => `[This week] ${t}`),
+    ];
+
     const recentDaily = (reports.daily as { date: string; responses: unknown }[])
       .slice(0, 5)
       .map((r) => reportToText(r.responses))
@@ -197,11 +204,14 @@ export const generateAffirmations = action({
 
     const count = args.count ?? 5;
     const dreamsContext = dreamLines.length
-      ? `User's dreams:\n${dreamLines.join("\n")}`
+      ? `User's life dreams:\n${dreamLines.join("\n")}`
+      : "";
+    const goalsContext = goalLines.length
+      ? `User's current active goals (incomplete only):\n${goalLines.join("\n")}`
       : "";
     const reportsContext = recentDaily ? `Recent daily context:\n${recentDaily}` : "";
-    const userContent = [dreamsContext, reportsContext].filter(Boolean).join("\n\n")
-      || "No dreams set yet. Generate general positive affirmations.";
+    const userContent = [dreamsContext, goalsContext, reportsContext].filter(Boolean).join("\n\n")
+      || "No dreams or goals set yet. Generate general positive affirmations.";
 
     const openai = getOpenAI();
     const completion = await openai.chat.completions.create({
@@ -209,14 +219,15 @@ export const generateAffirmations = action({
       messages: [
         {
           role: "system",
-          content: `You are a life coach creating deeply personal present-tense affirmations rooted in the user's actual dreams.
+          content: `You are a life coach creating deeply personal present-tense affirmations rooted in the user's actual dreams and current goals.
 
 Each affirmation MUST follow this exact pattern:
-"I am so happy and grateful that I am [restate the dream as a present reality]"
+"I am so happy and grateful that I am [restate the dream/goal as a present reality]"
 
 Rules:
-- Root every affirmation directly in one of the user's stated dreams — don't invent new goals
-- Write as though the dream is already fully realized, not being worked toward
+- Root every affirmation in one of the user's stated dreams or current active goals — don't invent new ones
+- Prioritize big life dreams for most affirmations; use current goals when they are vision-worthy
+- Write as though the dream or goal is already fully realized, not being worked toward
 - Keep each affirmation to one sentence
 - Make them feel joyful, confident, and specific — not generic
 - Generate exactly ${count} affirmations
