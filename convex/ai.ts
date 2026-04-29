@@ -146,6 +146,55 @@ export const semanticSearch = action({
   },
 });
 
+export const generateAffirmations = action({
+  args: {
+    userId: v.id("users"),
+    count: v.optional(v.number()),
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  handler: async (ctx, args): Promise<any> => {
+    const reports = await ctx.runQuery(internal.aiInternal.getRecentReportsForInsights, {
+      userId: args.userId,
+    });
+
+    const recentDaily = reports.daily
+      .slice(0, 7)
+      .map((r: { date: string; responses: unknown }) => reportToText(r.responses))
+      .join("\n\n");
+
+    const count = args.count ?? 5;
+
+    const openai = getOpenAI();
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are a life coach creating personalized affirmations.
+Based on the user's recent reports (their goals, challenges, activities), generate ${count} powerful, personal, present-tense affirmations.
+Make them specific to the user's actual context — reference their real goals and challenges.
+Respond with a JSON array of strings, e.g.: ["I am...", "I have...", ...]`,
+        },
+        {
+          role: "user",
+          content: recentDaily || "No reports yet. Generate general positive affirmations.",
+        },
+      ],
+      max_tokens: 400,
+      response_format: { type: "json_object" },
+    });
+
+    const raw = completion.choices[0].message.content ?? '{"affirmations":[]}';
+    try {
+      const parsed = JSON.parse(raw);
+      // Handle both {"affirmations": [...]} and bare array responses
+      return Array.isArray(parsed) ? parsed : (parsed.affirmations ?? []);
+    } catch {
+      return [];
+    }
+  },
+});
+
 export const insightsChat = action({
   args: {
     userId: v.id("users"),

@@ -78,7 +78,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <CalendarGrid userId={convexUserId} />
         <InsightCard userId={convexUserId} />
       </div>

@@ -12,7 +12,7 @@ export function StatsBar({ userId }: { userId: Id<"users"> }) {
 
   if (!stats) {
     return (
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[0, 1, 2].map((i) => (
           <Card key={i}>
             <CardContent className="p-4">
@@ -26,7 +26,7 @@ export function StatsBar({ userId }: { userId: Id<"users"> }) {
   }
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       <StatCard
         icon={Flame}
         label="Current streak"

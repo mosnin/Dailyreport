@@ -16,10 +16,10 @@ export default function CalendarPage() {
       <div>
         <h1 className="text-2xl font-bold">Calendar</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Your submission history at a glance.
+          Click any past day to view your report.
         </p>
       </div>
-      <CalendarGrid userId={convexUserId} />
+      <CalendarGrid userId={convexUserId} clickable />
     </div>
   );
 }

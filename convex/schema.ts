@@ -59,6 +59,13 @@ export default defineSchema({
     generatedAt: v.number(),
   }).index("by_user_week", ["userId", "weekStartDate"]),
 
+  affirmations: defineTable({
+    userId: v.id("users"),
+    text: v.string(),
+    source: v.union(v.literal("manual"), v.literal("ai")),
+    createdAt: v.number(),
+  }).index("by_user", ["userId"]),
+
   goals: defineTable({
     userId: v.id("users"),
     category: v.union(
