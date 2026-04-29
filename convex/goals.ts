@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { currentPeriodKey, type GoalCategory } from "../lib/utils";
 
 const CATEGORY = v.union(
   v.literal("lifelong"),
@@ -15,6 +16,36 @@ async function assertOwner(ctx: any, userId: string) {
   const user = await ctx.db.get(userId);
   if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
 }
+
+export const getCurrentSummary = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return null;
+
+    const categories: GoalCategory[] = ["lifelong", "yearly", "quarterly", "monthly", "weekly"];
+    const result: Record<string, { total: number; completed: number; periodKey: string }> = {};
+
+    for (const category of categories) {
+      const pk = currentPeriodKey(category);
+      const goals = await ctx.db
+        .query("goals")
+        .withIndex("by_user_category_period", (q) =>
+          q.eq("userId", args.userId).eq("category", category).eq("periodKey", pk)
+        )
+        .collect();
+      result[category] = {
+        total: goals.length,
+        completed: goals.filter((g) => g.completed).length,
+        periodKey: pk,
+      };
+    }
+
+    return result;
+  },
+});
 
 export const list = query({
   args: {

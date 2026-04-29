@@ -51,6 +51,56 @@ export function currentPeriodKey(category: GoalCategory): string {
   }
 }
 
+export function previousPeriodKey(category: GoalCategory, periodKey: string): string | null {
+  if (category === "lifelong") return null;
+  switch (category) {
+    case "yearly":
+      return String(parseInt(periodKey) - 1);
+    case "quarterly": {
+      const [year, qPart] = periodKey.split("-");
+      const q = parseInt(qPart.replace("Q", ""));
+      return q === 1 ? `${parseInt(year) - 1}-Q4` : `${year}-Q${q - 1}`;
+    }
+    case "monthly": {
+      const [y, m] = periodKey.split("-").map(Number);
+      return m === 1
+        ? `${y - 1}-12`
+        : `${y}-${String(m - 1).padStart(2, "0")}`;
+    }
+    case "weekly": {
+      const d = new Date(periodKey + "T12:00:00");
+      d.setDate(d.getDate() - 7);
+      return format(d, "yyyy-MM-dd");
+    }
+  }
+}
+
+export function nextPeriodKey(category: GoalCategory, periodKey: string): string | null {
+  if (category === "lifelong") return null;
+  const current = currentPeriodKey(category);
+  if (periodKey >= current) return null;
+  switch (category) {
+    case "yearly":
+      return String(parseInt(periodKey) + 1);
+    case "quarterly": {
+      const [year, qPart] = periodKey.split("-");
+      const q = parseInt(qPart.replace("Q", ""));
+      return q === 4 ? `${parseInt(year) + 1}-Q1` : `${year}-Q${q + 1}`;
+    }
+    case "monthly": {
+      const [y, m] = periodKey.split("-").map(Number);
+      return m === 12
+        ? `${y + 1}-01`
+        : `${y}-${String(m + 1).padStart(2, "0")}`;
+    }
+    case "weekly": {
+      const d = new Date(periodKey + "T12:00:00");
+      d.setDate(d.getDate() + 7);
+      return format(d, "yyyy-MM-dd");
+    }
+  }
+}
+
 const QUARTER_MONTHS: Record<number, string> = {
   1: "Jan – Mar",
   2: "Apr – Jun",

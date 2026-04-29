@@ -4,11 +4,19 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { type GoalCategory, currentPeriodKey, periodLabel, cn } from "@/lib/utils";
+import {
+  type GoalCategory,
+  currentPeriodKey,
+  previousPeriodKey,
+  nextPeriodKey,
+  periodLabel,
+  cn,
+} from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Trash2, CheckCircle2, Circle } from "lucide-react";
+import { Plus, Trash2, CheckCircle2, Circle, ChevronLeft, ChevronRight } from "lucide-react";
 
 const CATEGORY_META: Record<GoalCategory, { label: string; description: string; color: string }> = {
   lifelong: {
@@ -45,9 +53,14 @@ export function GoalSection({
   userId: Id<"users">;
   category: GoalCategory;
 }) {
-  const periodKey = currentPeriodKey(category);
+  const currentKey = currentPeriodKey(category);
+  const [periodKey, setPeriodKey] = useState(currentKey);
   const meta = CATEGORY_META[category];
   const label = periodLabel(category, periodKey);
+  const isCurrentPeriod = periodKey === currentKey;
+
+  const prevKey = previousPeriodKey(category, periodKey);
+  const nextKey = nextPeriodKey(category, periodKey);
 
   const goals = useQuery(api.goals.list, { userId, category, periodKey });
   const addGoal = useMutation(api.goals.add);
@@ -62,6 +75,12 @@ export function GoalSection({
   useEffect(() => {
     if (adding) inputRef.current?.focus();
   }, [adding]);
+
+  // Reset adding state when period changes
+  useEffect(() => {
+    setAdding(false);
+    setNewTitle("");
+  }, [periodKey]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -86,21 +105,60 @@ export function GoalSection({
             </CardTitle>
             <p className="text-xs text-muted-foreground mt-0.5">{meta.description}</p>
           </div>
-          <div className="text-right shrink-0">
-            <span className="text-xs font-medium text-muted-foreground">{label}</span>
-            {total > 0 && (
-              <div className="flex items-center justify-end gap-1.5 mt-1">
-                <div className="h-1.5 w-16 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-green-500 transition-all"
-                    style={{ width: `${Math.round((completed / total) * 100)}%` }}
-                  />
+
+          {/* Period navigator */}
+          <div className="shrink-0 flex flex-col items-end gap-1">
+            <div className="flex items-center gap-1">
+              {prevKey && category !== "lifelong" && (
+                <button
+                  onClick={() => setPeriodKey(prevKey)}
+                  className="p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                  title="Previous period"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+                {label}
+              </span>
+              {nextKey && (
+                <button
+                  onClick={() => setPeriodKey(nextKey)}
+                  className="p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                  title="Next period"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {!isCurrentPeriod && (
+                <button
+                  onClick={() => setPeriodKey(currentKey)}
+                  className="text-[10px] text-primary hover:underline"
+                >
+                  Back to current
+                </button>
+              )}
+              {isCurrentPeriod && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
+                  Current
+                </Badge>
+              )}
+              {total > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <div className="h-1.5 w-14 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-green-500 transition-all"
+                      style={{ width: `${Math.round((completed / total) * 100)}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {completed}/{total}
+                  </span>
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {completed}/{total}
-                </span>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -112,13 +170,15 @@ export function GoalSection({
           </div>
         ) : goals.length === 0 && !adding ? (
           <p className="text-sm text-muted-foreground py-2">
-            No goals yet.{" "}
-            <button
-              onClick={() => setAdding(true)}
-              className="text-primary underline-offset-2 hover:underline"
-            >
-              Add your first one.
-            </button>
+            No goals for this period.{" "}
+            {isCurrentPeriod && (
+              <button
+                onClick={() => setAdding(true)}
+                className="text-primary underline-offset-2 hover:underline"
+              >
+                Add your first one.
+              </button>
+            )}
           </p>
         ) : (
           <>
@@ -127,6 +187,7 @@ export function GoalSection({
                 key={goal._id}
                 title={goal.title}
                 completed={goal.completed}
+                readonly={!isCurrentPeriod}
                 onToggle={() => toggleGoal({ goalId: goal._id })}
                 onRemove={() => removeGoal({ goalId: goal._id })}
                 onUpdateTitle={(t) => updateTitle({ goalId: goal._id, title: t })}
@@ -135,38 +196,40 @@ export function GoalSection({
           </>
         )}
 
-        {/* Add row */}
-        {adding ? (
-          <form onSubmit={handleAdd} className="flex items-center gap-2 pt-1">
-            <Circle className="w-4 h-4 text-muted-foreground shrink-0" />
-            <input
-              ref={inputRef}
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              onBlur={() => { if (!newTitle.trim()) setAdding(false); }}
-              onKeyDown={(e) => { if (e.key === "Escape") { setAdding(false); setNewTitle(""); } }}
-              placeholder="Type a goal and press Enter…"
-              className="flex-1 text-sm bg-transparent border-b border-primary focus:outline-none pb-1"
-            />
-            <Button type="submit" size="sm" disabled={!newTitle.trim()}>
-              Add
-            </Button>
+        {/* Add row — only for current period */}
+        {isCurrentPeriod && (
+          adding ? (
+            <form onSubmit={handleAdd} className="flex items-center gap-2 pt-1">
+              <Circle className="w-4 h-4 text-muted-foreground shrink-0" />
+              <input
+                ref={inputRef}
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                onBlur={() => { if (!newTitle.trim()) setAdding(false); }}
+                onKeyDown={(e) => { if (e.key === "Escape") { setAdding(false); setNewTitle(""); } }}
+                placeholder="Type a goal and press Enter…"
+                className="flex-1 text-sm bg-transparent border-b border-primary focus:outline-none pb-1"
+              />
+              <Button type="submit" size="sm" disabled={!newTitle.trim()}>
+                Add
+              </Button>
+              <button
+                type="button"
+                onClick={() => { setAdding(false); setNewTitle(""); }}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Cancel
+              </button>
+            </form>
+          ) : (
             <button
-              type="button"
-              onClick={() => { setAdding(false); setNewTitle(""); }}
-              className="text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => setAdding(true)}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pt-1 w-full"
             >
-              Cancel
+              <Plus className="w-3.5 h-3.5" />
+              Add goal
             </button>
-          </form>
-        ) : (
-          <button
-            onClick={() => setAdding(true)}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pt-1 w-full"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Add goal
-          </button>
+          )
         )}
       </CardContent>
     </Card>
@@ -178,12 +241,14 @@ export function GoalSection({
 function GoalRow({
   title,
   completed,
+  readonly,
   onToggle,
   onRemove,
   onUpdateTitle,
 }: {
   title: string;
   completed: boolean;
+  readonly?: boolean;
   onToggle: () => void;
   onRemove: () => void;
   onUpdateTitle: (t: string) => void;
@@ -207,8 +272,14 @@ function GoalRow({
     <div className="group flex items-center gap-2 rounded-lg px-1 py-1 hover:bg-muted/50 transition-colors">
       <button
         type="button"
-        onClick={onToggle}
-        className="shrink-0 text-muted-foreground hover:text-green-500 transition-colors"
+        onClick={readonly ? undefined : onToggle}
+        disabled={readonly}
+        className={cn(
+          "shrink-0 transition-colors",
+          readonly
+            ? "text-muted-foreground/50 cursor-default"
+            : "text-muted-foreground hover:text-green-500"
+        )}
       >
         {completed ? (
           <CheckCircle2 className="w-4 h-4 text-green-500" />
@@ -217,7 +288,7 @@ function GoalRow({
         )}
       </button>
 
-      {editing ? (
+      {editing && !readonly ? (
         <input
           ref={inputRef}
           value={draft}
@@ -231,7 +302,7 @@ function GoalRow({
         />
       ) : (
         <span
-          onDoubleClick={() => setEditing(true)}
+          onDoubleClick={() => !readonly && setEditing(true)}
           className={cn(
             "flex-1 text-sm cursor-default select-none",
             completed && "line-through text-muted-foreground"
@@ -241,13 +312,15 @@ function GoalRow({
         </span>
       )}
 
-      <button
-        type="button"
-        onClick={onRemove}
-        className="shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
-      >
-        <Trash2 className="w-3.5 h-3.5" />
-      </button>
+      {!readonly && (
+        <button
+          type="button"
+          onClick={onRemove}
+          className="shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      )}
     </div>
   );
 }
