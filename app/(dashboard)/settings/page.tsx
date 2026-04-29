@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { usePushSubscription } from "@/hooks/usePushSubscription";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Bell, Globe, User, LogOut, Sun, Moon, Monitor, CreditCard, Crown, Zap, Mail } from "lucide-react";
+import { Bell, Globe, User, LogOut, Sun, Moon, Monitor, CreditCard, Crown, Zap, Mail, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useClerk } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
@@ -46,6 +46,12 @@ export default function SettingsPage() {
   const { subscribe, subscribed } = usePushSubscription(convexUserId);
   const updateTimezone = useMutation(api.users.updateTimezone);
   const updateEmailOptOut = useMutation(api.users.updateEmailOptOut);
+  const updateProfile = useMutation(api.users.updateProfile);
+
+  const [profileName, setProfileName] = useState("");
+  const [profileBio, setProfileBio] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
   const emailOptOut = (convexUser as { emailOptOut?: boolean } | null | undefined)?.emailOptOut ?? false;
 
   const { theme, setTheme } = useTheme();
@@ -112,6 +118,27 @@ export default function SettingsPage() {
     }
   }, [convexUser?.timezone]);
 
+  useEffect(() => {
+    if (convexUser) {
+      setProfileName(convexUser.name ?? "");
+      setProfileBio((convexUser as { bio?: string }).bio ?? "");
+    }
+  }, [convexUser]);
+
+  async function handleSaveProfile() {
+    if (!convexUserId || !profileName.trim()) return;
+    setSavingProfile(true);
+    try {
+      await updateProfile({ userId: convexUserId, name: profileName.trim(), bio: profileBio.trim() || undefined });
+      setProfileSaved(true);
+      setTimeout(() => setProfileSaved(false), 2000);
+    } catch {
+      toast.error("Failed to save profile.");
+    } finally {
+      setSavingProfile(false);
+    }
+  }
+
   async function handleSaveTz() {
     if (!convexUserId || !tz) return;
     setSavingTz(true);
@@ -145,14 +172,42 @@ export default function SettingsPage() {
             Account
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Name</span>
-            <span className="font-medium">{convexUser?.name || clerkUser?.fullName || "—"}</span>
+        <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Name</label>
+            <input
+              type="text"
+              value={profileName}
+              onChange={(e) => setProfileName(e.target.value)}
+              placeholder="Your name"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Email</span>
-            <span className="font-medium truncate ml-4">{convexUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || "—"}</span>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">About you</label>
+            <textarea
+              value={profileBio}
+              onChange={(e) => setProfileBio(e.target.value)}
+              placeholder="A short bio…"
+              rows={3}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <p className="text-xs text-muted-foreground">Email</p>
+              <p className="text-sm font-medium">{convexUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || "—"}</p>
+            </div>
+            <Button
+              size="sm"
+              onClick={handleSaveProfile}
+              disabled={savingProfile || !profileName.trim()}
+              className="gap-1.5"
+            >
+              {profileSaved ? (
+                <><Check className="w-3.5 h-3.5" /> Saved</>
+              ) : savingProfile ? "Saving…" : "Save"}
+            </Button>
           </div>
         </CardContent>
       </Card>

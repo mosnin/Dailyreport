@@ -198,6 +198,20 @@ export const adminUpdateRole = mutation({
   },
 });
 
+export const updateProfile = mutation({
+  args: { userId: v.id("users"), name: v.string(), bio: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+    await ctx.db.patch(args.userId, {
+      name: args.name.trim(),
+      bio: args.bio?.trim() ?? undefined,
+    });
+  },
+});
+
 export const updateEmailOptOut = mutation({
   args: { userId: v.id("users"), optOut: v.boolean() },
   handler: async (ctx, args) => {
