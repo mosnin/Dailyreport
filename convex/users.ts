@@ -148,6 +148,56 @@ export const updateStyles = mutation({
   },
 });
 
+// ── Admin functions ────────────────────────────────────────────────────────
+
+export const listAll = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const caller = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+    if (!caller || caller.role !== "admin") return null;
+    return ctx.db.query("users").order("desc").collect();
+  },
+});
+
+export const adminUpdatePlan = mutation({
+  args: {
+    targetUserId: v.id("users"),
+    plan: v.union(v.literal("free"), v.literal("pro"), v.literal("unlimited")),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const caller = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+    if (!caller || caller.role !== "admin") throw new Error("Unauthorized");
+    await ctx.db.patch(args.targetUserId, { plan: args.plan, planUpdatedAt: Date.now() });
+  },
+});
+
+export const adminUpdateRole = mutation({
+  args: {
+    targetUserId: v.id("users"),
+    role: v.union(v.literal("user"), v.literal("admin")),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const caller = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+    if (!caller || caller.role !== "admin") throw new Error("Unauthorized");
+    await ctx.db.patch(args.targetUserId, { role: args.role });
+  },
+});
+
 export const updateTimezone = mutation({
   args: { userId: v.id("users"), timezone: v.string() },
   handler: async (ctx, args) => {

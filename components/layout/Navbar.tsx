@@ -21,6 +21,7 @@ import {
   LineChart,
   SlidersHorizontal,
   Paintbrush,
+  ShieldAlert,
   LogOut,
   AlignJustify,
 } from "lucide-react";
@@ -67,8 +68,9 @@ export function Navbar() {
   const pathname = usePathname();
   const { signOut } = useClerk();
   const { user } = useUser();
-  const { convexUserId } = useConvexUser();
+  const { convexUserId, convexUser } = useConvexUser();
   const { totalDone, reportDone, affirmDone, vizDone } = useTodayStatus(convexUserId);
+  const isAdmin = (convexUser as { role?: string } | null | undefined)?.role === "admin";
   const [open, setOpen] = useState(false);
 
   return (
@@ -147,6 +149,21 @@ export function Navbar() {
                     )}
                   </div>
                 </div>
+              )}
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors w-full",
+                    pathname === "/admin"
+                      ? "bg-rose-500 text-white"
+                      : "text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                  )}
+                >
+                  <ShieldAlert className="w-5 h-5 shrink-0" />
+                  Admin
+                </Link>
               )}
               <Link
                 href="/settings"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Bell, Globe, User, LogOut, Sun, Moon, Monitor } from "lucide-react";
+import { Bell, Globe, User, LogOut, Sun, Moon, Monitor, CreditCard, Crown, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { useClerk } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
@@ -49,6 +49,57 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const [tz, setTz] = useState("");
   const [savingTz, setSavingTz] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [billingLoading, setBillingLoading] = useState(false);
+
+  const plan = (convexUser as { plan?: string } | null | undefined)?.plan ?? "free";
+  const role = (convexUser as { role?: string } | null | undefined)?.role ?? "user";
+  const hasPaidAccess = plan === "pro" || plan === "unlimited" || role === "admin";
+
+  async function handleUpgrade() {
+    setCheckoutLoading(true);
+    try {
+      const res = await fetch("/api/checkout", { method: "POST" });
+      const data = await res.json() as { checkoutUrl?: string; error?: string };
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        toast.error(data.error ?? "Failed to start checkout");
+      }
+    } catch {
+      toast.error("Failed to start checkout");
+    } finally {
+      setCheckoutLoading(false);
+    }
+  }
+
+  async function handleManageBilling() {
+    setBillingLoading(true);
+    try {
+      const res = await fetch("/api/billing", { method: "POST" });
+      const data = await res.json() as { portalUrl?: string; error?: string };
+      if (data.portalUrl) {
+        window.open(data.portalUrl, "_blank");
+      } else {
+        toast.error(data.error ?? "Failed to open billing portal");
+      }
+    } catch {
+      toast.error("Failed to open billing portal");
+    } finally {
+      setBillingLoading(false);
+    }
+  }
+
+  const successToastShown = useRef(false);
+  useEffect(() => {
+    if (successToastShown.current) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("subscription") === "success") {
+      successToastShown.current = true;
+      toast.success("Subscription activated! Welcome to Pro.");
+      window.history.replaceState({}, "", "/settings");
+    }
+  }, []);
 
   useEffect(() => {
     if (convexUser?.timezone) {
@@ -196,6 +247,75 @@ export default function SettingsPage() {
             >
               Enable notifications
             </Button>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Subscription */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <CreditCard className="w-4 h-4 text-muted-foreground" />
+            Subscription
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {/* Current plan */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Current plan</span>
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold",
+                plan === "unlimited"
+                  ? "bg-violet-100 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300"
+                  : plan === "pro"
+                  ? "bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300"
+                  : role === "admin"
+                  ? "bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300"
+                  : "bg-muted text-muted-foreground"
+              )}
+            >
+              {plan === "unlimited" && <Crown className="w-3 h-3" />}
+              {plan === "pro" && <Zap className="w-3 h-3" />}
+              {role === "admin"
+                ? "Admin"
+                : plan.charAt(0).toUpperCase() + plan.slice(1)}
+            </span>
+          </div>
+
+          {/* Actions */}
+          {!hasPaidAccess && (
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Upgrade to Pro for <span className="font-semibold text-foreground">$12.99/month</span> — full
+                access to all features including AI insights, affirmations, and visualizations.
+              </p>
+              <Button
+                size="sm"
+                onClick={handleUpgrade}
+                disabled={checkoutLoading}
+                className="w-full"
+              >
+                {checkoutLoading ? "Redirecting…" : "Upgrade to Pro →"}
+              </Button>
+            </div>
+          )}
+
+          {plan === "pro" && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleManageBilling}
+              disabled={billingLoading}
+            >
+              {billingLoading ? "Opening…" : "Manage subscription"}
+            </Button>
+          )}
+
+          {(plan === "unlimited" || role === "admin") && (
+            <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+              You have unlimited access.
+            </p>
           )}
         </CardContent>
       </Card>

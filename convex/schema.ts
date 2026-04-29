@@ -14,8 +14,15 @@ export default defineSchema({
     affirmationCustomInstructions: v.optional(v.string()),
     visualizationStyle: v.optional(v.string()),
     visualizationCustomInstructions: v.optional(v.string()),
+    role: v.optional(v.union(v.literal("user"), v.literal("admin"))),
+    plan: v.optional(v.union(v.literal("free"), v.literal("pro"), v.literal("unlimited"))),
+    creemCustomerId: v.optional(v.string()),
+    creemSubscriptionId: v.optional(v.string()),
+    planUpdatedAt: v.optional(v.number()),
     createdAt: v.number(),
-  }).index("by_clerk_id", ["clerkId"]),
+  })
+    .index("by_clerk_id", ["clerkId"])
+    .index("by_creem_subscription", ["creemSubscriptionId"]),
 
   dailyReports: defineTable({
     userId: v.id("users"),
