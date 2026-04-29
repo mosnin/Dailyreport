@@ -11,10 +11,3 @@ export default clerkMiddleware(async (auth, req) => {
     await auth.protect();
   }
 });
-
-export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|icons|sw.js|manifest.json).*)",
-    "/(api|trpc)(.*)",
-  ],
-};
