@@ -171,4 +171,10 @@ export default defineSchema({
     ),
     generatedAt: v.number(),
   }).index("by_user_date", ["userId", "date"]),
+
+  dailyBriefs: defineTable({
+    userId: v.id("users"),
+    date: v.string(),
+    content: v.string(),
+  }).index("by_user_date", ["userId", "date"]),
 });

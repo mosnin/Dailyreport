@@ -1026,6 +1026,87 @@ Respond with this exact JSON:
   },
 });
 
+export const generateMorningBrief = action({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args): Promise<string | null> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const today = new Date().toISOString().split("T")[0];
+
+    const existing = await ctx.runQuery(internal.aiInternal.getDailyBriefInternal, {
+      userId: args.userId,
+      date: today,
+    });
+    if (existing) return existing.content;
+
+    const reports = await ctx.runQuery(internal.aiInternal.getRecentReportsForInsights, {
+      userId: args.userId,
+    });
+
+    const recentText = (reports.daily as { date: string; responses: unknown }[])
+      .slice(0, 7)
+      .map((r) => {
+        const res = r.responses as Record<string, unknown>;
+        const parts: string[] = [];
+        if (typeof res?.dayActivity === "string" && res.dayActivity.trim())
+          parts.push(`activity: ${res.dayActivity.slice(0, 150)}`);
+        if (typeof res?.emotionalDrain === "string" && res.emotionalDrain.trim())
+          parts.push(`drain: ${res.emotionalDrain.slice(0, 100)}`);
+        if (typeof res?.tomorrowPlan === "string" && res.tomorrowPlan.trim())
+          parts.push(`plan: ${res.tomorrowPlan.slice(0, 100)}`);
+        if (Array.isArray(res?.problemsToSolve) && res.problemsToSolve.length > 0)
+          parts.push(`problems: ${(res.problemsToSolve as Array<{ title?: string }>).map((p) => p.title).filter(Boolean).join(", ")}`);
+        return parts.length ? `[${r.date}] ${parts.join(" | ")}` : null;
+      })
+      .filter(Boolean)
+      .join("\n");
+
+    if (!recentText) return null;
+
+    const openai = getOpenAI();
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are a wise, direct mentor who has been reading this person's journal.
+Write ONE sentence (max 28 words) that is specific and personally grounded in what they've actually been working on.
+
+Rules:
+- Reference a concrete pattern, pending item, win, or tension from their recent entries
+- Do NOT be generic, motivational-poster-ish, or give unsolicited life advice
+- Speak like a trusted friend who has read their journal, not a life coach
+- No greetings, no "you've been", no "remember to" — just the observation or reminder
+- Do not start with "You" — vary the opening
+
+Good examples:
+"Three days of mentioning the deployment issue — it's still waiting."
+"The plan from Tuesday hasn't shown up since. Worth revisiting today."
+"Six straight days. The version of you from last year is watching."`,
+          },
+          { role: "user", content: recentText },
+        ],
+        max_tokens: 60,
+      });
+
+      const content = completion.choices[0].message.content?.trim() ?? null;
+      if (content) {
+        await ctx.runMutation(internal.aiInternal.saveDailyBrief, {
+          userId: args.userId,
+          date: today,
+          content,
+        });
+      }
+      return content;
+    } catch (err) {
+      console.error("generateMorningBrief failed:", err);
+      return null;
+    }
+  },
+});
+
 export const generateVisualizationsInternal = internalAction({
   args: { userId: v.id("users"), date: v.string() },
   handler: async (ctx, args) => {

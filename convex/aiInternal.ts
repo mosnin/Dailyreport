@@ -335,6 +335,48 @@ export const getRecentReportsForInsights = internalQuery({
   },
 });
 
+export const getDailyBriefInternal = internalQuery({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, args) =>
+    ctx.db
+      .query("dailyBriefs")
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId).eq("date", args.date))
+      .unique(),
+});
+
+export const saveDailyBrief = internalMutation({
+  args: { userId: v.id("users"), date: v.string(), content: v.string() },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("dailyBriefs")
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId).eq("date", args.date))
+      .unique();
+    if (existing) {
+      await ctx.db.patch(existing._id, { content: args.content });
+    } else {
+      await ctx.db.insert("dailyBriefs", {
+        userId: args.userId,
+        date: args.date,
+        content: args.content,
+      });
+    }
+  },
+});
+
+export const getDailyBriefPublic = query({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return null;
+    return ctx.db
+      .query("dailyBriefs")
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId).eq("date", args.date))
+      .unique();
+  },
+});
+
 export const getInspirationForDate = internalQuery({
   args: { userId: v.id("users"), date: v.string() },
   handler: async (ctx, args) =>
