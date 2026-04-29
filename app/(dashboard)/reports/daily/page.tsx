@@ -107,10 +107,10 @@ export default function DailyReportPage() {
       <div className="max-w-2xl py-4">
         {/* Notebook header */}
         <div className="mb-10">
-          <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-muted-foreground/50 mb-1">
+          <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-muted-foreground/40 mb-1.5">
             {greeting()}
           </p>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="font-heading text-[2.2rem] font-semibold tracking-tight leading-[1.15]">
             {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric" })}
           </h1>
           <div className="flex items-center gap-3 mt-2">

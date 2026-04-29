@@ -9,6 +9,7 @@ import confetti from "canvas-confetti";
 import { todayString } from "@/lib/utils";
 import { Plus, Trash2, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion } from "motion/react";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -83,15 +84,22 @@ function JournalSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-4 py-8 border-t border-border/40 first:border-t-0 first:pt-0">
+    <motion.div
+      className="space-y-5 py-9 border-t border-border/30 first:border-t-0 first:pt-0"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: number * 0.055 }}
+    >
       <div>
-        <span className="text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/40 uppercase">
+        <span className="text-[10px] font-semibold tracking-[0.18em] text-muted-foreground/35 uppercase">
           {String(number).padStart(2, "0")}
         </span>
-        <p className="text-[17px] font-medium leading-snug text-foreground mt-1">{title}</p>
+        <p className="font-heading text-[1.15rem] font-medium leading-snug text-foreground mt-1.5">
+          {title}
+        </p>
       </div>
       {children}
-    </div>
+    </motion.div>
   );
 }
 
@@ -114,7 +122,7 @@ function NoteTextarea({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       style={{ minHeight }}
-      className="w-full bg-transparent border-0 border-b border-border/40 focus:border-foreground/50 focus:outline-none resize-none text-[15px] leading-[1.85] text-foreground placeholder:text-muted-foreground/35 pb-2 transition-colors"
+      className="w-full bg-transparent border-0 border-b border-border/35 focus:border-primary/50 focus:outline-none resize-none text-[15px] leading-[1.9] text-foreground placeholder:text-muted-foreground/30 pb-2 transition-colors duration-200"
     />
   );
 }
@@ -428,15 +436,21 @@ export function DailyReportForm({
       </JournalSection>
 
       {/* Submit */}
-      <div className="pt-8 pb-4">
-        <button
+      <motion.div
+        className="pt-10 pb-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6, duration: 0.5 }}
+      >
+        <motion.button
           type="submit"
           disabled={saving}
-          className="w-full py-4 rounded-2xl bg-foreground text-background text-[15px] font-medium hover:bg-foreground/90 active:scale-[0.99] transition-all disabled:opacity-40"
+          whileTap={{ scale: 0.98 }}
+          className="w-full py-4 rounded-2xl bg-foreground text-background font-heading text-[15px] font-medium hover:bg-foreground/90 transition-colors disabled:opacity-40"
         >
           {saving ? "Saving…" : "Close today's entry"}
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     </form>
   );
 }

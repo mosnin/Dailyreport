@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
+import { Lora } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ConvexWithClerkProvider } from "@/components/ConvexWithClerkProvider";
@@ -7,6 +8,12 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 
 const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+const lora = Lora({
+  variable: "--font-lora",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  weight: ["400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
   title: "Daily Report",
@@ -31,7 +38,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
-      <html lang="en" className={`${geist.variable} h-full antialiased`} suppressHydrationWarning>
+      <html lang="en" className={`${geist.variable} ${lora.variable} h-full antialiased`} suppressHydrationWarning>
         <body className="min-h-full bg-background text-foreground">
           <ThemeProvider>
             <ConvexWithClerkProvider>
