@@ -85,24 +85,28 @@ export const generateWeeklyInsight = internalAction({
       .filter(Boolean)
       .join("\n\n");
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are an accountability coach. Analyze the user's weekly reports and write 2-3 sentences highlighting patterns, progress, and encouragement. Be specific and personal.",
-        },
-        { role: "user", content: context },
-      ],
-      max_tokens: 200,
-    });
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are an accountability coach. Analyze the user's weekly reports and write 2-3 sentences highlighting patterns, progress, and encouragement. Be specific and personal.",
+          },
+          { role: "user", content: context },
+        ],
+        max_tokens: 200,
+      });
 
-    await ctx.runMutation(internal.aiInternal.saveInsight, {
-      userId: args.userId,
-      weekStartDate: args.weekStartDate,
-      content: completion.choices[0].message.content ?? "",
-    });
+      await ctx.runMutation(internal.aiInternal.saveInsight, {
+        userId: args.userId,
+        weekStartDate: args.weekStartDate,
+        content: completion.choices[0].message.content ?? "",
+      });
+    } catch (err) {
+      console.error("generateWeeklyInsight failed for", args.userId, err);
+    }
   },
 });
 

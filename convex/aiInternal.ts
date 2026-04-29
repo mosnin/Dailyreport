@@ -81,6 +81,10 @@ export const saveInsight = internalMutation({
 export const getLatestInsight = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return null;
     return await ctx.db
       .query("aiInsights")
       .withIndex("by_user_week", (q) => q.eq("userId", args.userId))

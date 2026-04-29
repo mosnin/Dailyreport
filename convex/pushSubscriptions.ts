@@ -1,5 +1,19 @@
 import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { QueryCtx, MutationCtx } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
+
+async function assertOwner(
+  ctx: QueryCtx | MutationCtx,
+  userId: Id<"users">
+) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Not authenticated");
+  const user = await ctx.db.get(userId);
+  if (!user || user.clerkId !== identity.subject) {
+    throw new Error("Unauthorized");
+  }
+}
 
 export const saveSubscription = mutation({
   args: {
@@ -9,6 +23,7 @@ export const saveSubscription = mutation({
     auth: v.string(),
   },
   handler: async (ctx, args) => {
+    await assertOwner(ctx, args.userId);
     const existing = await ctx.db
       .query("pushSubscriptions")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -34,6 +49,7 @@ export const saveSubscription = mutation({
 export const removeSubscription = mutation({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
+    await assertOwner(ctx, args.userId);
     const sub = await ctx.db
       .query("pushSubscriptions")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -56,6 +72,10 @@ export const removeSubscriptionInternal = internalMutation({
 export const getSubscription = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return null;
     return ctx.db
       .query("pushSubscriptions")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
