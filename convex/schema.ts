@@ -98,12 +98,13 @@ export default defineSchema({
   goals: defineTable({
     userId: v.id("users"),
     category: v.union(
+      v.literal("lifelong"), // kept for backwards compat with existing data; UI no longer creates these
       v.literal("yearly"),
       v.literal("quarterly"),
       v.literal("monthly"),
       v.literal("weekly")
     ),
-    // "2026" | "2026-Q2" | "2026-04" | "2026-04-28"
+    // "all" | "2026" | "2026-Q2" | "2026-04" | "2026-04-28"
     periodKey: v.string(),
     title: v.string(),
     completed: v.boolean(),
