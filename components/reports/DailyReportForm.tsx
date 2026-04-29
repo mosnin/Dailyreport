@@ -5,7 +5,6 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
-import confetti from "canvas-confetti";
 import { todayString } from "@/lib/utils";
 import { Plus, Trash2, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -178,7 +177,6 @@ export function DailyReportForm({
     try {
       await submitDaily({ userId, date: todayString(), responses: r });
       try { localStorage.removeItem(draftKey); } catch {}
-      confetti({ particleCount: 80, spread: 55, origin: { y: 0.7 }, colors: ["#6366f1", "#a5b4fc", "#e0e7ff"] });
       onSuccess?.();
     } catch {
       toast.error("Failed to save. Please try again.");

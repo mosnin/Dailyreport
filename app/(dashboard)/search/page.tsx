@@ -50,7 +50,7 @@ export default function SearchPage() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-bold">Search Reports</h1>
+        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Search</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           Semantically search across all your past reports.
         </p>

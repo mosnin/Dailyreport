@@ -173,7 +173,7 @@ export function Sidebar() {
         <Section label="Practice" collapsed={collapsed} />
         <div className="space-y-0.5">
           <NavItem href="/affirmations"    label="Affirmations"   icon={Flame}      active={is("/affirmations")}    collapsed={collapsed} dot={affirmDone} />
-          <NavItem href="/dreams"          label="Dreams & Vision" icon={Telescope}  active={is("/dreams")}          collapsed={collapsed} dot={vizDone} />
+          <NavItem href="/dreams"          label="Visualizations"  icon={Telescope}  active={is("/dreams")}          collapsed={collapsed} dot={vizDone} />
           <NavItem href="/reports/weekly"  label="Weekly Review"  icon={BookOpen}   active={is("/reports/weekly")}  collapsed={collapsed} />
         </div>
 
@@ -187,7 +187,7 @@ export function Sidebar() {
         {/* Reflect */}
         <Section label="Reflect" collapsed={collapsed} />
         <div className="space-y-0.5">
-          <NavItem href="/insights"    label="AI Insights"  icon={BrainCircuit} active={is("/insights")}    collapsed={collapsed} />
+          <NavItem href="/insights"    label="Progress"     icon={BrainCircuit} active={is("/insights")}    collapsed={collapsed} />
           <NavItem href="/inspiration" label="Inspiration"  icon={Lightbulb}    active={is("/inspiration")} collapsed={collapsed} />
         </div>
 

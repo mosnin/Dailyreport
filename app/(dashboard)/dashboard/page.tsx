@@ -184,7 +184,7 @@ export default function DashboardPage() {
                 Your ritual
               </motion.p>
               <RitualStep done={affirmDone} label="Affirmations" sub="5 rounds" href="/affirmations" icon={Sparkles} index={0} />
-              <RitualStep done={vizDone} label="Visualization" sub="60-second scenes" href="/dreams" icon={BookOpen} index={1} />
+              <RitualStep done={vizDone} label="Visualizations" sub="60-second scenes" href="/dreams" icon={BookOpen} index={1} />
             </div>
           </motion.div>
 
@@ -228,7 +228,7 @@ export default function DashboardPage() {
               </motion.p>
               <RitualStep done={true}       label="Today's entry"  href="/reports/daily"  icon={BookOpen}  index={0} />
               <RitualStep done={affirmDone} label="Affirmations"   sub="5 rounds" href="/affirmations" icon={Sparkles} index={1} />
-              <RitualStep done={vizDone}    label="Visualization"  sub="60-second scenes" href="/dreams" icon={BookOpen} index={2} />
+              <RitualStep done={vizDone}    label="Visualizations"  sub="60-second scenes" href="/dreams" icon={BookOpen} index={2} />
             </div>
 
             {/* Stats + history */}

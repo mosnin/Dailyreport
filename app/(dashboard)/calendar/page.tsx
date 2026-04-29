@@ -14,7 +14,7 @@ export default function CalendarPage() {
   return (
     <div className="space-y-6 max-w-lg">
       <div>
-        <h1 className="text-2xl font-bold">Calendar</h1>
+        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Calendar</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           Click any past day to view your report.
         </p>

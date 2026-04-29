@@ -119,7 +119,7 @@ export function Navbar() {
                 <MobileSection label="Practice" />
                 <div className="space-y-0.5">
                   <MobileNavItem href="/affirmations"   label="Affirmations"   icon={Flame}     active={is("/affirmations")}   onClose={close} dot={affirmDone} />
-                  <MobileNavItem href="/dreams"         label="Dreams & Vision" icon={Telescope} active={is("/dreams")}         onClose={close} dot={vizDone} />
+                  <MobileNavItem href="/dreams"         label="Visualizations"  icon={Telescope} active={is("/dreams")}         onClose={close} dot={vizDone} />
                   <MobileNavItem href="/reports/weekly" label="Weekly Review"  icon={BookOpen}  active={is("/reports/weekly")} onClose={close} />
                 </div>
 
@@ -133,7 +133,7 @@ export function Navbar() {
                 {/* Reflect */}
                 <MobileSection label="Reflect" />
                 <div className="space-y-0.5 mb-2">
-                  <MobileNavItem href="/insights"    label="AI Insights" icon={BrainCircuit} active={is("/insights")}    onClose={close} />
+                  <MobileNavItem href="/insights"    label="Progress"    icon={BrainCircuit} active={is("/insights")}    onClose={close} />
                   <MobileNavItem href="/inspiration" label="Inspiration" icon={Lightbulb}   active={is("/inspiration")} onClose={close} />
                 </div>
 

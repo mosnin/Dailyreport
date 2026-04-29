@@ -138,12 +138,9 @@ export default function InsightsPage() {
     <div className="max-w-2xl space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-indigo-500" />
-          AI Insights
-        </h1>
+        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Progress</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Your progress direction at a glance, plus an AI coach you can ask anything.
+          Your direction at a glance — ask anything about your patterns.
         </p>
       </div>
 

@@ -33,7 +33,7 @@ export default function WeeklyReportPage() {
     return (
       <div className="max-w-2xl space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Weekly Report</h1>
+          <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Weekly Report</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Reflect on the week that just finished — opens every Sunday.
           </p>

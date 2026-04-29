@@ -6,7 +6,6 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { Skeleton } from "@/components/ui/skeleton";
-import confetti from "canvas-confetti";
 import {
   Plus,
   Trash2,
@@ -303,37 +302,21 @@ function RoundSession({
 
 // ── Recap screen ──────────────────────────────────────────────────────────
 
-function RecapScreen({ rounds, count, onContinue }: { rounds: number; count: number; onContinue: () => void }) {
+function RecapScreen({ onContinue }: { onContinue: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] text-center gap-8 max-w-sm mx-auto">
-      <div className="w-20 h-20 rounded-full bg-amber-400/15 flex items-center justify-center">
-        <Flame className="w-10 h-10 text-amber-400" />
-      </div>
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Daily goal complete!</h2>
-        <p className="text-muted-foreground text-sm">
-          You finished {GOAL_ROUNDS} rounds of affirmations today. Keep the momentum going.
-        </p>
-      </div>
-      <div className="grid grid-cols-3 gap-6 w-full">
-        <div className="text-center">
-          <div className="text-3xl font-bold tabular-nums">{count}</div>
-          <div className="text-xs text-muted-foreground mt-1">Affirmations</div>
-        </div>
-        <div className="text-center">
-          <div className="text-3xl font-bold tabular-nums">{rounds}</div>
-          <div className="text-xs text-muted-foreground mt-1">Rounds</div>
-        </div>
-        <div className="text-center">
-          <div className="text-3xl font-bold tabular-nums">{count * rounds}</div>
-          <div className="text-xs text-muted-foreground mt-1">Reps</div>
-        </div>
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] text-center gap-6 max-w-sm mx-auto">
+      <Flame className="w-8 h-8 text-amber-400" />
+      <p className="font-heading italic text-2xl leading-relaxed text-foreground">
+        Five rounds done.
+      </p>
+      <p className="text-sm text-muted-foreground/70 max-w-xs">
+        The words are in you now. Let them work.
+      </p>
       <button
         onClick={onContinue}
-        className="px-8 py-3 rounded-full border border-border hover:bg-accent text-sm font-medium transition-colors"
+        className="mt-4 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
       >
-        Continue
+        Continue →
       </button>
     </div>
   );
@@ -504,19 +487,9 @@ export default function AffirmationsPage() {
     setInRound(false);
     const newRounds = rounds + 1;
     if (newRounds >= GOAL_ROUNDS) {
-      const colors = ["#fbbf24", "#f59e0b", "#fcd34d"];
-      const end = Date.now() + 2500;
-      function frame() {
-        confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors });
-        confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors });
-        if (Date.now() < end) requestAnimationFrame(frame);
-      }
-      requestAnimationFrame(frame);
-      toast.success("5 rounds complete! Daily goal met.");
       setShowRecap(true);
     } else {
-      confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 }, colors: ["#fbbf24", "#fcd34d", "#f59e0b"] });
-      toast.success(`Round ${newRounds} complete!`);
+      toast.success(`Round ${newRounds} done.`);
     }
   }
 
@@ -567,11 +540,7 @@ export default function AffirmationsPage() {
   if (showRecap) {
     return (
       <div className="max-w-lg mx-auto">
-        <RecapScreen
-          rounds={rounds}
-          count={practiceList.length}
-          onContinue={() => setShowRecap(false)}
-        />
+        <RecapScreen onContinue={() => setShowRecap(false)} />
       </div>
     );
   }
@@ -580,7 +549,7 @@ export default function AffirmationsPage() {
     <div className="max-w-lg space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">Affirmations</h1>
+        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Affirmations</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
         </p>

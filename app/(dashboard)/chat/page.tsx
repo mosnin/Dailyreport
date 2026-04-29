@@ -146,10 +146,7 @@ export default function ChatPage() {
     <div className="max-w-2xl flex flex-col h-[calc(100vh-8rem)]">
       {/* Header */}
       <div className="shrink-0 pb-4">
-        <h1 className="text-2xl font-bold flex items-center gap-2.5">
-          <MessageSquare className="w-6 h-6 text-primary" />
-          Chat
-        </h1>
+        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Chat</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Ask anything about your history — the AI searches your past reports to answer.
         </p>

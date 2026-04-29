@@ -39,7 +39,7 @@ export default function GoalsPage() {
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Goals</h1>
+        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Goals</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           Track what you&apos;re working toward across every time horizon.
         </p>

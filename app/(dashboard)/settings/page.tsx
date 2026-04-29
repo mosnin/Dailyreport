@@ -1,44 +1,68 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { usePushSubscription } from "@/hooks/usePushSubscription";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
-import { Bell, Globe, User, LogOut, Sun, Moon, Monitor, CreditCard, Crown, Zap, Mail, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useClerk } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
+import { Check, Sun, Moon, Monitor } from "lucide-react";
 
 const COMMON_TIMEZONES = [
-  "America/New_York",
-  "America/Chicago",
-  "America/Denver",
-  "America/Los_Angeles",
-  "America/Anchorage",
-  "Pacific/Honolulu",
-  "America/Toronto",
-  "America/Vancouver",
-  "America/Mexico_City",
-  "America/Sao_Paulo",
-  "Europe/London",
-  "Europe/Paris",
-  "Europe/Berlin",
-  "Europe/Moscow",
-  "Asia/Dubai",
-  "Asia/Kolkata",
-  "Asia/Singapore",
-  "Asia/Tokyo",
-  "Asia/Seoul",
-  "Australia/Sydney",
-  "Pacific/Auckland",
+  "America/New_York", "America/Chicago", "America/Denver",
+  "America/Los_Angeles", "America/Anchorage", "Pacific/Honolulu",
+  "America/Toronto", "America/Vancouver", "America/Mexico_City",
+  "America/Sao_Paulo", "Europe/London", "Europe/Paris",
+  "Europe/Berlin", "Europe/Moscow", "Asia/Dubai",
+  "Asia/Kolkata", "Asia/Singapore", "Asia/Tokyo",
+  "Asia/Seoul", "Australia/Sydney", "Pacific/Auckland",
 ];
+
+// ── Section label ─────────────────────────────────────────────────────────
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-muted-foreground/40 mb-3">
+      {children}
+    </p>
+  );
+}
+
+// ── Row ───────────────────────────────────────────────────────────────────
+
+function Row({ label, sub, children }: { label: string; sub?: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between py-3.5 border-b border-border/40 last:border-0">
+      <div>
+        <p className="text-sm font-medium">{label}</p>
+        {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
+      </div>
+      <div className="shrink-0 ml-6">{children}</div>
+    </div>
+  );
+}
+
+// ── Toggle ────────────────────────────────────────────────────────────────
+
+function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      className={cn(
+        "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none",
+        on ? "bg-primary" : "bg-muted"
+      )}
+    >
+      <span className={cn("inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform", on ? "translate-x-6" : "translate-x-1")} />
+    </button>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
   const { convexUserId, convexUser, clerkUser, isLoading } = useConvexUser();
@@ -52,51 +76,15 @@ export default function SettingsPage() {
   const [profileBio, setProfileBio] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
-  const emailOptOut = (convexUser as { emailOptOut?: boolean } | null | undefined)?.emailOptOut ?? false;
 
   const { theme, setTheme } = useTheme();
   const [tz, setTz] = useState("");
   const [savingTz, setSavingTz] = useState(false);
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [billingLoading, setBillingLoading] = useState(false);
 
+  const emailOptOut = (convexUser as { emailOptOut?: boolean } | null | undefined)?.emailOptOut ?? false;
   const plan = (convexUser as { plan?: string } | null | undefined)?.plan ?? "free";
   const role = (convexUser as { role?: string } | null | undefined)?.role ?? "user";
   const hasPaidAccess = plan === "pro" || plan === "unlimited" || role === "admin";
-
-  async function handleUpgrade() {
-    setCheckoutLoading(true);
-    try {
-      const res = await fetch("/api/checkout", { method: "POST" });
-      const data = await res.json() as { checkoutUrl?: string; error?: string };
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      } else {
-        toast.error(data.error ?? "Failed to start checkout");
-      }
-    } catch {
-      toast.error("Failed to start checkout");
-    } finally {
-      setCheckoutLoading(false);
-    }
-  }
-
-  async function handleManageBilling() {
-    setBillingLoading(true);
-    try {
-      const res = await fetch("/api/billing", { method: "POST" });
-      const data = await res.json() as { portalUrl?: string; error?: string };
-      if (data.portalUrl) {
-        window.open(data.portalUrl, "_blank");
-      } else {
-        toast.error(data.error ?? "Failed to open billing portal");
-      }
-    } catch {
-      toast.error("Failed to open billing portal");
-    } finally {
-      setBillingLoading(false);
-    }
-  }
 
   const successToastShown = useRef(false);
   useEffect(() => {
@@ -110,12 +98,8 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
-    if (convexUser?.timezone) {
-      setTz(convexUser.timezone);
-    } else {
-      const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      setTz(detected || "America/New_York");
-    }
+    if (convexUser?.timezone) setTz(convexUser.timezone);
+    else setTz(Intl.DateTimeFormat().resolvedOptions().timeZone || "America/New_York");
   }, [convexUser?.timezone]);
 
   useEffect(() => {
@@ -153,289 +137,199 @@ export default function SettingsPage() {
   if (isLoading || !convexUserId) {
     return (
       <div className="max-w-lg space-y-4">
-        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-10 w-32" />
         <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-48 w-full" />
+        <Skeleton className="h-32 w-full" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-lg space-y-6">
-      <h1 className="text-2xl font-bold">Settings</h1>
+    <div className="max-w-lg space-y-10">
+      <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Settings</h1>
 
-      {/* Profile */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <User className="w-4 h-4 text-muted-foreground" />
-            Account
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Name</label>
+      {/* ── Account ── */}
+      <section>
+        <SectionLabel>Account</SectionLabel>
+        <div className="space-y-0">
+          <div className="py-3.5 border-b border-border/40">
+            <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-wider mb-1.5">Name</p>
             <input
               type="text"
               value={profileName}
               onChange={(e) => setProfileName(e.target.value)}
               placeholder="Your name"
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full bg-transparent text-sm focus:outline-none text-foreground placeholder:text-muted-foreground/30 border-b border-border/30 focus:border-primary/50 pb-1 transition-colors"
             />
           </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">About you</label>
+          <div className="py-3.5 border-b border-border/40">
+            <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-wider mb-1.5">About you</p>
             <textarea
               value={profileBio}
               onChange={(e) => setProfileBio(e.target.value)}
               placeholder="A short bio…"
-              rows={3}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+              rows={2}
+              className="w-full bg-transparent text-sm focus:outline-none text-foreground placeholder:text-muted-foreground/30 resize-none border-b border-border/30 focus:border-primary/50 pb-1 transition-colors"
             />
           </div>
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <p className="text-xs text-muted-foreground">Email</p>
-              <p className="text-sm font-medium">{convexUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || "—"}</p>
+          <div className="flex items-center justify-between py-3.5 border-b border-border/40">
+            <div>
+              <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-wider mb-0.5">Email</p>
+              <p className="text-sm">{convexUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || "—"}</p>
             </div>
-            <Button
-              size="sm"
+            <button
               onClick={handleSaveProfile}
               disabled={savingProfile || !profileName.trim()}
-              className="gap-1.5"
+              className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
             >
-              {profileSaved ? (
-                <><Check className="w-3.5 h-3.5" /> Saved</>
-              ) : savingProfile ? "Saving…" : "Save"}
-            </Button>
+              {profileSaved ? <><Check className="w-3.5 h-3.5 text-emerald-500" /> Saved</> : savingProfile ? "Saving…" : "Save"}
+            </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      {/* Appearance */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Sun className="w-4 h-4 text-muted-foreground" />
-            Appearance
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Choose how the app looks. System follows your device preference.
-          </p>
-          <div className="flex gap-2">
-            {(["light", "dark", "system"] as const).map((t) => {
-              const Icon = t === "light" ? Sun : t === "dark" ? Moon : Monitor;
-              const label = t.charAt(0).toUpperCase() + t.slice(1);
-              return (
-                <button
-                  key={t}
-                  onClick={() => setTheme(t)}
-                  className={cn(
-                    "flex-1 flex flex-col items-center gap-1.5 py-3 rounded-lg border-2 text-xs font-medium transition-all",
-                    theme === t
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                  )}
-                >
-                  <Icon className="w-4 h-4" />
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      {/* ── Appearance ── */}
+      <section>
+        <SectionLabel>Appearance</SectionLabel>
+        <div className="flex gap-2">
+          {(["light", "dark", "system"] as const).map((t) => {
+            const Icon = t === "light" ? Sun : t === "dark" ? Moon : Monitor;
+            return (
+              <button
+                key={t}
+                onClick={() => setTheme(t)}
+                className={cn(
+                  "flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl border text-xs font-medium transition-all",
+                  theme === t
+                    ? "border-primary/50 bg-primary/5 text-primary"
+                    : "border-border/40 text-muted-foreground hover:border-border hover:text-foreground"
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                {t.charAt(0).toUpperCase() + t.slice(1)}
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
-      {/* Timezone */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Globe className="w-4 h-4 text-muted-foreground" />
-            Timezone
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Daily report reminders are sent at 8pm in your local timezone.
-          </p>
-          <Select value={tz} onValueChange={(v) => { if (v) setTz(v); }}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select timezone" />
-            </SelectTrigger>
-            <SelectContent>
-              {COMMON_TIMEZONES.map((t) => (
-                <SelectItem key={t} value={t}>
-                  {t.replace(/_/g, " ")}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button onClick={handleSaveTz} disabled={savingTz || !tz} size="sm">
-            {savingTz ? "Saving…" : "Save timezone"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Notifications */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Bell className="w-4 h-4 text-muted-foreground" />
-            Push Notifications
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Enable browser push notifications to receive your daily and weekly reminders.
-          </p>
-          {subscribed ? (
-            <div className="flex items-center gap-2 text-sm text-green-600">
-              <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
-              Notifications enabled
+      {/* ── Timezone ── */}
+      <section>
+        <SectionLabel>Reminders</SectionLabel>
+        <div className="space-y-0">
+          <Row label="Timezone" sub="Daily reminders sent at 8pm in your local time">
+            <div className="flex items-center gap-2">
+              <select
+                value={tz}
+                onChange={(e) => setTz(e.target.value)}
+                className="text-sm bg-transparent border-b border-border/40 focus:border-primary/50 focus:outline-none pb-0.5 text-foreground transition-colors"
+              >
+                {COMMON_TIMEZONES.map((t) => (
+                  <option key={t} value={t}>{t.replace(/_/g, " ")}</option>
+                ))}
+              </select>
+              <button
+                onClick={handleSaveTz}
+                disabled={savingTz || !tz}
+                className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
+              >
+                {savingTz ? "…" : "Save"}
+              </button>
             </div>
-          ) : (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={subscribe}
-              disabled={typeof window !== "undefined" && !("Notification" in window)}
-            >
-              Enable notifications
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Email notifications */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Mail className="w-4 h-4 text-muted-foreground" />
-            Email notifications
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Two emails per week at most — a Monday digest summarising your previous week, and a Sunday nudge if you haven't submitted your weekly review.
-          </p>
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">
-              {emailOptOut ? "Emails disabled" : "Emails enabled"}
-            </span>
-            <button
-              onClick={async () => {
+          </Row>
+          <Row label="Push notifications" sub={subscribed ? "Active — you'll be reminded at 8pm" : "Off"}>
+            {subscribed ? (
+              <span className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                On
+              </span>
+            ) : (
+              <button
+                onClick={subscribe}
+                disabled={typeof window !== "undefined" && !("Notification" in window)}
+                className="text-xs font-medium text-primary hover:text-primary/80 transition-colors disabled:opacity-40"
+              >
+                Enable
+              </button>
+            )}
+          </Row>
+          <Row label="Email digest" sub="Monday summary + Sunday nudge if no weekly review">
+            <Toggle
+              on={!emailOptOut}
+              onToggle={async () => {
                 if (!convexUserId) return;
                 await updateEmailOptOut({ userId: convexUserId, optOut: !emailOptOut });
                 toast.success(emailOptOut ? "Emails re-enabled." : "Emails turned off.");
               }}
-              className={cn(
-                "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none",
-                emailOptOut ? "bg-muted" : "bg-primary"
-              )}
-            >
-              <span
-                className={cn(
-                  "inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform",
-                  emailOptOut ? "translate-x-1" : "translate-x-6"
-                )}
-              />
-            </button>
-          </div>
-        </CardContent>
-      </Card>
+            />
+          </Row>
+        </div>
+      </section>
 
-      {/* Subscription */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <CreditCard className="w-4 h-4 text-muted-foreground" />
-            Subscription
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {/* Current plan */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Current plan</span>
-            <span
-              className={cn(
-                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold",
-                plan === "unlimited"
-                  ? "bg-violet-100 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300"
-                  : plan === "pro"
-                  ? "bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300"
-                  : role === "admin"
-                  ? "bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300"
-                  : "bg-muted text-muted-foreground"
-              )}
-            >
-              {plan === "unlimited" && <Crown className="w-3 h-3" />}
-              {plan === "pro" && <Zap className="w-3 h-3" />}
-              {role === "admin"
-                ? "Admin"
-                : plan.charAt(0).toUpperCase() + plan.slice(1)}
+      {/* ── Subscription ── */}
+      <section>
+        <SectionLabel>Plan</SectionLabel>
+        <div className="space-y-0">
+          <Row label="Current plan" sub={hasPaidAccess ? "Full access to all features" : "Core features included"}>
+            <span className={cn(
+              "text-xs font-semibold px-2.5 py-1 rounded-full",
+              plan === "unlimited" ? "bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300"
+              : plan === "pro" ? "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300"
+              : role === "admin" ? "bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300"
+              : "bg-muted text-muted-foreground"
+            )}>
+              {role === "admin" ? "Admin" : plan.charAt(0).toUpperCase() + plan.slice(1)}
             </span>
-          </div>
-
-          {/* Actions */}
+          </Row>
           {!hasPaidAccess && (
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Upgrade to Pro for <span className="font-semibold text-foreground">$12.99/month</span> — full
-                access to all features including AI insights, affirmations, and visualizations.
+            <div className="py-3.5 border-b border-border/40">
+              <p className="text-sm text-muted-foreground mb-3">
+                Upgrade to Pro for <span className="font-medium text-foreground">$12.99/month</span> — AI insights, affirmations, and visualizations.
               </p>
-              <Button
-                size="sm"
-                onClick={handleUpgrade}
-                disabled={checkoutLoading}
-                className="w-full"
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch("/api/checkout", { method: "POST" });
+                    const data = await res.json() as { checkoutUrl?: string; error?: string };
+                    if (data.checkoutUrl) window.location.href = data.checkoutUrl;
+                    else toast.error(data.error ?? "Failed to start checkout");
+                  } catch { toast.error("Failed to start checkout"); }
+                }}
+                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
               >
-                {checkoutLoading ? "Redirecting…" : "Upgrade to Pro →"}
-              </Button>
+                Upgrade to Pro →
+              </button>
             </div>
           )}
-
           {plan === "pro" && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleManageBilling}
-              disabled={billingLoading}
-            >
-              {billingLoading ? "Opening…" : "Manage subscription"}
-            </Button>
+            <Row label="Billing" sub="">
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch("/api/billing", { method: "POST" });
+                    const data = await res.json() as { portalUrl?: string; error?: string };
+                    if (data.portalUrl) window.open(data.portalUrl, "_blank");
+                    else toast.error(data.error ?? "Failed to open billing portal");
+                  } catch { toast.error("Failed to open billing portal"); }
+                }}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Manage →
+              </button>
+            </Row>
           )}
+        </div>
+      </section>
 
-          {(plan === "unlimited" || role === "admin") && (
-            <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">
-              You have unlimited access.
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Sign out */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2 text-destructive">
-            <LogOut className="w-4 h-4" />
-            Sign out
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground mb-3">
-            You&apos;ll be signed out of your account and redirected to the login page.
-          </p>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => signOut({ redirectUrl: "/" })}
-          >
-            Sign out
-          </Button>
-        </CardContent>
-      </Card>
+      {/* ── Sign out ── */}
+      <section className="pb-8">
+        <button
+          onClick={() => signOut({ redirectUrl: "/" })}
+          className="text-sm text-muted-foreground/50 hover:text-destructive transition-colors"
+        >
+          Sign out
+        </button>
+      </section>
     </div>
   );
 }
