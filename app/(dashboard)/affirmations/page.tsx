@@ -59,14 +59,20 @@ function FlashcardMode({
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "ArrowRight" || e.key === "ArrowDown") next();
-      if (e.key === "ArrowLeft" || e.key === "ArrowUp") prev();
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        setIndex((i) => Math.min(deck.length - 1, i + 1));
+        setFlipped(false);
+      }
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        setIndex((i) => Math.max(0, i - 1));
+        setFlipped(false);
+      }
       if (e.key === " ") { e.preventDefault(); setFlipped((f) => !f); }
       if (e.key === "Escape") onExit();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  });
+  }, [deck.length, onExit]);
 
   const current = deck[index];
   if (!current) return null;
