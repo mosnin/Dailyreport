@@ -5,6 +5,7 @@ import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { ChartBlock, type ChartSpec } from "@/components/insights/ChartBlock";
+import { ProgressDashboard } from "@/components/insights/ProgressDashboard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Send, Sparkles, BarChart2 } from "lucide-react";
@@ -134,17 +135,23 @@ export default function InsightsPage() {
   }
 
   return (
-    <div className="max-w-2xl flex flex-col h-[calc(100vh-8rem)]">
+    <div className="max-w-2xl space-y-6">
       {/* Header */}
-      <div className="shrink-0 mb-4">
+      <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-indigo-500" />
           AI Insights
         </h1>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Ask about your patterns, weak areas, and progress. Charts generated on demand.
+          Your progress direction at a glance, plus an AI coach you can ask anything.
         </p>
       </div>
+
+      {/* Progress scores dashboard */}
+      <ProgressDashboard userId={convexUserId} />
+
+      {/* Chat section */}
+      <div className="flex flex-col h-[calc(100vh-28rem)]">
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-5 pr-1">
@@ -227,6 +234,7 @@ export default function InsightsPage() {
           <Send className="w-4 h-4" />
         </Button>
       </form>
+      </div>
     </div>
   );
 }

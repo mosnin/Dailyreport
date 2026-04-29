@@ -76,6 +76,14 @@ export default defineSchema({
     userId: v.id("users"),
     weekStartDate: v.string(),
     content: v.string(),
+    scores: v.optional(
+      v.object({
+        momentum: v.number(),   // -100 to 100
+        execution: v.number(),  // 0 to 100
+        wellbeing: v.number(),  // 0 to 100
+        growth: v.number(),     // 0 to 100
+      })
+    ),
     generatedAt: v.number(),
   }).index("by_user_week", ["userId", "weekStartDate"]),
 

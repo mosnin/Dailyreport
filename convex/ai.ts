@@ -127,13 +127,26 @@ export const embedWeeklyReport = internalAction({
   },
 });
 
+function getMondayForDate(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00Z");
+  const day = d.getUTCDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setUTCDate(d.getUTCDate() + diff);
+  return d.toISOString().split("T")[0];
+}
+
 export const generateWeeklyInsight = internalAction({
   args: { userId: v.id("users"), weekStartDate: v.string() },
   handler: async (ctx, args) => {
-    const reports = await ctx.runQuery(internal.aiInternal.getWeekReportsForInsight, {
-      userId: args.userId,
-      weekStartDate: args.weekStartDate,
-    });
+    const [reports, priorHistory] = await Promise.all([
+      ctx.runQuery(internal.aiInternal.getWeekReportsForInsight, {
+        userId: args.userId,
+        weekStartDate: args.weekStartDate,
+      }),
+      ctx.runQuery(internal.aiInternal.getProgressHistoryInternal, {
+        userId: args.userId,
+      }),
+    ]);
     if (!reports || (reports.daily.length === 0 && !reports.weekly)) return;
 
     const openai = getOpenAI();
@@ -148,27 +161,163 @@ export const generateWeeklyInsight = internalAction({
       .filter(Boolean)
       .join("\n\n");
 
+    type PriorInsight = { weekStartDate: string; scores?: { momentum: number; execution: number; wellbeing: number; growth: number } };
+    const priorScoresText = (priorHistory as PriorInsight[])
+      .filter((r) => r.scores)
+      .map((r) => `Week of ${r.weekStartDate}: momentum=${r.scores!.momentum}, execution=${r.scores!.execution}, wellbeing=${r.scores!.wellbeing}, growth=${r.scores!.growth}`)
+      .join("\n");
+
     try {
       const completion = await openai.chat.completions.create({
         model: "gpt-4o",
+        response_format: { type: "json_object" },
         messages: [
           {
             role: "system",
-            content:
-              "You are an accountability coach. Analyze the user's weekly reports and write 2-3 sentences highlighting patterns, progress, and encouragement. Be specific and personal.",
+            content: `You are an accountability coach. Analyze the user's weekly reports and return JSON in this exact shape:
+{
+  "insight": "<2-3 sentence insight highlighting patterns, progress, and encouragement>",
+  "scores": {
+    "momentum": <integer -100 to 100>,
+    "execution": <integer 0 to 100>,
+    "wellbeing": <integer 0 to 100>,
+    "growth": <integer 0 to 100>
+  }
+}
+
+Scoring rubric:
+- momentum (-100 to 100): direction of travel vs prior weeks. Negative = declining, 0 = steady, positive = improving. Use prior week scores below for calibration.
+- execution (0-100): % of stated goals that were actually completed this week
+- wellbeing (0-100): emotional health and energy level shown in reports
+- growth (0-100): problem-solving effectiveness and learning demonstrated
+${priorScoresText ? `\nPrior weeks for momentum calibration:\n${priorScoresText}` : ""}`,
           },
           { role: "user", content: context },
         ],
-        max_tokens: 200,
+        max_tokens: 350,
       });
+
+      const raw = completion.choices[0].message.content ?? "{}";
+      let insight = "";
+      let scores: { momentum: number; execution: number; wellbeing: number; growth: number } | undefined;
+      try {
+        const parsed = JSON.parse(raw);
+        insight = parsed.insight ?? "";
+        scores = parsed.scores ?? undefined;
+      } catch {
+        insight = raw;
+      }
 
       await ctx.runMutation(internal.aiInternal.saveInsight, {
         userId: args.userId,
         weekStartDate: args.weekStartDate,
-        content: completion.choices[0].message.content ?? "",
+        content: insight,
+        scores,
       });
     } catch (err) {
       console.error("generateWeeklyInsight failed for", args.userId, err);
+    }
+  },
+});
+
+export const analyzeProgress = action({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const [reports, existingInsights] = await Promise.all([
+      ctx.runQuery(internal.aiInternal.getRecentReportsForInsights, { userId: args.userId }),
+      ctx.runQuery(internal.aiInternal.getProgressHistoryInternal, { userId: args.userId }),
+    ]);
+
+    if (reports.daily.length === 0 && reports.weekly.length === 0) return;
+
+    // Group daily reports by Monday-week
+    const byWeek: Record<string, { daily: { date: string; responses: unknown }[]; weekly: { responses: unknown }[] }> = {};
+    for (const r of reports.daily as { date: string; responses: unknown }[]) {
+      const mon = getMondayForDate(r.date);
+      if (!byWeek[mon]) byWeek[mon] = { daily: [], weekly: [] };
+      byWeek[mon].daily.push(r);
+    }
+    for (const r of reports.weekly as { weekStartDate: string; responses: unknown }[]) {
+      const wk = r.weekStartDate;
+      if (!byWeek[wk]) byWeek[wk] = { daily: [], weekly: [] };
+      byWeek[wk].weekly.push(r);
+    }
+
+    // Only score weeks without scores yet
+    type ExistingInsight = { weekStartDate: string; scores?: unknown };
+    const alreadyScored = new Set(
+      (existingInsights as ExistingInsight[]).filter((i) => i.scores).map((i) => i.weekStartDate)
+    );
+    const weeksToScore = Object.keys(byWeek).filter((w) => !alreadyScored.has(w)).sort();
+    if (weeksToScore.length === 0) return;
+
+    const weekContexts = weeksToScore.map((week) => {
+      const data = byWeek[week];
+      const dailyText = data.daily
+        .map((r, i) => `Day ${i + 1}: ${reportToText(r.responses)}`)
+        .join("\n");
+      const weeklyText = data.weekly[0] ? `Weekly review: ${reportToText(data.weekly[0].responses)}` : "";
+      return { week, context: [dailyText, weeklyText].filter(Boolean).join("\n") };
+    });
+
+    // Prior scored weeks for momentum calibration
+    const priorScoresText = (existingInsights as ExistingInsight[])
+      .filter((r) => r.scores)
+      .map((r) => {
+        const s = r.scores as { momentum: number; execution: number; wellbeing: number; growth: number };
+        return `Week of ${r.weekStartDate}: momentum=${s.momentum}, execution=${s.execution}, wellbeing=${s.wellbeing}, growth=${s.growth}`;
+      })
+      .join("\n");
+
+    const openai = getOpenAI();
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content: `You are an accountability coach scoring weekly report data.
+For each week provided, score these 4 dimensions:
+- momentum (-100 to 100): direction of travel. Score chronologically — early weeks set the baseline, later weeks are judged relative to each other and to prior history.
+- execution (0-100): % of stated goals actually completed
+- wellbeing (0-100): emotional health and energy level
+- growth (0-100): problem-solving effectiveness and learning rate
+
+${priorScoresText ? `Prior scored weeks for momentum calibration:\n${priorScoresText}\n` : ""}
+Return JSON: { "weeks": [ { "weekStartDate": "YYYY-MM-DD", "scores": { "momentum": N, "execution": N, "wellbeing": N, "growth": N } } ] }`,
+          },
+          {
+            role: "user",
+            content: weekContexts
+              .map((w) => `=== Week of ${w.week} ===\n${w.context}`)
+              .join("\n\n---\n\n"),
+          },
+        ],
+        max_tokens: 800,
+      });
+
+      const raw = completion.choices[0].message.content ?? '{"weeks":[]}';
+      let scoredWeeks: Array<{ weekStartDate: string; scores: { momentum: number; execution: number; wellbeing: number; growth: number } }> = [];
+      try {
+        const parsed = JSON.parse(raw);
+        scoredWeeks = parsed.weeks ?? [];
+      } catch {
+        return;
+      }
+
+      for (const { weekStartDate, scores } of scoredWeeks) {
+        await ctx.runMutation(internal.aiInternal.saveProgressScores, {
+          userId: args.userId,
+          weekStartDate,
+          scores,
+        });
+      }
+    } catch (err) {
+      console.error("analyzeProgress failed:", err);
     }
   },
 });

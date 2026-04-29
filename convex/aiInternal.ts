@@ -52,11 +52,49 @@ export const getWeekReportsForInsight = internalQuery({
   },
 });
 
+const scoresShape = v.object({
+  momentum: v.number(),
+  execution: v.number(),
+  wellbeing: v.number(),
+  growth: v.number(),
+});
+
 export const saveInsight = internalMutation({
   args: {
     userId: v.id("users"),
     weekStartDate: v.string(),
     content: v.string(),
+    scores: v.optional(scoresShape),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("aiInsights")
+      .withIndex("by_user_week", (q) =>
+        q.eq("userId", args.userId).eq("weekStartDate", args.weekStartDate)
+      )
+      .unique();
+    const patch = {
+      content: args.content,
+      generatedAt: Date.now(),
+      ...(args.scores ? { scores: args.scores } : {}),
+    };
+    if (existing) {
+      await ctx.db.patch(existing._id, patch);
+    } else {
+      await ctx.db.insert("aiInsights", {
+        userId: args.userId,
+        weekStartDate: args.weekStartDate,
+        ...patch,
+      });
+    }
+  },
+});
+
+export const saveProgressScores = internalMutation({
+  args: {
+    userId: v.id("users"),
+    weekStartDate: v.string(),
+    scores: scoresShape,
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -66,15 +104,44 @@ export const saveInsight = internalMutation({
       )
       .unique();
     if (existing) {
-      await ctx.db.patch(existing._id, { content: args.content, generatedAt: Date.now() });
+      await ctx.db.patch(existing._id, { scores: args.scores });
     } else {
       await ctx.db.insert("aiInsights", {
         userId: args.userId,
         weekStartDate: args.weekStartDate,
-        content: args.content,
+        content: "",
+        scores: args.scores,
         generatedAt: Date.now(),
       });
     }
+  },
+});
+
+export const getProgressHistoryInternal = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const insights = await ctx.db
+      .query("aiInsights")
+      .withIndex("by_user_week", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .take(4);
+    return insights.reverse();
+  },
+});
+
+export const getProgressHistory = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return null;
+    const insights = await ctx.db
+      .query("aiInsights")
+      .withIndex("by_user_week", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .take(12);
+    return insights.reverse();
   },
 });
 
