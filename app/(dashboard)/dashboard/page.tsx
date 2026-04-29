@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useQuery } from "convex/react";
+import { useAuth } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { usePushSubscription } from "@/hooks/usePushSubscription";
@@ -10,14 +11,15 @@ import { CalendarGrid } from "@/components/dashboard/CalendarGrid";
 import { InsightCard } from "@/components/dashboard/InsightCard";
 import { TimezoneModal } from "@/components/dashboard/TimezoneModal";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { todayString } from "@/lib/utils";
 import { Bell } from "lucide-react";
 
 export default function DashboardPage() {
-  const { convexUserId, convexUser, isLoading } = useConvexUser();
+  const { convexUserId, convexUser, isLoading, isAuthenticated, createError, clerkUser } = useConvexUser();
+  const { getToken } = useAuth();
   const [showTzModal, setShowTzModal] = useState(false);
+  const [tokenInfo, setTokenInfo] = useState<string>("");
   const { subscribe, subscribed } = usePushSubscription(convexUserId);
 
   const todayReport = useQuery(
@@ -31,13 +33,49 @@ export default function DashboardPage() {
     }
   }, [convexUser]);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = await getToken({ template: "convex" });
+        if (!token) {
+          setTokenInfo("getToken returned null/empty");
+          return;
+        }
+        const parts = token.split(".");
+        if (parts.length !== 3) {
+          setTokenInfo("Token is not a valid JWT (expected 3 parts)");
+          return;
+        }
+        const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+        setTokenInfo(JSON.stringify({ iss: payload.iss, aud: payload.aud, sub: payload.sub }, null, 2));
+      } catch (e) {
+        setTokenInfo("getToken error: " + (e instanceof Error ? e.message : String(e)));
+      }
+    })();
+  }, [getToken, isAuthenticated]);
+
   if (isLoading || !convexUserId) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-8 w-48" />
-        <div className="grid grid-cols-3 gap-4">
-          {[0, 1, 2].map((i) => <Skeleton key={i} className="h-24" />)}
+      <div className="space-y-4">
+        <h1 className="text-2xl font-bold">Auth Debug</h1>
+        <div className="rounded-lg border border-border bg-card p-4 space-y-2 text-sm font-mono">
+          <div>Clerk loaded: <span className="font-semibold">{String(!isLoading)}</span></div>
+          <div>Clerk user id: <span className="font-semibold">{clerkUser?.id ?? "null"}</span></div>
+          <div>Clerk email: <span className="font-semibold">{clerkUser?.primaryEmailAddress?.emailAddress ?? "null"}</span></div>
+          <div>Convex authenticated: <span className="font-semibold">{String(isAuthenticated)}</span></div>
+          <div>Convex user id: <span className="font-semibold">{convexUserId ?? "null"}</span></div>
+          <div>Convex user (query): <span className="font-semibold">{convexUser === undefined ? "loading..." : convexUser === null ? "null (auth failed or no user yet)" : convexUser._id}</span></div>
+          {createError && (
+            <div className="text-red-500">getOrCreate error: {createError}</div>
+          )}
+          <div className="pt-2 border-t border-border">
+            <div className="text-xs text-muted-foreground mb-1">JWT (template=convex) payload preview:</div>
+            <pre className="text-xs whitespace-pre-wrap break-all">{tokenInfo || "fetching..."}</pre>
+          </div>
         </div>
+        <p className="text-xs text-muted-foreground">
+          If &quot;iss&quot; in the JWT does not match the value hardcoded in <code>convex/auth.config.ts</code>, that is the problem.
+        </p>
       </div>
     );
   }
