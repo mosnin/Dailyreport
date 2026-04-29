@@ -10,6 +10,7 @@ import { CalendarGrid } from "@/components/dashboard/CalendarGrid";
 import { InsightCard } from "@/components/dashboard/InsightCard";
 import { TimezoneModal } from "@/components/dashboard/TimezoneModal";
 import { TodayPractice } from "@/components/dashboard/TodayPractice";
+import { ScoreChart } from "@/components/dashboard/ScoreChart";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { todayString } from "@/lib/utils";
@@ -86,6 +87,8 @@ export default function DashboardPage() {
             </Button>
           </div>
         )}
+
+      <ScoreChart userId={convexUserId} />
 
       {/* Calendar + Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
