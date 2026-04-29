@@ -25,6 +25,7 @@ import type * as reports from "../reports.js";
 import type * as scores from "../scores.js";
 import type * as users from "../users.js";
 import type * as visualizations from "../visualizations.js";
+import type * as rateLimits from "../rateLimits.js";
 
 import type {
   ApiFromModules,
@@ -50,6 +51,7 @@ declare const fullApi: ApiFromModules<{
   scores: typeof scores;
   users: typeof users;
   visualizations: typeof visualizations;
+  rateLimits: typeof rateLimits;
 }>;
 
 /**

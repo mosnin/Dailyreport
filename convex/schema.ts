@@ -140,4 +140,11 @@ export default defineSchema({
     title: v.string(),
     createdAt: v.number(),
   }).index("by_user_category", ["userId", "category"]),
+
+  rateLimitUsage: defineTable({
+    userId: v.id("users"),
+    action: v.string(),
+    date: v.string(),
+    count: v.number(),
+  }).index("by_user_action_date", ["userId", "action", "date"]),
 });

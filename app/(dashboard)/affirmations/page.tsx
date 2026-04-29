@@ -418,11 +418,74 @@ export default function AffirmationsPage() {
     convexUserId ? { userId: convexUserId, date: todayStr } : "skip"
   );
 
-  const addAffirmation = useMutation(api.affirmations.add);
-  const removeAffirmation = useMutation(api.affirmations.remove);
-  const updateText = useMutation(api.affirmations.updateText);
-  const updateSource = useMutation(api.affirmations.updateSource);
-  const recordRound = useMutation(api.affirmations.recordRound);
+  const addAffirmation = useMutation(api.affirmations.add).withOptimisticUpdate(
+    (localStore, args) => {
+      if (!convexUserId) return;
+      const current = localStore.getQuery(api.affirmations.list, { userId: convexUserId });
+      if (current === undefined) return;
+      const tempId = `optimistic-${Date.now()}` as Id<"affirmations">;
+      localStore.setQuery(api.affirmations.list, { userId: convexUserId }, [
+        ...current,
+        { _id: tempId, _creationTime: Date.now(), userId: convexUserId, text: args.text, source: args.source, createdAt: Date.now() },
+      ]);
+    }
+  );
+  const removeAffirmation = useMutation(api.affirmations.remove).withOptimisticUpdate(
+    (localStore, args) => {
+      if (!convexUserId) return;
+      const current = localStore.getQuery(api.affirmations.list, { userId: convexUserId });
+      if (current === undefined) return;
+      localStore.setQuery(
+        api.affirmations.list,
+        { userId: convexUserId },
+        current.filter((a) => a._id !== args.id)
+      );
+    }
+  );
+  const updateText = useMutation(api.affirmations.updateText).withOptimisticUpdate(
+    (localStore, args) => {
+      if (!convexUserId) return;
+      const current = localStore.getQuery(api.affirmations.list, { userId: convexUserId });
+      if (current === undefined) return;
+      localStore.setQuery(
+        api.affirmations.list,
+        { userId: convexUserId },
+        current.map((a) => a._id === args.id ? { ...a, text: args.text } : a)
+      );
+    }
+  );
+  const updateSource = useMutation(api.affirmations.updateSource).withOptimisticUpdate(
+    (localStore, args) => {
+      if (!convexUserId) return;
+      const current = localStore.getQuery(api.affirmations.list, { userId: convexUserId });
+      if (current === undefined) return;
+      localStore.setQuery(
+        api.affirmations.list,
+        { userId: convexUserId },
+        current.map((a) => a._id === args.id ? { ...a, source: args.source } : a)
+      );
+    }
+  );
+  const recordRound = useMutation(api.affirmations.recordRound).withOptimisticUpdate(
+    (localStore, args) => {
+      const current = localStore.getQuery(api.affirmations.getTodaySession, { userId: args.userId, date: args.date });
+      if (current === undefined) return;
+      if (current === null) {
+        localStore.setQuery(api.affirmations.getTodaySession, { userId: args.userId, date: args.date }, {
+          _id: `optimistic-${Date.now()}` as Id<"affirmationSessions">,
+          _creationTime: Date.now(),
+          userId: args.userId,
+          date: args.date,
+          rounds: 1,
+        });
+      } else {
+        localStore.setQuery(api.affirmations.getTodaySession, { userId: args.userId, date: args.date }, {
+          ...current,
+          rounds: current.rounds + 1,
+        });
+      }
+    }
+  );
   const generateAffirmations = useAction(api.ai.generateAffirmations);
 
   const [inRound, setInRound] = useState(false);

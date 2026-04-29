@@ -181,6 +181,7 @@ export const semanticSearch = action({
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handler: async (ctx, args): Promise<any[]> => {
+    await ctx.runMutation(internal.rateLimits.checkAndConsume, { userId: args.userId, action: "semanticSearch" });
     const limit = args.limit ?? 8;
     let embedding: number[];
     try {
@@ -235,6 +236,7 @@ export const generateAffirmations = action({
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handler: async (ctx, args): Promise<any> => {
+    await ctx.runMutation(internal.rateLimits.checkAndConsume, { userId: args.userId, action: "affirmations" });
     const [dreams, goals, reports, styles] = await Promise.all([
       ctx.runQuery(internal.aiInternal.getAllDreams, { userId: args.userId }),
       ctx.runQuery(internal.aiInternal.getGoalsForVisualization, { userId: args.userId }),
@@ -326,6 +328,7 @@ export const insightsChat = action({
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handler: async (ctx, args): Promise<any> => {
+    await ctx.runMutation(internal.rateLimits.checkAndConsume, { userId: args.userId, action: "insightsChat" });
     const reports = await ctx.runQuery(internal.aiInternal.getRecentReportsForInsights, {
       userId: args.userId,
     });
@@ -713,6 +716,7 @@ export const regenerateWeeklyInsight = action({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
+    await ctx.runMutation(internal.rateLimits.checkAndConsume, { userId: args.userId, action: "regenerateWeeklyInsight" });
     const now = new Date();
     const day = now.getDay();
     const diff = now.getDate() - day + (day === 0 ? -6 : 1);
@@ -726,6 +730,7 @@ export const regenerateWeeklyInsight = action({
 export const generateVisualizations = action({
   args: { userId: v.id("users"), force: v.optional(v.boolean()) },
   handler: async (ctx, args) => {
+    await ctx.runMutation(internal.rateLimits.checkAndConsume, { userId: args.userId, action: "generateVisualizations" });
     const today = new Date().toISOString().split("T")[0];
     await doGenerateVisualizations(ctx, args.userId, today, args.force ?? false);
   },
@@ -745,6 +750,7 @@ export const chat = action({
     history: v.array(v.object({ role: v.string(), content: v.string() })),
   },
   handler: async (ctx, args) => {
+    await ctx.runMutation(internal.rateLimits.checkAndConsume, { userId: args.userId, action: "chat" });
     const embedding = await getEmbedding(args.message);
 
     const [dailyResults, weeklyResults] = await Promise.all([

@@ -59,8 +59,28 @@ export function GoalSection({
 
   const goals = useQuery(api.goals.list, { userId, category, periodKey });
   const addGoal = useMutation(api.goals.add);
-  const toggleGoal = useMutation(api.goals.toggle);
-  const removeGoal = useMutation(api.goals.remove);
+  const toggleGoal = useMutation(api.goals.toggle).withOptimisticUpdate(
+    (localStore, args) => {
+      const current = localStore.getQuery(api.goals.list, { userId, category, periodKey });
+      if (current === undefined) return;
+      localStore.setQuery(
+        api.goals.list,
+        { userId, category, periodKey },
+        current.map((g) => g._id === args.goalId ? { ...g, completed: !g.completed } : g)
+      );
+    }
+  );
+  const removeGoal = useMutation(api.goals.remove).withOptimisticUpdate(
+    (localStore, args) => {
+      const current = localStore.getQuery(api.goals.list, { userId, category, periodKey });
+      if (current === undefined) return;
+      localStore.setQuery(
+        api.goals.list,
+        { userId, category, periodKey },
+        current.filter((g) => g._id !== args.goalId)
+      );
+    }
+  );
   const updateTitle = useMutation(api.goals.updateTitle);
 
   const [newTitle, setNewTitle] = useState("");
