@@ -117,37 +117,38 @@ function AffirmationRow({
         </span>
       )}
 
-      <div className="shrink-0 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-        {!editing && (
-          <button
-            onClick={() => setEditing(true)}
-            className="p-1 text-muted-foreground hover:text-foreground"
-            title="Edit"
-          >
-            <Pencil className="w-3 h-3" />
-          </button>
-        )}
+      <div className="shrink-0 flex items-center gap-0.5">
         {!isSaved && onMoveToSaved && (
           <button
             onClick={onMoveToSaved}
-            className="p-1 text-muted-foreground hover:text-sky-500"
-            title="Move to Saved"
+            className="p-1 text-muted-foreground hover:text-sky-500 transition-colors"
+            title="Save permanently (don't use in rounds)"
           >
-            <Bookmark className="w-3 h-3" />
+            <Bookmark className="w-3.5 h-3.5" />
           </button>
         )}
         {isSaved && onMoveToPool && (
           <button
             onClick={onMoveToPool}
-            className="p-1 text-muted-foreground hover:text-amber-500"
-            title="Move to Practice Pool"
+            className="p-1 text-muted-foreground hover:text-amber-500 transition-colors"
+            title="Move back to practice pool"
           >
-            <Star className="w-3 h-3" />
+            <Star className="w-3.5 h-3.5" />
+          </button>
+        )}
+        {!editing && (
+          <button
+            onClick={() => setEditing(true)}
+            className="p-1 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+            title="Edit"
+          >
+            <Pencil className="w-3 h-3" />
           </button>
         )}
         <button
           onClick={onRemove}
-          className="p-1 text-muted-foreground hover:text-destructive"
+          className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Delete"
         >
           <Trash2 className="w-3 h-3" />
         </button>
@@ -354,6 +355,7 @@ export default function AffirmationsPage() {
   const addAffirmation = useMutation(api.affirmations.add);
   const removeAffirmation = useMutation(api.affirmations.remove);
   const updateText = useMutation(api.affirmations.updateText);
+  const updateSource = useMutation(api.affirmations.updateSource);
   const recordRound = useMutation(api.affirmations.recordRound);
   const generateAffirmations = useAction(api.ai.generateAffirmations);
 
@@ -468,10 +470,7 @@ export default function AffirmationsPage() {
               isSaved
               onRemove={() => removeAffirmation({ id: item._id })}
               onUpdateText={(t) => updateText({ id: item._id, text: t })}
-              onMoveToPool={async () => {
-                await removeAffirmation({ id: item._id });
-                await addAffirmation({ userId: convexUserId, text: item.text, source: "manual" });
-              }}
+              onMoveToPool={() => updateSource({ id: item._id, source: "manual" })}
             />
           ))
         )}
@@ -545,10 +544,7 @@ export default function AffirmationsPage() {
             isSaved={false}
             onRemove={() => removeAffirmation({ id: item._id })}
             onUpdateText={(t) => updateText({ id: item._id, text: t })}
-            onMoveToSaved={async () => {
-              await removeAffirmation({ id: item._id });
-              await addAffirmation({ userId: convexUserId, text: item.text, source: "saved" });
-            }}
+            onMoveToSaved={() => updateSource({ id: item._id, source: "saved" })}
           />
         ))}
 

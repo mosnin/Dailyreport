@@ -73,7 +73,6 @@ export default function InsightsPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [initialized, setInitialized] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -120,19 +119,6 @@ export default function InsightsPage() {
     }
   }
 
-  async function handleInitialAnalysis() {
-    if (initialized || !convexUserId) return;
-    setInitialized(true);
-    await send("Give me an overview of my performance and highlight the most important areas to improve. Include a chart if the data supports it.");
-  }
-
-  useEffect(() => {
-    if (!isLoading && convexUserId && !initialized) {
-      handleInitialAnalysis();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, convexUserId]);
-
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     send(input);
@@ -162,12 +148,13 @@ export default function InsightsPage() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-5 pr-1">
-        {messages.length === 0 && loading && (
-          <div className="space-y-2 p-4 rounded-2xl bg-muted/50">
-            <Skeleton className="h-3 w-3/4" />
-            <Skeleton className="h-3 w-1/2" />
-            <Skeleton className="h-3 w-5/6" />
-            <Skeleton className="h-3 w-2/3" />
+        {messages.length === 0 && !loading && (
+          <div className="rounded-2xl border border-dashed border-border/60 px-6 py-10 text-center">
+            <Sparkles className="w-6 h-6 text-indigo-500 mx-auto mb-3" />
+            <p className="text-sm font-medium mb-1">Ready when you are.</p>
+            <p className="text-xs text-muted-foreground">
+              Pick a starter below or ask anything about your reports.
+            </p>
           </div>
         )}
 
@@ -204,7 +191,7 @@ export default function InsightsPage() {
       </div>
 
       {/* Starter prompts */}
-      {messages.filter((m) => m.role === "user").length <= 1 && !loading && (
+      {messages.filter((m) => m.role === "user").length === 0 && !loading && (
         <div className="shrink-0 pt-3 pb-2 flex flex-wrap gap-2">
           {STARTER_PROMPTS.map((p) => (
             <button

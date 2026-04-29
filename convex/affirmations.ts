@@ -117,3 +117,16 @@ export const updateText = mutation({
     await ctx.db.patch(args.id, { text: args.text });
   },
 });
+
+export const updateSource = mutation({
+  args: {
+    id: v.id("affirmations"),
+    source: v.union(v.literal("manual"), v.literal("ai"), v.literal("saved")),
+  },
+  handler: async (ctx, args) => {
+    const item = await ctx.db.get(args.id);
+    if (!item) return;
+    await assertOwner(ctx, item.userId);
+    await ctx.db.patch(args.id, { source: args.source });
+  },
+});

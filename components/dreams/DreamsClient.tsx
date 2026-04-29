@@ -230,7 +230,7 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
       <div className="border-t border-border" />
 
       {/* ── Visualizations ── */}
-      <div>
+      <section className="space-y-0">
       {/* ── Header ── */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
@@ -414,7 +414,7 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
           </div>
         </DialogContent>
       </Dialog>
-      </div>
+      </section>
     </div>
   );
 }

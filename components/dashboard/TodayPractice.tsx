@@ -4,8 +4,9 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import Link from "next/link";
-import { Star, Eye, CheckCircle2, ChevronRight } from "lucide-react";
+import { Star, Eye, CheckCircle2, ChevronRight, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { todayString } from "@/lib/utils";
 
 const AFFIRMATION_GOAL = 5;
 
@@ -18,6 +19,7 @@ function PracticeCard({
   subtext,
   progress,
   done,
+  barColor,
 }: {
   href: string;
   icon: React.ElementType;
@@ -27,6 +29,7 @@ function PracticeCard({
   subtext: string;
   progress: number;
   done: boolean;
+  barColor: string;
 }) {
   return (
     <Link
@@ -63,7 +66,7 @@ function PracticeCard({
         <div
           className={cn(
             "h-full rounded-full transition-all duration-500",
-            done ? "bg-emerald-400" : iconColor.includes("amber") ? "bg-amber-400" : "bg-sky-400"
+            done ? "bg-emerald-400" : barColor
           )}
           style={{ width: `${Math.min(progress * 100, 100)}%` }}
         />
@@ -73,10 +76,13 @@ function PracticeCard({
 }
 
 export function TodayPractice({ userId }: { userId: Id<"users"> }) {
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = todayString();
 
   const session = useQuery(api.affirmations.getTodaySession, { userId, date: todayStr });
   const viz = useQuery(api.visualizations.getForDate, { userId, date: todayStr });
+  const todayReport = useQuery(api.reports.getDailyReport, { userId, date: todayStr });
+
+  const reportDone = todayReport != null;
 
   const rounds = session?.rounds ?? 0;
   const affirmDone = rounds >= AFFIRMATION_GOAL;
@@ -85,12 +91,30 @@ export function TodayPractice({ userId }: { userId: Id<"users"> }) {
   const vizTotal = viz?.scenarios.length ?? 10;
   const vizDone = vizCompleted > 0 && vizCompleted >= vizTotal;
 
+  const totalDone = (reportDone ? 1 : 0) + (affirmDone ? 1 : 0) + (vizDone ? 1 : 0);
+
   return (
     <div className="space-y-3">
-      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-0.5">
-        Today&apos;s Practice
-      </h2>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="flex items-end justify-between px-0.5">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+          Today&apos;s Practice
+        </h2>
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {totalDone}/3 complete
+        </span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <PracticeCard
+          href="/reports/daily"
+          icon={FileText}
+          iconColor="text-emerald-500"
+          label="Daily Report"
+          value={reportDone ? "Done" : "Today"}
+          subtext={reportDone ? "Submitted" : "Not submitted yet"}
+          progress={reportDone ? 1 : 0}
+          done={reportDone}
+          barColor="bg-emerald-400"
+        />
         <PracticeCard
           href="/affirmations"
           icon={Star}
@@ -100,6 +124,7 @@ export function TodayPractice({ userId }: { userId: Id<"users"> }) {
           subtext={affirmDone ? "Goal met" : "rounds today"}
           progress={rounds / AFFIRMATION_GOAL}
           done={affirmDone}
+          barColor="bg-amber-400"
         />
         <PracticeCard
           href="/dreams"
@@ -110,6 +135,7 @@ export function TodayPractice({ userId }: { userId: Id<"users"> }) {
           subtext={vizDone ? "All complete" : "done today"}
           progress={vizTotal > 0 ? vizCompleted / vizTotal : 0}
           done={vizDone}
+          barColor="bg-sky-400"
         />
       </div>
     </div>

@@ -84,7 +84,7 @@ function DreamRow({
 
   return (
     <div className="group flex items-start gap-2 py-1.5 px-1 rounded-lg hover:bg-muted/40 transition-colors">
-      <span className={cn("mt-0.5 w-1.5 h-1.5 rounded-full shrink-0 mt-1.5", meta.dot)} />
+      <span className={cn("w-1.5 h-1.5 rounded-full shrink-0 mt-2", meta.dot)} />
       {editing ? (
         <div className="flex-1 flex items-center gap-1.5">
           <input

@@ -93,6 +93,39 @@ export const completeOnboarding = mutation({
   },
 });
 
+export const migrateLifelongGoals = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+
+    if (user.lifelongMigrated) return { migrated: 0 };
+
+    const lifelong = await ctx.db
+      .query("goals")
+      .withIndex("by_user_category_period", (q) =>
+        q.eq("userId", args.userId).eq("category", "lifelong").eq("periodKey", "all")
+      )
+      .collect();
+
+    const now = Date.now();
+    for (const g of lifelong) {
+      await ctx.db.insert("dreams", {
+        userId: args.userId,
+        category: "other",
+        title: g.title,
+        createdAt: now,
+      });
+      await ctx.db.delete(g._id);
+    }
+
+    await ctx.db.patch(args.userId, { lifelongMigrated: true });
+    return { migrated: lifelong.length };
+  },
+});
+
 export const updateTimezone = mutation({
   args: { userId: v.id("users"), timezone: v.string() },
   handler: async (ctx, args) => {
