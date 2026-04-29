@@ -64,7 +64,7 @@ Current split:
 
 | Table | Key fields | Index |
 |---|---|---|
-| `users` | `auth0Sub`, `email`, `name`, `timezone?`, `createdAt` | `by_auth0_sub` |
+| `users` | `clerkId`, `email`, `name`, `timezone?`, `createdAt` | `by_clerk_id` |
 | `dailyReports` | `userId`, `date` (yyyy-MM-dd), `responses: any`, `embedding?` | `by_user_date`, vectorIndex `by_embedding` |
 | `weeklyReports` | `userId`, `weekStartDate` (Monday yyyy-MM-dd), `responses: any`, `embedding?` | `by_user_week`, vectorIndex `by_embedding` |
 | `goals` | `userId`, `category`, `periodKey`, `title`, `completed` | `by_user_category_period` |
@@ -75,24 +75,25 @@ Current split:
 
 After any schema change, run `npx convex dev --once` and **also manually update** `convex/_generated/api.d.ts` to add the new module import and `fullApi` entry — the local dev server is not always running in CI.
 
-## Auth Flow
+## Auth Flow (Clerk)
 
-1. `middleware.ts` — Auth0 v4 handles all `/auth/*` routes automatically (no route handler needed)
-2. `lib/auth0.ts` — `beforeSessionSaved` hook persists the Auth0 ID token into `session.tokenSet.idToken`
-3. `app/api/auth/token/route.ts` — GET endpoint returns `session.tokenSet.idToken` to the browser
-4. `components/ConvexWithAuth0Provider.tsx` — polls `/api/auth/token`, passes to `ConvexProviderWithAuth`
-5. `convex/auth.config.ts` — validates token against Auth0 JWKS; uses `AUTH0_DOMAIN` (just the domain, no `https://`)
-6. On first load: `api.users.getOrCreate` upserts the Convex user record keyed on `auth0Sub`
+1. `middleware.ts` — `clerkMiddleware` protects all non-public routes; public routes are `/`, `/sign-in(.*)`, `/sign-up(.*)`
+2. `components/ConvexWithClerkProvider.tsx` — wraps app with `ConvexProviderWithClerk` from `convex/react-clerk`, passing Clerk's `useAuth` hook directly
+3. `convex/auth.config.ts` — validates Clerk JWT against JWKS; `domain` = `CLERK_JWT_ISSUER_DOMAIN` env var
+4. `hooks/useConvexUser.ts` — uses Clerk's `useUser()`, calls `api.users.getOrCreate` with `clerkId` on first load
+5. Server-side auth check: `const { userId } = await auth()` from `@clerk/nextjs/server`
+6. Sign-out: `useClerk().signOut({ redirectUrl: "/" })` — no dedicated route needed
+
+**Clerk dashboard setup required:**
+- Create a JWT Template named **"convex"** (Templates → New → Convex)
+- Copy the **Issuer** URL from that template → set as `CLERK_JWT_ISSUER_DOMAIN` in Convex env vars
 
 ## Required Environment Variables
 
 **.env.local** (Next.js):
 ```
-AUTH0_DOMAIN=yourapp.us.auth0.com   # No https://
-AUTH0_CLIENT_ID=
-AUTH0_CLIENT_SECRET=
-AUTH0_SECRET=                        # random 32+ char string
-AUTH0_BASE_URL=http://localhost:3000
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
 NEXT_PUBLIC_CONVEX_URL=
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=
 ```
@@ -102,10 +103,8 @@ NEXT_PUBLIC_VAPID_PUBLIC_KEY=
 OPENAI_API_KEY=
 VAPID_PRIVATE_KEY=
 VAPID_SUBJECT=mailto:you@example.com
-AUTH0_DOMAIN=yourapp.us.auth0.com
+CLERK_JWT_ISSUER_DOMAIN=https://your-instance.clerk.accounts.dev
 ```
-
-Auth0 dashboard: register `{APP_URL}/auth/callback` as Allowed Callback URL.
 
 ## Goals Period Key System
 

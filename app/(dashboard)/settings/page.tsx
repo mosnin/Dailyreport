@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Bell, Globe, User, LogOut } from "lucide-react";
 import { toast } from "sonner";
+import { useClerk } from "@clerk/nextjs";
 
 const COMMON_TIMEZONES = [
   "America/New_York",
@@ -38,7 +39,8 @@ const COMMON_TIMEZONES = [
 ];
 
 export default function SettingsPage() {
-  const { convexUserId, convexUser, isLoading, auth0User } = useConvexUser();
+  const { convexUserId, convexUser, clerkUser, isLoading } = useConvexUser();
+  const { signOut } = useClerk();
   const { subscribe, subscribed } = usePushSubscription(convexUserId);
   const updateTimezone = useMutation(api.users.updateTimezone);
 
@@ -90,11 +92,11 @@ export default function SettingsPage() {
         <CardContent className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Name</span>
-            <span className="font-medium">{convexUser?.name || auth0User?.name || "—"}</span>
+            <span className="font-medium">{convexUser?.name || clerkUser?.fullName || "—"}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Email</span>
-            <span className="font-medium truncate ml-4">{convexUser?.email || auth0User?.email || "—"}</span>
+            <span className="font-medium truncate ml-4">{convexUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || "—"}</span>
           </div>
         </CardContent>
       </Card>
@@ -171,11 +173,13 @@ export default function SettingsPage() {
           <p className="text-sm text-muted-foreground mb-3">
             You&apos;ll be signed out of your account and redirected to the login page.
           </p>
-          <a href="/auth/logout">
-            <Button variant="destructive" size="sm">
-              Sign out
-            </Button>
-          </a>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => signOut({ redirectUrl: "/" })}
+          >
+            Sign out
+          </Button>
         </CardContent>
       </Card>
     </div>

@@ -1,12 +1,20 @@
-import type { NextRequest } from "next/server";
-import { auth0 } from "./lib/auth0";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-export async function middleware(request: NextRequest) {
-  return await auth0.middleware(request);
-}
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+]);
+
+export default clerkMiddleware(async (auth, req) => {
+  if (!isPublicRoute(req)) {
+    await auth.protect();
+  }
+});
 
 export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|icons|sw.js|manifest.json).*)",
+    "/(api|trpc)(.*)",
   ],
 };

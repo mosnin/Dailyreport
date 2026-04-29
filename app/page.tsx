@@ -1,10 +1,10 @@
-import { auth0 } from "@/lib/auth0";
+import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { CheckCircle, BarChart3, Calendar, Sparkles } from "lucide-react";
 
 export default async function LandingPage() {
-  const session = await auth0.getSession();
-  if (session) redirect("/dashboard");
+  const { userId } = await auth();
+  if (userId) redirect("/dashboard");
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white">
@@ -12,13 +12,13 @@ export default async function LandingPage() {
         <span className="text-xl font-bold tracking-tight">DailyReport</span>
         <div className="flex gap-3">
           <a
-            href="/auth/login"
+            href="/sign-in"
             className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
           >
             Log in
           </a>
           <a
-            href="/auth/login?screen_hint=signup"
+            href="/sign-up"
             className="px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors"
           >
             Get started
@@ -42,13 +42,13 @@ export default async function LandingPage() {
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
           <a
-            href="/auth/login?screen_hint=signup"
+            href="/sign-up"
             className="px-8 py-3 font-semibold bg-indigo-600 hover:bg-indigo-500 rounded-xl transition-colors text-lg"
           >
             Start for free
           </a>
           <a
-            href="/auth/login"
+            href="/sign-in"
             className="px-8 py-3 font-semibold border border-slate-700 hover:border-slate-500 rounded-xl transition-colors text-lg text-slate-300 hover:text-white"
           >
             Log in

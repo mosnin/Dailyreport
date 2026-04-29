@@ -1,34 +1,34 @@
 "use client";
 
-import { useUser } from "@auth0/nextjs-auth0";
+import { useUser } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useEffect, useState } from "react";
 import type { Id } from "@/convex/_generated/dataModel";
 
 export function useConvexUser() {
-  const { user: auth0User, isLoading: auth0Loading } = useUser();
+  const { user: clerkUser, isLoaded } = useUser();
   const [convexUserId, setConvexUserId] = useState<Id<"users"> | null>(null);
   const getOrCreate = useMutation(api.users.getOrCreate);
 
   const convexUser = useQuery(
-    api.users.getByAuth0Sub,
-    auth0User?.sub ? { auth0Sub: auth0User.sub } : "skip"
+    api.users.getByClerkId,
+    clerkUser?.id ? { clerkId: clerkUser.id } : "skip"
   );
 
   useEffect(() => {
-    if (!auth0User?.sub) return;
+    if (!clerkUser?.id) return;
     getOrCreate({
-      auth0Sub: auth0User.sub,
-      email: auth0User.email ?? "",
-      name: auth0User.name ?? auth0User.email ?? "",
+      clerkId: clerkUser.id,
+      email: clerkUser.primaryEmailAddress?.emailAddress ?? "",
+      name: clerkUser.fullName ?? clerkUser.primaryEmailAddress?.emailAddress ?? "",
     }).then(setConvexUserId);
-  }, [auth0User?.sub, getOrCreate]);
+  }, [clerkUser?.id, getOrCreate]);
 
   return {
-    auth0User,
+    clerkUser,
     convexUser,
     convexUserId: convexUserId ?? convexUser?._id ?? null,
-    isLoading: auth0Loading,
+    isLoading: !isLoaded,
   };
 }

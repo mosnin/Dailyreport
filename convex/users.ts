@@ -3,20 +3,20 @@ import { v } from "convex/values";
 
 export const getOrCreate = mutation({
   args: {
-    auth0Sub: v.string(),
+    clerkId: v.string(),
     email: v.string(),
     name: v.string(),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("users")
-      .withIndex("by_auth0_sub", (q) => q.eq("auth0Sub", args.auth0Sub))
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
       .unique();
 
     if (existing) return existing._id;
 
     return await ctx.db.insert("users", {
-      auth0Sub: args.auth0Sub,
+      clerkId: args.clerkId,
       email: args.email,
       name: args.name,
       createdAt: Date.now(),
@@ -24,12 +24,12 @@ export const getOrCreate = mutation({
   },
 });
 
-export const getByAuth0Sub = query({
-  args: { auth0Sub: v.string() },
+export const getByClerkId = query({
+  args: { clerkId: v.string() },
   handler: async (ctx, args) => {
     return await ctx.db
       .query("users")
-      .withIndex("by_auth0_sub", (q) => q.eq("auth0Sub", args.auth0Sub))
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
       .unique();
   },
 });
@@ -74,7 +74,6 @@ export const getStats = query({
         ? Math.round((weeklyReports.length / weeksSinceSignup) * 100)
         : 100;
 
-    // Calculate current daily streak
     const submittedDates = new Set(dailyReports.map((r) => r.date));
     let streak = 0;
     const today = new Date();

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useClerk } from "@clerk/nextjs";
 import {
   LayoutDashboard,
   FileText,
@@ -31,6 +32,8 @@ const nav = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { signOut } = useClerk();
+
   return (
     <aside className="hidden lg:flex flex-col w-60 shrink-0 border-r border-border bg-card min-h-screen">
       <div className="p-6 border-b border-border">
@@ -66,13 +69,13 @@ export function Sidebar() {
           <Settings className="w-4 h-4 shrink-0" />
           Settings
         </Link>
-        <a
-          href="/auth/logout"
+        <button
+          onClick={() => signOut({ redirectUrl: "/" })}
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors w-full"
         >
           <LogOut className="w-4 h-4 shrink-0" />
           Sign out
-        </a>
+        </button>
       </div>
     </aside>
   );

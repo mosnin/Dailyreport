@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useClerk } from "@clerk/nextjs";
 import {
   LayoutDashboard,
   FileText,
@@ -34,6 +35,7 @@ const nav = [
 
 export function Navbar() {
   const pathname = usePathname();
+  const { signOut } = useClerk();
 
   return (
     <header className="lg:hidden sticky top-0 z-50 flex items-center justify-between px-4 py-3 border-b border-border bg-card/80 backdrop-blur">
@@ -78,13 +80,13 @@ export function Navbar() {
               <Settings className="w-4 h-4 shrink-0" />
               Settings
             </Link>
-            <a
-              href="/auth/logout"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            <button
+              onClick={() => signOut({ redirectUrl: "/" })}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors w-full"
             >
               <LogOut className="w-4 h-4 shrink-0" />
               Sign out
-            </a>
+            </button>
           </div>
         </SheetContent>
       </Sheet>

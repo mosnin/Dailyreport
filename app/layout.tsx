@@ -1,9 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
-import { auth0 } from "@/lib/auth0";
-import { Auth0Provider } from "@auth0/nextjs-auth0/client";
-import { ConvexWithAuth0Provider } from "@/components/ConvexWithAuth0Provider";
+import { ClerkProvider } from "@clerk/nextjs";
+import { ConvexWithClerkProvider } from "@/components/ConvexWithClerkProvider";
 import { Toaster } from "@/components/ui/sonner";
 
 const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -22,24 +21,22 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth0.getSession();
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geist.variable} h-full antialiased`}>
-      <body className="min-h-full bg-background text-foreground">
-        <Auth0Provider user={session?.user}>
-          <ConvexWithAuth0Provider>
+    <ClerkProvider>
+      <html lang="en" className={`${geist.variable} h-full antialiased`}>
+        <body className="min-h-full bg-background text-foreground">
+          <ConvexWithClerkProvider>
             {children}
             <Toaster />
-          </ConvexWithAuth0Provider>
-        </Auth0Provider>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');`,
-          }}
-        />
-      </body>
-    </html>
+          </ConvexWithClerkProvider>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');`,
+            }}
+          />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
