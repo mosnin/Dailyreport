@@ -99,7 +99,14 @@ export const getGoalsForVisualization = internalQuery({
     const now = new Date();
     const year = String(now.getFullYear());
     const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    const [allDreams, yearly, monthly] = await Promise.all([
+    // Monday of current week
+    const d = new Date(now);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    d.setDate(diff);
+    const week = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+    const [allDreams, yearly, monthly, weekly] = await Promise.all([
       ctx.db.query("dreams").withIndex("by_user_category", (q) =>
         q.eq("userId", args.userId)
       ).collect(),
@@ -108,6 +115,9 @@ export const getGoalsForVisualization = internalQuery({
       ).collect(),
       ctx.db.query("goals").withIndex("by_user_category_period", (q) =>
         q.eq("userId", args.userId).eq("category", "monthly").eq("periodKey", month)
+      ).collect(),
+      ctx.db.query("goals").withIndex("by_user_category_period", (q) =>
+        q.eq("userId", args.userId).eq("category", "weekly").eq("periodKey", week)
       ).collect(),
     ]);
     const dreamsByCategory: Record<string, string[]> = {
@@ -121,8 +131,9 @@ export const getGoalsForVisualization = internalQuery({
     }
     return {
       dreams: dreamsByCategory,
-      yearly: yearly.map((g) => g.title),
-      monthly: monthly.map((g) => g.title),
+      yearly: yearly.filter((g) => !g.completed).map((g) => g.title),
+      monthly: monthly.filter((g) => !g.completed).map((g) => g.title),
+      weekly: weekly.filter((g) => !g.completed).map((g) => g.title),
     };
   },
 });
@@ -150,11 +161,22 @@ export const getAllDreams = internalQuery({
 export const getProblemsForVisualization = internalQuery({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
-    const reports = await ctx.db
-      .query("dailyReports")
-      .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
-      .order("desc")
-      .take(7);
+    const [reports, statuses] = await Promise.all([
+      ctx.db
+        .query("dailyReports")
+        .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
+        .order("desc")
+        .take(7),
+      ctx.db
+        .query("problemStatuses")
+        .withIndex("by_user", (q) => q.eq("userId", args.userId))
+        .collect(),
+    ]);
+    const solvedTitles = new Set(
+      statuses
+        .filter((s) => s.solvedManually || s.aiResolved)
+        .map((s) => s.problemTitle.trim().toLowerCase())
+    );
     const seen = new Set<string>();
     const problems: string[] = [];
     for (const report of reports) {
@@ -162,7 +184,7 @@ export const getProblemsForVisualization = internalQuery({
       if (Array.isArray(responses?.problemsToSolve)) {
         for (const p of responses.problemsToSolve as Array<{ title?: string }>) {
           const key = p.title?.trim().toLowerCase();
-          if (key && !seen.has(key)) {
+          if (key && !seen.has(key) && !solvedTitles.has(key)) {
             seen.add(key);
             problems.push(p.title!.trim());
           }

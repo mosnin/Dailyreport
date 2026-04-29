@@ -61,24 +61,26 @@ export function Sidebar() {
   return (
     <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-border bg-card sticky top-0 h-screen">
       <div className="flex items-center px-5 py-4 border-b border-border shrink-0">
-        <Image
-          src="/logo-light.png"
-          alt="DailyReport"
-          width={1800}
-          height={400}
-          quality={100}
-          className="h-9 w-auto dark:hidden"
-          priority
-        />
-        <Image
-          src="/logo-dark.png"
-          alt="DailyReport"
-          width={1800}
-          height={400}
-          quality={100}
-          className="h-9 w-auto hidden dark:block"
-          priority
-        />
+        <Link href="/dashboard">
+          <Image
+            src="/logo-light.png"
+            alt="DailyReport"
+            width={1800}
+            height={400}
+            quality={100}
+            className="h-9 w-auto dark:hidden"
+            priority
+          />
+          <Image
+            src="/logo-dark.png"
+            alt="DailyReport"
+            width={1800}
+            height={400}
+            quality={100}
+            className="h-9 w-auto hidden dark:block"
+            priority
+          />
+        </Link>
       </div>
 
       <nav className="flex flex-col gap-5 p-3 flex-1 overflow-y-auto min-h-0">

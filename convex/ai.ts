@@ -277,9 +277,17 @@ ${dataContext}
 
 ---
 
+RESPONSE FORMATTING RULES for the "message" field:
+- Use ## for section headers (e.g. ## Strengths, ## Areas to Improve, ## Recommendation)
+- Use bullet points (- ) for lists — never write long paragraph lists
+- Keep paragraphs to 2 sentences max; break the rest into bullets
+- Bold (**text**) key numbers, percentages, and pivotal insights
+- Use a short opening sentence, then structured sections below it
+- Never output a wall of paragraph text
+
 RESPONSE FORMAT: Always respond with valid JSON in this exact shape:
 {
-  "message": "<your text response — use markdown>",
+  "message": "<your structured markdown response>",
   "chart": null | {
     "type": "bar" | "line" | "pie" | "radar",
     "title": "<chart title>",
@@ -552,6 +560,7 @@ async function doGenerateVisualizations(
   const goalLines = [
     ...(goals.yearly as string[]).map((t) => `- [this year] ${t}`),
     ...(goals.monthly as string[]).map((t) => `- [this month] ${t}`),
+    ...(goals.weekly as string[]).map((t) => `- [this week] ${t}`),
   ];
   if (goalLines.length) contextParts.push(`Current goals:\n${goalLines.join("\n")}`);
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useClerk, useUser } from "@clerk/nextjs";
+import { useState } from "react";
 import {
   LayoutDashboard,
   FileText,
@@ -60,10 +61,11 @@ export function Navbar() {
   const pathname = usePathname();
   const { signOut } = useClerk();
   const { user } = useUser();
+  const [open, setOpen] = useState(false);
 
   return (
     <header className="lg:hidden sticky top-0 z-50 flex items-center justify-between px-4 py-3 border-b border-border bg-card/80 backdrop-blur">
-      <div className="flex items-center">
+      <Link href="/dashboard" className="flex items-center">
         <Image
           src="/logo-light.png"
           alt="DailyReport"
@@ -80,29 +82,34 @@ export function Navbar() {
           quality={100}
           className="h-7 w-auto hidden dark:block"
         />
-      </div>
-      <Sheet>
-        <SheetTrigger className="p-2 rounded-lg hover:bg-accent transition-colors">
+      </Link>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger
+          className="p-2 rounded-lg hover:bg-accent transition-colors"
+          onClick={() => setOpen(true)}
+        >
           <Menu className="w-5 h-5" />
         </SheetTrigger>
         <SheetContent side="left" className="w-72 p-0 flex flex-col">
           <div className="flex items-center px-5 py-4 border-b border-border shrink-0">
-            <Image
-              src="/logo-light.png"
-              alt="DailyReport"
-              width={1800}
-              height={400}
-              quality={100}
-              className="h-8 w-auto dark:hidden"
-            />
-            <Image
-              src="/logo-dark.png"
-              alt="DailyReport"
-              width={1800}
-              height={400}
-              quality={100}
-              className="h-8 w-auto hidden dark:block"
-            />
+            <Link href="/dashboard" onClick={() => setOpen(false)}>
+              <Image
+                src="/logo-light.png"
+                alt="DailyReport"
+                width={1800}
+                height={400}
+                quality={100}
+                className="h-8 w-auto dark:hidden"
+              />
+              <Image
+                src="/logo-dark.png"
+                alt="DailyReport"
+                width={1800}
+                height={400}
+                quality={100}
+                className="h-8 w-auto hidden dark:block"
+              />
+            </Link>
           </div>
           <ScrollArea className="flex-1 min-h-0">
             <nav className="flex flex-col gap-5 p-3">
@@ -115,6 +122,7 @@ export function Navbar() {
                     <Link
                       key={href}
                       href={href}
+                      onClick={() => setOpen(false)}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                         pathname === href
@@ -160,6 +168,7 @@ export function Navbar() {
             )}
             <Link
               href="/settings"
+              onClick={() => setOpen(false)}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full",
                 pathname === "/settings"
@@ -171,7 +180,7 @@ export function Navbar() {
               Settings
             </Link>
             <button
-              onClick={() => signOut({ redirectUrl: "/" })}
+              onClick={() => { setOpen(false); signOut({ redirectUrl: "/" }); }}
               className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors w-full"
             >
               <LogOut className="w-4 h-4 shrink-0" />

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Send, Sparkles, BarChart2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import type { Components } from "react-markdown";
 
 type HistoryItem = { role: "user" | "assistant"; content: string };
 
@@ -23,6 +24,47 @@ const STARTER_PROMPTS = [
   "How has my overall performance trended over time?",
   "What should I focus on improving this week?",
 ];
+
+// Custom renderers so markdown looks great without @tailwindcss/typography
+const mdComponents: Components = {
+  h1: ({ children }) => (
+    <h1 className="text-base font-bold mt-4 mb-2 text-foreground first:mt-0">{children}</h1>
+  ),
+  h2: ({ children }) => (
+    <h2 className="text-sm font-bold mt-4 mb-1.5 text-foreground first:mt-0 border-b border-border/50 pb-1">{children}</h2>
+  ),
+  h3: ({ children }) => (
+    <h3 className="text-sm font-semibold mt-3 mb-1 text-foreground/90">{children}</h3>
+  ),
+  p: ({ children }) => (
+    <p className="text-sm text-foreground/85 mb-2 last:mb-0 leading-relaxed">{children}</p>
+  ),
+  ul: ({ children }) => (
+    <ul className="space-y-1 mb-2 pl-1">{children}</ul>
+  ),
+  ol: ({ children }) => (
+    <ol className="space-y-1 mb-2 pl-1 list-decimal list-inside">{children}</ol>
+  ),
+  li: ({ children }) => (
+    <li className="text-sm text-foreground/85 flex gap-2 leading-relaxed">
+      <span className="text-muted-foreground shrink-0 mt-0.5">•</span>
+      <span>{children}</span>
+    </li>
+  ),
+  strong: ({ children }) => (
+    <strong className="font-semibold text-foreground">{children}</strong>
+  ),
+  em: ({ children }) => (
+    <em className="italic text-foreground/80">{children}</em>
+  ),
+  blockquote: ({ children }) => (
+    <blockquote className="border-l-2 border-primary/40 pl-3 my-2 text-sm text-muted-foreground italic">{children}</blockquote>
+  ),
+  hr: () => <hr className="border-border/50 my-3" />,
+  code: ({ children }) => (
+    <code className="text-xs font-mono bg-muted px-1 py-0.5 rounded">{children}</code>
+  ),
+};
 
 export default function InsightsPage() {
   const { convexUserId, isLoading } = useConvexUser();
@@ -70,11 +112,7 @@ export default function InsightsPage() {
     } catch {
       setMessages((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          text: "Something went wrong. Please try again.",
-          chart: null,
-        },
+        { role: "assistant", text: "Something went wrong. Please try again.", chart: null },
       ]);
     } finally {
       setLoading(false);
@@ -123,12 +161,13 @@ export default function InsightsPage() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+      <div className="flex-1 overflow-y-auto space-y-5 pr-1">
         {messages.length === 0 && loading && (
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-            <Skeleton className="h-4 w-5/6" />
+          <div className="space-y-2 p-4 rounded-2xl bg-muted/50">
+            <Skeleton className="h-3 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+            <Skeleton className="h-3 w-5/6" />
+            <Skeleton className="h-3 w-2/3" />
           </div>
         )}
 
@@ -139,9 +178,9 @@ export default function InsightsPage() {
                 {msg.text}
               </div>
             ) : (
-              <div className="max-w-[90%] space-y-1">
-                <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3 text-sm prose prose-sm dark:prose-invert max-w-none">
-                  <ReactMarkdown>{msg.text}</ReactMarkdown>
+              <div className="max-w-[92%] space-y-2">
+                <div className="rounded-2xl rounded-tl-sm bg-muted/60 border border-border/40 px-5 py-4">
+                  <ReactMarkdown components={mdComponents}>{msg.text}</ReactMarkdown>
                 </div>
                 {msg.chart && <ChartBlock chart={msg.chart} />}
               </div>
@@ -151,7 +190,7 @@ export default function InsightsPage() {
 
         {loading && messages.length > 0 && (
           <div className="flex justify-start">
-            <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3">
+            <div className="rounded-2xl rounded-tl-sm bg-muted/60 border border-border/40 px-4 py-3">
               <div className="flex gap-1 items-center">
                 <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:0ms]" />
                 <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:150ms]" />
@@ -164,7 +203,7 @@ export default function InsightsPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Starter prompts — shown only before any follow-up user messages */}
+      {/* Starter prompts */}
       {messages.filter((m) => m.role === "user").length <= 1 && !loading && (
         <div className="shrink-0 pt-3 pb-2 flex flex-wrap gap-2">
           {STARTER_PROMPTS.map((p) => (

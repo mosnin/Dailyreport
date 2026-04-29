@@ -64,7 +64,7 @@ export default defineSchema({
   affirmations: defineTable({
     userId: v.id("users"),
     text: v.string(),
-    source: v.union(v.literal("manual"), v.literal("ai")),
+    source: v.union(v.literal("manual"), v.literal("ai"), v.literal("saved")),
     createdAt: v.number(),
   }).index("by_user", ["userId"]),
 

@@ -28,7 +28,7 @@ export const add = mutation({
   args: {
     userId: v.id("users"),
     text: v.string(),
-    source: v.union(v.literal("manual"), v.literal("ai")),
+    source: v.union(v.literal("manual"), v.literal("ai"), v.literal("saved")),
   },
   handler: async (ctx, args) => {
     await assertOwner(ctx, args.userId);
@@ -55,7 +55,7 @@ export const internalAdd = internalMutation({
   args: {
     userId: v.id("users"),
     text: v.string(),
-    source: v.union(v.literal("manual"), v.literal("ai")),
+    source: v.union(v.literal("manual"), v.literal("ai"), v.literal("saved")),
   },
   handler: async (ctx, args) => {
     return ctx.db.insert("affirmations", {
