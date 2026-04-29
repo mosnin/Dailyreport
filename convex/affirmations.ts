@@ -67,6 +67,47 @@ export const internalAdd = internalMutation({
   },
 });
 
+export const getTodaySession = query({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return null;
+    return ctx.db
+      .query("affirmationSessions")
+      .withIndex("by_user_date", (q) =>
+        q.eq("userId", args.userId).eq("date", args.date)
+      )
+      .unique();
+  },
+});
+
+export const recordRound = mutation({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+    const existing = await ctx.db
+      .query("affirmationSessions")
+      .withIndex("by_user_date", (q) =>
+        q.eq("userId", args.userId).eq("date", args.date)
+      )
+      .unique();
+    if (existing) {
+      await ctx.db.patch(existing._id, { rounds: existing.rounds + 1 });
+    } else {
+      await ctx.db.insert("affirmationSessions", {
+        userId: args.userId,
+        date: args.date,
+        rounds: 1,
+      });
+    }
+  },
+});
+
 export const updateText = mutation({
   args: { id: v.id("affirmations"), text: v.string() },
   handler: async (ctx, args) => {

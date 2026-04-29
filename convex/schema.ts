@@ -79,6 +79,12 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_user_title", ["userId", "problemTitle"]),
 
+  affirmationSessions: defineTable({
+    userId: v.id("users"),
+    date: v.string(),
+    rounds: v.number(),
+  }).index("by_user_date", ["userId", "date"]),
+
   visualizations: defineTable({
     userId: v.id("users"),
     date: v.string(),
