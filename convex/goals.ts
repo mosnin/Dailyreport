@@ -9,6 +9,13 @@ const CATEGORY = v.union(
   v.literal("weekly")
 );
 
+async function assertOwner(ctx: any, userId: string) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Not authenticated");
+  const user = await ctx.db.get(userId);
+  if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+}
+
 export const list = query({
   args: {
     userId: v.id("users"),
@@ -16,6 +23,11 @@ export const list = query({
     periodKey: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return [];
+
     return ctx.db
       .query("goals")
       .withIndex("by_user_category_period", (q) =>
@@ -37,6 +49,7 @@ export const add = mutation({
     title: v.string(),
   },
   handler: async (ctx, args) => {
+    await assertOwner(ctx, args.userId);
     return ctx.db.insert("goals", {
       userId: args.userId,
       category: args.category,
@@ -53,6 +66,7 @@ export const toggle = mutation({
   handler: async (ctx, args) => {
     const goal = await ctx.db.get(args.goalId);
     if (!goal) return;
+    await assertOwner(ctx, goal.userId);
     await ctx.db.patch(args.goalId, { completed: !goal.completed });
   },
 });
@@ -60,6 +74,9 @@ export const toggle = mutation({
 export const updateTitle = mutation({
   args: { goalId: v.id("goals"), title: v.string() },
   handler: async (ctx, args) => {
+    const goal = await ctx.db.get(args.goalId);
+    if (!goal) return;
+    await assertOwner(ctx, goal.userId);
     await ctx.db.patch(args.goalId, { title: args.title });
   },
 });
@@ -67,6 +84,9 @@ export const updateTitle = mutation({
 export const remove = mutation({
   args: { goalId: v.id("goals") },
   handler: async (ctx, args) => {
+    const goal = await ctx.db.get(args.goalId);
+    if (!goal) return;
+    await assertOwner(ctx, goal.userId);
     await ctx.db.delete(args.goalId);
   },
 });

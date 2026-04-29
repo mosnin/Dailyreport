@@ -4,6 +4,7 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useCallback, useState } from "react";
+import { toast } from "sonner";
 
 function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -26,7 +27,10 @@ export function usePushSubscription(userId: Id<"users"> | null) {
 
     const sw = await navigator.serviceWorker.ready;
     const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-    if (!vapidKey) return;
+    if (!vapidKey) {
+      toast.error("Push notifications are not configured. Set NEXT_PUBLIC_VAPID_PUBLIC_KEY.");
+      return;
+    }
 
     const sub = await sw.pushManager.subscribe({
       userVisibleOnly: true,

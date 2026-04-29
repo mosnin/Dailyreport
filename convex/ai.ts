@@ -28,30 +28,39 @@ function reportToText(responses: unknown): string {
 export const embedDailyReport = internalAction({
   args: { reportId: v.id("dailyReports") },
   handler: async (ctx, args) => {
-    const report = await ctx.runQuery(internal.aiInternal.getDailyReportInternal, {
-      reportId: args.reportId,
-    });
-    if (!report) return;
-    const embedding = await getEmbedding(reportToText(report.responses));
-    await ctx.runMutation(internal.aiInternal.patchDailyEmbedding, {
-      reportId: args.reportId,
-      embedding,
-    });
+    try {
+      const report = await ctx.runQuery(internal.aiInternal.getDailyReportInternal, {
+        reportId: args.reportId,
+      });
+      if (!report) return;
+      const embedding = await getEmbedding(reportToText(report.responses));
+      await ctx.runMutation(internal.aiInternal.patchDailyEmbedding, {
+        reportId: args.reportId,
+        embedding,
+      });
+    } catch (err) {
+      // Embedding failure must not fail the report submission; it can be retried manually
+      console.error("embedDailyReport failed for", args.reportId, err);
+    }
   },
 });
 
 export const embedWeeklyReport = internalAction({
   args: { reportId: v.id("weeklyReports") },
   handler: async (ctx, args) => {
-    const report = await ctx.runQuery(internal.aiInternal.getWeeklyReportInternal, {
-      reportId: args.reportId,
-    });
-    if (!report) return;
-    const embedding = await getEmbedding(reportToText(report.responses));
-    await ctx.runMutation(internal.aiInternal.patchWeeklyEmbedding, {
-      reportId: args.reportId,
-      embedding,
-    });
+    try {
+      const report = await ctx.runQuery(internal.aiInternal.getWeeklyReportInternal, {
+        reportId: args.reportId,
+      });
+      if (!report) return;
+      const embedding = await getEmbedding(reportToText(report.responses));
+      await ctx.runMutation(internal.aiInternal.patchWeeklyEmbedding, {
+        reportId: args.reportId,
+        embedding,
+      });
+    } catch (err) {
+      console.error("embedWeeklyReport failed for", args.reportId, err);
+    }
   },
 });
 
@@ -106,7 +115,13 @@ export const semanticSearch = action({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handler: async (ctx, args): Promise<any[]> => {
     const limit = args.limit ?? 8;
-    const embedding = await getEmbedding(args.query);
+    let embedding: number[];
+    try {
+      embedding = await getEmbedding(args.query);
+    } catch (err) {
+      console.error("semanticSearch embedding failed:", err);
+      throw new Error("Search unavailable. Check that OPENAI_API_KEY is set.");
+    }
 
     const [dailyResults, weeklyResults] = await Promise.all([
       ctx.vectorSearch("dailyReports", "by_embedding", {
@@ -173,7 +188,7 @@ export const generateAffirmations = action({
           content: `You are a life coach creating personalized affirmations.
 Based on the user's recent reports (their goals, challenges, activities), generate ${count} powerful, personal, present-tense affirmations.
 Make them specific to the user's actual context — reference their real goals and challenges.
-Respond with a JSON array of strings, e.g.: ["I am...", "I have...", ...]`,
+Respond with this exact JSON shape: {"affirmations": ["I am...", "I have...", ...]}`,
         },
         {
           role: "user",

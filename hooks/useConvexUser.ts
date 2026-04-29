@@ -19,7 +19,6 @@ export function useConvexUser() {
   useEffect(() => {
     if (!clerkUser?.id) return;
     getOrCreate({
-      clerkId: clerkUser.id,
       email: clerkUser.primaryEmailAddress?.emailAddress ?? "",
       name: clerkUser.fullName ?? clerkUser.primaryEmailAddress?.emailAddress ?? "",
     }).then(setConvexUserId);

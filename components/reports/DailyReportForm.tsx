@@ -110,6 +110,14 @@ export function DailyReportForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!r.dayActivity.trim()) {
+      toast.error("Q1 is required — describe how you spent your day.");
+      return;
+    }
+    if (!r.tomorrowPlan.trim()) {
+      toast.error("Q7 is required — write your plan for tomorrow.");
+      return;
+    }
     setSaving(true);
     try {
       await submitDaily({ userId, date: todayString(), responses: r });

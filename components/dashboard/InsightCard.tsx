@@ -6,6 +6,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles } from "lucide-react";
+import Link from "next/link";
 
 export function InsightCard({ userId }: { userId: Id<"users"> }) {
   const insight = useQuery(api.aiInternal.getLatestInsight, { userId });
@@ -26,7 +27,10 @@ export function InsightCard({ userId }: { userId: Id<"users"> }) {
           </div>
         ) : insight === null ? (
           <p className="text-sm text-muted-foreground">
-            Complete your first weekly report to receive an AI-generated insight about your progress.
+            Complete your first weekly report to receive an AI-generated insight about your progress.{" "}
+            <Link href="/reports/weekly" className="text-primary underline-offset-2 hover:underline">
+              Submit weekly report →
+            </Link>
           </p>
         ) : (
           <p className="text-sm leading-relaxed">{insight.content}</p>

@@ -24,15 +24,20 @@ export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[] | null>(null);
   const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const semanticSearch = useAction(api.ai.semanticSearch);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     if (!convexUserId || !query.trim()) return;
     setSearching(true);
+    setSearchError(null);
     try {
       const res = await semanticSearch({ userId: convexUserId, query });
       setResults(res as SearchResult[]);
+    } catch (err) {
+      setSearchError(err instanceof Error ? err.message : "Search failed. Please try again.");
+      setResults(null);
     } finally {
       setSearching(false);
     }
@@ -63,6 +68,10 @@ export default function SearchPage() {
           {searching ? "Searching..." : "Search"}
         </Button>
       </form>
+
+      {searchError && (
+        <p className="text-sm text-destructive">{searchError}</p>
+      )}
 
       {results !== null && (
         <div className="space-y-3">

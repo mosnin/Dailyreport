@@ -2,6 +2,13 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 
+async function assertOwner(ctx: any, userId: string) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Not authenticated");
+  const user = await ctx.db.get(userId);
+  if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+}
+
 export const submitDaily = mutation({
   args: {
     userId: v.id("users"),
@@ -9,6 +16,8 @@ export const submitDaily = mutation({
     responses: v.any(),
   },
   handler: async (ctx, args) => {
+    await assertOwner(ctx, args.userId);
+
     const existing = await ctx.db
       .query("dailyReports")
       .withIndex("by_user_date", (q) =>
@@ -48,6 +57,8 @@ export const submitWeekly = mutation({
     responses: v.any(),
   },
   handler: async (ctx, args) => {
+    await assertOwner(ctx, args.userId);
+
     const existing = await ctx.db
       .query("weeklyReports")
       .withIndex("by_user_week", (q) =>
@@ -87,6 +98,11 @@ export const submitWeekly = mutation({
 export const getDailyReport = query({
   args: { userId: v.id("users"), date: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return null;
+
     return await ctx.db
       .query("dailyReports")
       .withIndex("by_user_date", (q) =>
@@ -99,6 +115,11 @@ export const getDailyReport = query({
 export const getWeeklyReport = query({
   args: { userId: v.id("users"), weekStartDate: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return null;
+
     return await ctx.db
       .query("weeklyReports")
       .withIndex("by_user_week", (q) =>
@@ -111,17 +132,30 @@ export const getWeeklyReport = query({
 export const getCalendarData = query({
   args: { userId: v.id("users"), year: v.number(), month: v.number() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return { daily: {}, weekly: {} };
     const user = await ctx.db.get(args.userId);
-    if (!user) return { daily: {}, weekly: {} };
+    if (!user || user.clerkId !== identity.subject) return { daily: {}, weekly: {} };
+
+    // Fetch a ±8-day window around the queried month to cover calendar padding
+    // (month is 0-indexed from the client)
+    const windowStart = new Date(args.year, args.month, -7);
+    const windowEnd = new Date(args.year, args.month + 1, 8);
+    const startStr = windowStart.toISOString().split("T")[0];
+    const endStr = windowEnd.toISOString().split("T")[0];
 
     const dailyReports = await ctx.db
       .query("dailyReports")
-      .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
+      .withIndex("by_user_date", (q) =>
+        q.eq("userId", args.userId).gte("date", startStr).lte("date", endStr)
+      )
       .collect();
 
     const weeklyReports = await ctx.db
       .query("weeklyReports")
-      .withIndex("by_user_week", (q) => q.eq("userId", args.userId))
+      .withIndex("by_user_week", (q) =>
+        q.eq("userId", args.userId).gte("weekStartDate", startStr).lte("weekStartDate", endStr)
+      )
       .collect();
 
     const dailyMap: Record<string, boolean> = {};
@@ -141,12 +175,16 @@ export const getCalendarData = query({
 export const getRecentReports = query({
   args: { userId: v.id("users"), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return [];
+
     const limit = args.limit ?? 10;
-    const reports = await ctx.db
+    return await ctx.db
       .query("dailyReports")
       .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
       .order("desc")
       .take(limit);
-    return reports;
   },
 });

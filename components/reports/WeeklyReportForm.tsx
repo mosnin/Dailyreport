@@ -110,6 +110,14 @@ export function WeeklyReportForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!r.weekActivity.trim()) {
+      toast.error("Q1 is required — describe how you spent your week.");
+      return;
+    }
+    if (!r.nextWeekPlan.trim()) {
+      toast.error("Q7 is required — write your plan for next week.");
+      return;
+    }
     setSaving(true);
     try {
       await submitWeekly({ userId, weekStartDate: currentWeekStartString(), responses: r });

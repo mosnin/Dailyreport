@@ -3,20 +3,23 @@ import { v } from "convex/values";
 
 export const getOrCreate = mutation({
   args: {
-    clerkId: v.string(),
     email: v.string(),
     name: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const clerkId = identity.subject;
+
     const existing = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
       .unique();
 
     if (existing) return existing._id;
 
     return await ctx.db.insert("users", {
-      clerkId: args.clerkId,
+      clerkId,
       email: args.email,
       name: args.name,
       createdAt: Date.now(),
@@ -27,6 +30,8 @@ export const getOrCreate = mutation({
 export const getByClerkId = query({
   args: { clerkId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.clerkId) return null;
     return await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
@@ -37,6 +42,10 @@ export const getByClerkId = query({
 export const updateTimezone = mutation({
   args: { userId: v.id("users"), timezone: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
     await ctx.db.patch(args.userId, { timezone: args.timezone });
   },
 });
@@ -44,8 +53,10 @@ export const updateTimezone = mutation({
 export const getStats = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user) return null;
+    if (!user || user.clerkId !== identity.subject) return null;
 
     const now = Date.now();
     const createdAt = user.createdAt;
