@@ -40,7 +40,7 @@ export default function WeeklyReportPage() {
       </div>
       <WeeklyReportForm
         userId={convexUserId}
-        initialResponses={existing?.responses as Record<string, string> | undefined}
+        initialResponses={existing?.responses as Record<string, unknown> | undefined}
       />
     </div>
   );
