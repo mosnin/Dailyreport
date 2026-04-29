@@ -9,7 +9,6 @@ import {
   FileText,
   Calendar,
   Search,
-  MessageSquare,
   ClipboardList,
   Target,
   Sparkles,
@@ -50,7 +49,6 @@ const navGroups = [
     label: "Discover",
     items: [
       { href: "/insights", label: "AI Insights", icon: Sparkles },
-      { href: "/chat", label: "AI Chat", icon: MessageSquare },
       { href: "/search", label: "Search", icon: Search },
     ],
   },

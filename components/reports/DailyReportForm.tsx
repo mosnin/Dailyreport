@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import confetti from "canvas-confetti";
 import { todayString } from "@/lib/utils";
 import { Plus, Trash2, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -145,6 +146,7 @@ export function DailyReportForm({
     try {
       await submitDaily({ userId, date: todayString(), responses: r });
       try { localStorage.removeItem(draftKey); } catch {}
+      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
       toast.success("Daily report submitted!");
     } catch {
       toast.error("Failed to save. Please try again.");
