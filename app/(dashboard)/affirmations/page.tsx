@@ -13,7 +13,7 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
-  Star,
+  Flame,
   Bookmark,
   BookmarkCheck,
   X,
@@ -34,6 +34,35 @@ type Affirmation = {
   text: string;
   source: AffirmationSource;
 };
+
+// ── Progress ring ─────────────────────────────────────────────────────────
+
+function ProgressRing({ current, total }: { current: number; total: number }) {
+  const size = 56;
+  const radius = (size - 8) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const progress = total > 1 ? current / (total - 1) : 1;
+  const offset = circumference - progress * circumference;
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg className="-rotate-90" width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="currentColor" strokeWidth="4" className="text-muted" />
+        <circle
+          cx={size / 2} cy={size / 2} r={radius}
+          fill="none" stroke="currentColor" strokeWidth="4"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          className="text-amber-400 transition-all duration-300"
+        />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center text-xs font-bold tabular-nums">
+        {current + 1}/{total}
+      </span>
+    </div>
+  );
+}
 
 // ── Round progress dots ───────────────────────────────────────────────────
 
@@ -89,11 +118,11 @@ function AffirmationRow({
   }
 
   return (
-    <div className="group flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-muted/50 transition-colors">
+    <div className="group flex items-center gap-2 rounded-xl px-2 py-2 hover:bg-muted/50 transition-colors">
       {isSaved ? (
-        <Bookmark className="w-3.5 h-3.5 text-sky-400 shrink-0 fill-sky-400" />
+        <Bookmark className="w-4 h-4 text-sky-400 shrink-0 fill-sky-400" />
       ) : (
-        <Star className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+        <Flame className="w-4 h-4 text-amber-400 shrink-0" />
       )}
 
       {editing ? (
@@ -124,7 +153,7 @@ function AffirmationRow({
             className="p-1 text-muted-foreground hover:text-sky-500 transition-colors"
             title="Save permanently (don't use in rounds)"
           >
-            <Bookmark className="w-3.5 h-3.5" />
+            <Bookmark className="w-4 h-4" />
           </button>
         )}
         {isSaved && onMoveToPool && (
@@ -133,7 +162,7 @@ function AffirmationRow({
             className="p-1 text-muted-foreground hover:text-amber-500 transition-colors"
             title="Move back to practice pool"
           >
-            <Star className="w-3.5 h-3.5" />
+            <Flame className="w-4 h-4" />
           </button>
         )}
         {!editing && (
@@ -142,7 +171,7 @@ function AffirmationRow({
             className="p-1 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
             title="Edit"
           >
-            <Pencil className="w-3 h-3" />
+            <Pencil className="w-3.5 h-3.5" />
           </button>
         )}
         <button
@@ -150,7 +179,7 @@ function AffirmationRow({
           className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
           title="Delete"
         >
-          <Trash2 className="w-3 h-3" />
+          <Trash2 className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>
@@ -205,9 +234,8 @@ function RoundSession({
         <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Round {roundNumber}
         </span>
-        <span className="text-sm text-muted-foreground tabular-nums">
-          {index + 1} / {affirmations.length}
-        </span>
+        {/* Progress ring replaces plain text counter */}
+        <ProgressRing current={index} total={affirmations.length} />
       </div>
 
       <div className="flex justify-center gap-1.5 mb-8">
@@ -216,7 +244,7 @@ function RoundSession({
             key={i}
             onClick={() => setIndex(i)}
             className={cn(
-              "h-1 rounded-full transition-all duration-200",
+              "h-1.5 rounded-full transition-all duration-200",
               i === index ? "w-6 bg-amber-400" : i < index ? "w-2 bg-amber-300" : "w-2 bg-neutral-200 dark:bg-neutral-700"
             )}
           />
@@ -226,7 +254,7 @@ function RoundSession({
       <div className="flex-1 flex items-center justify-center px-2">
         <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 sm:p-12 text-center shadow-sm">
           <div className="mb-6">
-            <Star className="w-5 h-5 text-amber-400 mx-auto" />
+            <Flame className="w-7 h-7 text-amber-400 mx-auto" />
           </div>
           <p className="text-xl sm:text-2xl font-medium leading-relaxed text-foreground">
             {current?.text}
@@ -273,6 +301,44 @@ function RoundSession({
   );
 }
 
+// ── Recap screen ──────────────────────────────────────────────────────────
+
+function RecapScreen({ rounds, count, onContinue }: { rounds: number; count: number; onContinue: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] text-center gap-8 max-w-sm mx-auto">
+      <div className="w-20 h-20 rounded-full bg-amber-400/15 flex items-center justify-center">
+        <Flame className="w-10 h-10 text-amber-400" />
+      </div>
+      <div>
+        <h2 className="text-2xl font-bold mb-2">Daily goal complete!</h2>
+        <p className="text-muted-foreground text-sm">
+          You finished {GOAL_ROUNDS} rounds of affirmations today. Keep the momentum going.
+        </p>
+      </div>
+      <div className="grid grid-cols-3 gap-6 w-full">
+        <div className="text-center">
+          <div className="text-3xl font-bold tabular-nums">{count}</div>
+          <div className="text-xs text-muted-foreground mt-1">Affirmations</div>
+        </div>
+        <div className="text-center">
+          <div className="text-3xl font-bold tabular-nums">{rounds}</div>
+          <div className="text-xs text-muted-foreground mt-1">Rounds</div>
+        </div>
+        <div className="text-center">
+          <div className="text-3xl font-bold tabular-nums">{count * rounds}</div>
+          <div className="text-xs text-muted-foreground mt-1">Reps</div>
+        </div>
+      </div>
+      <button
+        onClick={onContinue}
+        className="px-8 py-3 rounded-full border border-border hover:bg-accent text-sm font-medium transition-colors"
+      >
+        Continue
+      </button>
+    </div>
+  );
+}
+
 // ── Inline add row ────────────────────────────────────────────────────────
 
 function AddRow({
@@ -306,7 +372,7 @@ function AddRow({
   if (adding) {
     return (
       <form onSubmit={handleSubmit} className="flex items-center gap-2 pt-2 px-2">
-        <Icon className={cn("w-3.5 h-3.5 shrink-0", iconClass)} />
+        <Icon className={cn("w-4 h-4 shrink-0", iconClass)} />
         <input
           ref={ref}
           value={text}
@@ -331,7 +397,7 @@ function AddRow({
       onClick={() => setAdding(true)}
       className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pt-2 px-2 w-full"
     >
-      <Plus className="w-3.5 h-3.5" />
+      <Plus className="w-4 h-4" />
       Add affirmation
     </button>
   );
@@ -360,12 +426,12 @@ export default function AffirmationsPage() {
   const generateAffirmations = useAction(api.ai.generateAffirmations);
 
   const [inRound, setInRound] = useState(false);
+  const [showRecap, setShowRecap] = useState(false);
   const [generating, setGenerating] = useState(false);
 
   const rounds = session?.rounds ?? 0;
   const goalMet = rounds >= GOAL_ROUNDS;
 
-  // Separate saved vs practice pool
   const savedList = (affirmations ?? []).filter((a) => a.source === "saved") as Affirmation[];
   const practiceList = (affirmations ?? []).filter((a) => a.source !== "saved") as Affirmation[];
 
@@ -384,6 +450,7 @@ export default function AffirmationsPage() {
       }
       requestAnimationFrame(frame);
       toast.success("5 rounds complete! Daily goal met.");
+      setShowRecap(true);
     } else {
       confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 }, colors: ["#fbbf24", "#fcd34d", "#f59e0b"] });
       toast.success(`Round ${newRounds} complete!`);
@@ -434,6 +501,18 @@ export default function AffirmationsPage() {
     );
   }
 
+  if (showRecap) {
+    return (
+      <div className="max-w-lg mx-auto">
+        <RecapScreen
+          rounds={rounds}
+          count={practiceList.length}
+          onContinue={() => setShowRecap(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-lg space-y-6">
       {/* Header */}
@@ -447,7 +526,7 @@ export default function AffirmationsPage() {
       {/* ── Saved affirmations ── */}
       <div className="rounded-2xl border border-border bg-card p-4 space-y-1">
         <div className="flex items-center gap-2 px-2 mb-3">
-          <BookmarkCheck className="w-3.5 h-3.5 text-sky-400" />
+          <BookmarkCheck className="w-4 h-4 text-sky-400" />
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Saved affirmations
           </p>
@@ -503,11 +582,11 @@ export default function AffirmationsPage() {
 
         {practiceList.length > 0 ? (
           <button
-            onClick={() => setInRound(true)}
+            onClick={() => goalMet ? setShowRecap(true) : setInRound(true)}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-900 font-semibold text-sm transition-colors"
           >
-            <Star className="w-4 h-4" />
-            {rounds === 0 ? "Start first round" : goalMet ? "Do another round" : `Start round ${rounds + 1}`}
+            <Flame className="w-4 h-4" />
+            {rounds === 0 ? "Start first round" : goalMet ? "View recap" : `Start round ${rounds + 1}`}
           </button>
         ) : (
           <p className="text-sm text-muted-foreground text-center py-2">
@@ -523,7 +602,7 @@ export default function AffirmationsPage() {
         </p>
         <p className="text-xs text-muted-foreground/60 px-2 mb-3">
           These cycle through your daily rounds. Use the{" "}
-          <Bookmark className="inline w-2.5 h-2.5" /> icon to move one to Saved.
+          <Bookmark className="inline w-3 h-3" /> icon to move one to Saved.
         </p>
 
         {affirmations === undefined ? (
@@ -532,7 +611,7 @@ export default function AffirmationsPage() {
           </div>
         ) : practiceList.length === 0 && (
           <div className="py-4 text-center space-y-2">
-            <Star className="w-6 h-6 text-amber-400 mx-auto" />
+            <Flame className="w-7 h-7 text-amber-400 mx-auto" />
             <p className="text-sm text-muted-foreground">No practice affirmations yet.</p>
           </div>
         )}
@@ -551,7 +630,7 @@ export default function AffirmationsPage() {
         <AddRow
           placeholder="I am… / I have… / I can…"
           onAdd={(text) => addAffirmation({ userId: convexUserId, text, source: "manual" })}
-          icon={Star}
+          icon={Flame}
           iconClass="text-amber-400"
         />
       </div>
@@ -560,7 +639,7 @@ export default function AffirmationsPage() {
       <div className="rounded-2xl border border-border bg-card p-4 flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-medium flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+            <Sparkles className="w-4 h-4 text-sky-500" />
             Generate with AI
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
@@ -572,7 +651,7 @@ export default function AffirmationsPage() {
           disabled={generating}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-border hover:bg-accent transition-colors disabled:opacity-50 shrink-0"
         >
-          {generating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+          {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
           {generating ? "Generating…" : "Generate"}
         </button>
       </div>

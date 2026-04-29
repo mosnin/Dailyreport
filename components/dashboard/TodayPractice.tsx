@@ -1,12 +1,10 @@
 "use client";
 
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import Link from "next/link";
-import { Star, Eye, CheckCircle2, ChevronRight, FileText } from "lucide-react";
+import { NotepadText, Flame, Telescope, CheckCircle2, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { todayString } from "@/lib/utils";
+import { useTodayStatus } from "@/hooks/useTodayStatus";
 
 const AFFIRMATION_GOAL = 5;
 
@@ -43,7 +41,7 @@ function PracticeCard({
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Icon className={cn("w-4 h-4", iconColor)} />
+          <Icon className={cn("w-5 h-5", iconColor)} />
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             {label}
           </span>
@@ -51,7 +49,7 @@ function PracticeCard({
         {done ? (
           <CheckCircle2 className="w-4 h-4 text-emerald-500" />
         ) : (
-          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
+          <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
         )}
       </div>
 
@@ -62,7 +60,7 @@ function PracticeCard({
         <div className="text-xs text-muted-foreground">{subtext}</div>
       </div>
 
-      <div className="h-1 rounded-full bg-muted overflow-hidden">
+      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
         <div
           className={cn(
             "h-full rounded-full transition-all duration-500",
@@ -76,22 +74,8 @@ function PracticeCard({
 }
 
 export function TodayPractice({ userId }: { userId: Id<"users"> }) {
-  const todayStr = todayString();
-
-  const session = useQuery(api.affirmations.getTodaySession, { userId, date: todayStr });
-  const viz = useQuery(api.visualizations.getForDate, { userId, date: todayStr });
-  const todayReport = useQuery(api.reports.getDailyReport, { userId, date: todayStr });
-
-  const reportDone = todayReport != null;
-
-  const rounds = session?.rounds ?? 0;
-  const affirmDone = rounds >= AFFIRMATION_GOAL;
-
-  const vizCompleted = viz?.completedIndexes.length ?? 0;
-  const vizTotal = viz?.scenarios.length ?? 10;
-  const vizDone = vizCompleted > 0 && vizCompleted >= vizTotal;
-
-  const totalDone = (reportDone ? 1 : 0) + (affirmDone ? 1 : 0) + (vizDone ? 1 : 0);
+  const { reportDone, affirmDone, vizDone, rounds, vizCompleted, vizTotal, totalDone } =
+    useTodayStatus(userId);
 
   return (
     <div className="space-y-3">
@@ -106,7 +90,7 @@ export function TodayPractice({ userId }: { userId: Id<"users"> }) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <PracticeCard
           href="/reports/daily"
-          icon={FileText}
+          icon={NotepadText}
           iconColor="text-emerald-500"
           label="Daily Report"
           value={reportDone ? "Done" : "Today"}
@@ -117,7 +101,7 @@ export function TodayPractice({ userId }: { userId: Id<"users"> }) {
         />
         <PracticeCard
           href="/affirmations"
-          icon={Star}
+          icon={Flame}
           iconColor="text-amber-500"
           label="Affirmations"
           value={`${rounds}/${AFFIRMATION_GOAL}`}
@@ -128,7 +112,7 @@ export function TodayPractice({ userId }: { userId: Id<"users"> }) {
         />
         <PracticeCard
           href="/dreams"
-          icon={Eye}
+          icon={Telescope}
           iconColor="text-sky-500"
           label="Visualizations"
           value={`${vizCompleted}/${vizTotal}`}

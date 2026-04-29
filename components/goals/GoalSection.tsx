@@ -71,7 +71,6 @@ export function GoalSection({
     if (adding) inputRef.current?.focus();
   }, [adding]);
 
-  // Reset adding state when period changes
   useEffect(() => {
     setAdding(false);
     setNewTitle("");
@@ -110,7 +109,7 @@ export function GoalSection({
                   className="p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
                   title="Previous period"
                 >
-                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
               )}
               <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
@@ -122,7 +121,7 @@ export function GoalSection({
                   className="p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
                   title="Next period"
                 >
-                  <ChevronRight className="w-3.5 h-3.5" />
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               )}
             </div>
@@ -158,10 +157,10 @@ export function GoalSection({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-1.5">
+      <CardContent className="space-y-1">
         {goals === undefined ? (
           <div className="space-y-2">
-            {[0, 1, 2].map((i) => <Skeleton key={i} className="h-8 w-full" />)}
+            {[0, 1, 2].map((i) => <Skeleton key={i} className="h-9 w-full" />)}
           </div>
         ) : goals.length === 0 && !adding ? (
           <p className="text-sm text-muted-foreground py-2">
@@ -191,11 +190,10 @@ export function GoalSection({
           </>
         )}
 
-        {/* Add row — only for current period */}
         {isCurrentPeriod && (
           adding ? (
             <form onSubmit={handleAdd} className="flex items-center gap-2 pt-1">
-              <Circle className="w-4 h-4 text-muted-foreground shrink-0" />
+              <Circle className="w-5 h-5 text-muted-foreground shrink-0" />
               <input
                 ref={inputRef}
                 value={newTitle}
@@ -221,7 +219,7 @@ export function GoalSection({
               onClick={() => setAdding(true)}
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pt-1 w-full"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
               Add goal
             </button>
           )
@@ -250,6 +248,7 @@ function GoalRow({
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(title);
+  const [flash, setFlash] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -263,11 +262,24 @@ function GoalRow({
     setEditing(false);
   }
 
+  function handleToggle() {
+    if (!completed) {
+      setFlash(true);
+      setTimeout(() => setFlash(false), 700);
+    }
+    onToggle();
+  }
+
   return (
-    <div className="group flex items-center gap-2 rounded-lg px-1 py-1 hover:bg-muted/50 transition-colors">
+    <div
+      className={cn(
+        "group flex items-center gap-2.5 rounded-xl px-2 py-2 transition-colors duration-500",
+        flash ? "bg-emerald-50 dark:bg-emerald-950/30" : "hover:bg-muted/50"
+      )}
+    >
       <button
         type="button"
-        onClick={readonly ? undefined : onToggle}
+        onClick={readonly ? undefined : handleToggle}
         disabled={readonly}
         className={cn(
           "shrink-0 transition-colors",
@@ -277,9 +289,9 @@ function GoalRow({
         )}
       >
         {completed ? (
-          <CheckCircle2 className="w-4 h-4 text-green-500" />
+          <CheckCircle2 className="w-5 h-5 text-green-500" />
         ) : (
-          <Circle className="w-4 h-4" />
+          <Circle className="w-5 h-5" />
         )}
       </button>
 
@@ -313,7 +325,7 @@ function GoalRow({
           onClick={onRemove}
           className="shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
         >
-          <Trash2 className="w-3.5 h-3.5" />
+          <Trash2 className="w-4 h-4" />
         </button>
       )}
     </div>

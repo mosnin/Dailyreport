@@ -6,9 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import {
@@ -16,10 +14,11 @@ import {
   Circle,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
   Sparkles,
-  AlertCircle,
+  AlertOctagon,
   RotateCcw,
-  TriangleAlert,
+  BrainCircuit,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +33,25 @@ type Problem = {
   aiEvidence: string | null;
 };
 
-type Filter = "all" | "open" | "resolved";
+function isSolved(p: Problem) {
+  return p.solvedManually === true || (p.solvedManually === null && p.aiResolved === true);
+}
+
+function statusLabel(p: Problem) {
+  if (p.solvedManually === true) return "Resolved";
+  if (p.solvedManually === false) return "Open";
+  if (p.aiResolved === true) return "AI: likely resolved";
+  if (p.aiResolved === false) return "AI: still open";
+  return "Unknown";
+}
+
+function statusColor(p: Problem) {
+  if (p.solvedManually === true) return "text-green-600 dark:text-green-400";
+  if (p.solvedManually === false) return "text-red-500 dark:text-red-400";
+  if (p.aiResolved === true) return "text-emerald-500 dark:text-emerald-400";
+  if (p.aiResolved === false) return "text-amber-500 dark:text-amber-400";
+  return "text-muted-foreground";
+}
 
 function ProblemCard({
   problem,
@@ -44,42 +61,23 @@ function ProblemCard({
   onToggle: (title: string, solved: boolean) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-
-  const isSolved =
-    problem.solvedManually === true ||
-    (problem.solvedManually === null && problem.aiResolved === true);
-
-  const statusLabel = (() => {
-    if (problem.solvedManually === true) return "Resolved";
-    if (problem.solvedManually === false) return "Open";
-    if (problem.aiResolved === true) return "AI: likely resolved";
-    if (problem.aiResolved === false) return "AI: still open";
-    return "Unknown";
-  })();
-
-  const statusColor = (() => {
-    if (problem.solvedManually === true) return "text-green-600 dark:text-green-400";
-    if (problem.solvedManually === false) return "text-red-500 dark:text-red-400";
-    if (problem.aiResolved === true) return "text-emerald-500 dark:text-emerald-400";
-    if (problem.aiResolved === false) return "text-amber-500 dark:text-amber-400";
-    return "text-muted-foreground";
-  })();
+  const solved = isSolved(problem);
 
   return (
-    <Card className={cn("transition-opacity", isSolved && "opacity-70")}>
+    <Card className={cn("transition-opacity", solved && "opacity-60")}>
       <CardHeader className="pb-2 pt-4 px-4">
         <div className="flex items-start gap-3">
           <button
-            onClick={() => onToggle(problem.title, !isSolved)}
+            onClick={() => onToggle(problem.title, !solved)}
             className={cn(
               "mt-0.5 shrink-0 transition-colors",
-              isSolved
+              solved
                 ? "text-green-500 hover:text-muted-foreground"
                 : "text-muted-foreground/40 hover:text-green-500"
             )}
-            title={isSolved ? "Mark as open" : "Mark as resolved"}
+            title={solved ? "Mark as open" : "Mark as resolved"}
           >
-            {isSolved ? (
+            {solved ? (
               <CheckCircle2 className="w-5 h-5" />
             ) : (
               <Circle className="w-5 h-5" />
@@ -90,23 +88,22 @@ function ProblemCard({
             <CardTitle
               className={cn(
                 "text-sm font-semibold leading-snug",
-                isSolved && "line-through text-muted-foreground"
+                solved && "line-through text-muted-foreground"
               )}
             >
               {problem.title}
             </CardTitle>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
               <span className="text-xs text-muted-foreground">
-                First seen{" "}
-                {format(parseISO(problem.firstSeen), "MMM d, yyyy")}
+                First seen {format(parseISO(problem.firstSeen), "MMM d, yyyy")}
               </span>
               {problem.occurrences > 1 && (
                 <span className="text-xs text-muted-foreground">
                   · {problem.occurrences}× recurring
                 </span>
               )}
-              <span className={cn("text-xs font-medium", statusColor)}>
-                · {statusLabel}
+              <span className={cn("text-xs font-medium", statusColor(problem))}>
+                · {statusLabel(problem)}
               </span>
             </div>
           </div>
@@ -121,11 +118,7 @@ function ProblemCard({
                 onClick={() => setExpanded((v) => !v)}
                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
-                {expanded ? (
-                  <ChevronUp className="w-3 h-3" />
-                ) : (
-                  <ChevronDown className="w-3 h-3" />
-                )}
+                {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                 {expanded ? "Hide" : "Show"} proposed solutions
               </button>
               {expanded && (
@@ -142,7 +135,7 @@ function ProblemCard({
 
           {problem.aiEvidence && (
             <div className="mt-2 flex gap-2 rounded-md bg-indigo-500/5 border border-indigo-500/20 px-3 py-2">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400 shrink-0 mt-0.5" />
+              <BrainCircuit className="w-3.5 h-3.5 text-indigo-400 shrink-0 mt-0.5" />
               <p className="text-xs text-muted-foreground leading-relaxed">
                 {problem.aiEvidence}
               </p>
@@ -156,8 +149,8 @@ function ProblemCard({
 
 export default function ProblemsPage() {
   const { convexUserId, isLoading } = useConvexUser();
-  const [filter, setFilter] = useState<Filter>("all");
   const [analyzing, setAnalyzing] = useState(false);
+  const [resolvedOpen, setResolvedOpen] = useState(false);
 
   const problems = useQuery(
     api.problems.getAllProblems,
@@ -170,11 +163,7 @@ export default function ProblemsPage() {
   async function handleToggle(title: string, solved: boolean) {
     if (!convexUserId) return;
     try {
-      await setProblemStatus({
-        userId: convexUserId,
-        problemTitle: title,
-        solvedManually: solved,
-      });
+      await setProblemStatus({ userId: convexUserId, problemTitle: title, solvedManually: solved });
     } catch {
       toast.error("Failed to update problem status.");
     }
@@ -197,29 +186,11 @@ export default function ProblemsPage() {
     }
   }
 
-  const filtered = useMemo(() => {
-    if (!problems) return [];
-    return problems.filter((p) => {
-      const isSolved =
-        p.solvedManually === true ||
-        (p.solvedManually === null && p.aiResolved === true);
-      if (filter === "open") return !isSolved;
-      if (filter === "resolved") return isSolved;
-      return true;
-    });
-  }, [problems, filter]);
-
-  const counts = useMemo(() => {
-    if (!problems) return { all: 0, open: 0, resolved: 0 };
-    const resolved = problems.filter(
-      (p) =>
-        p.solvedManually === true ||
-        (p.solvedManually === null && p.aiResolved === true)
-    ).length;
+  const { openProblems, resolvedProblems } = useMemo(() => {
+    if (!problems) return { openProblems: [], resolvedProblems: [] };
     return {
-      all: problems.length,
-      open: problems.length - resolved,
-      resolved,
+      openProblems: problems.filter((p) => !isSolved(p)),
+      resolvedProblems: problems.filter((p) => isSolved(p)),
     };
   }, [problems]);
 
@@ -227,7 +198,6 @@ export default function ProblemsPage() {
     return (
       <div className="max-w-2xl space-y-4">
         <Skeleton className="h-8 w-40" />
-        <Skeleton className="h-6 w-64" />
         <Skeleton className="h-24 w-full" />
         <Skeleton className="h-24 w-full" />
         <Skeleton className="h-24 w-full" />
@@ -252,46 +222,37 @@ export default function ProblemsPage() {
           disabled={analyzing || !problems || problems.length === 0}
           className="shrink-0"
         >
-          <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+          <BrainCircuit className="w-4 h-4 mr-1.5" />
           {analyzing ? "Analyzing…" : "AI Analysis"}
         </Button>
       </div>
 
-      {/* Stats */}
+      {/* Stats strip */}
       {problems && problems.length > 0 && (
         <div className="grid grid-cols-3 gap-3">
-          {(["all", "open", "resolved"] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={cn(
-                "rounded-xl border p-3 text-left transition-all",
-                filter === f
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/40"
-              )}
-            >
-              <div className="text-xl font-bold">{counts[f]}</div>
-              <div className="text-xs text-muted-foreground capitalize mt-0.5">{f}</div>
-            </button>
+          {([
+            { label: "Total", count: problems.length, color: "text-foreground" },
+            { label: "Open", count: openProblems.length, color: "text-amber-500" },
+            { label: "Resolved", count: resolvedProblems.length, color: "text-emerald-500" },
+          ]).map(({ label, count, color }) => (
+            <div key={label} className="rounded-xl border border-border p-3 text-center">
+              <div className={cn("text-2xl font-bold", color)}>{count}</div>
+              <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
+            </div>
           ))}
         </div>
       )}
 
-      <Separator />
-
       {/* Problem list */}
       {problems === undefined ? (
         <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-20 w-full" />
-          ))}
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full" />)}
         </div>
       ) : problems.length === 0 ? (
         <Card>
           <CardContent className="py-12 flex flex-col items-center text-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-              <TriangleAlert className="w-5 h-5 text-muted-foreground" />
+            <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
+              <AlertOctagon className="w-7 h-7 text-muted-foreground" />
             </div>
             <h2 className="text-base font-semibold">No problems logged yet</h2>
             <p className="text-sm text-muted-foreground max-w-xs">
@@ -299,36 +260,47 @@ export default function ProblemsPage() {
             </p>
           </CardContent>
         </Card>
-      ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center py-12 text-center gap-2">
-          <AlertCircle className="w-8 h-8 text-muted-foreground/50" />
-          <p className="text-sm text-muted-foreground">
-            No {filter} problems.{" "}
-            <button
-              onClick={() => setFilter("all")}
-              className="underline hover:text-foreground"
-            >
-              Show all
-            </button>
-          </p>
-        </div>
       ) : (
-        <div className="space-y-3">
-          {filtered.map((problem) => (
-            <ProblemCard
-              key={problem.title}
-              problem={problem}
-              onToggle={handleToggle}
-            />
-          ))}
-          {filter !== "all" && (
-            <button
-              onClick={() => setFilter("all")}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mx-auto"
-            >
-              <RotateCcw className="w-3 h-3" />
-              Show all {counts.all} problems
-            </button>
+        <div className="space-y-4">
+          {/* Open problems */}
+          {openProblems.length > 0 && (
+            <div className="space-y-3">
+              {openProblems.map((problem) => (
+                <ProblemCard key={problem.title} problem={problem} onToggle={handleToggle} />
+              ))}
+            </div>
+          )}
+
+          {openProblems.length === 0 && resolvedProblems.length > 0 && (
+            <div className="text-center py-6">
+              <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
+              <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">All problems resolved!</p>
+            </div>
+          )}
+
+          {/* Resolved section (collapsible) */}
+          {resolvedProblems.length > 0 && (
+            <div>
+              <button
+                onClick={() => setResolvedOpen((v) => !v)}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-2 w-full"
+              >
+                <ChevronRight className={cn("w-4 h-4 transition-transform", resolvedOpen && "rotate-90")} />
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                <span className="font-medium">Resolved</span>
+                <span className="text-xs bg-muted px-2 py-0.5 rounded-full">{resolvedProblems.length}</span>
+                <RotateCcw className="w-3.5 h-3.5 ml-auto opacity-50" />
+                <span className="text-xs opacity-50">click any to reopen</span>
+              </button>
+
+              {resolvedOpen && (
+                <div className="space-y-3 mt-2">
+                  {resolvedProblems.map((problem) => (
+                    <ProblemCard key={problem.title} problem={problem} onToggle={handleToggle} />
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}

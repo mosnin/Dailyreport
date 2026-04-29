@@ -634,6 +634,21 @@ Respond with exactly this JSON:
   });
 }
 
+export const regenerateWeeklyInsight = action({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const now = new Date();
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(now);
+    monday.setDate(diff);
+    const weekStartDate = monday.toISOString().split("T")[0];
+    await ctx.runAction(internal.ai.generateWeeklyInsight, { userId: args.userId, weekStartDate });
+  },
+});
+
 export const generateVisualizations = action({
   args: { userId: v.id("users"), force: v.optional(v.boolean()) },
   handler: async (ctx, args) => {
