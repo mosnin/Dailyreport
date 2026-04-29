@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, FileText, Calendar, Search, MessageSquare, ClipboardList } from "lucide-react";
+import { LayoutDashboard, FileText, Calendar, Search, MessageSquare, ClipboardList, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const nav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/reports/daily", label: "Daily Report", icon: FileText },
   { href: "/reports/weekly", label: "Weekly Report", icon: ClipboardList },
+  { href: "/goals", label: "Goals", icon: Target },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/search", label: "Search", icon: Search },
   { href: "/chat", label: "AI Chat", icon: MessageSquare },

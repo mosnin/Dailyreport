@@ -58,4 +58,20 @@ export default defineSchema({
     content: v.string(),
     generatedAt: v.number(),
   }).index("by_user_week", ["userId", "weekStartDate"]),
+
+  goals: defineTable({
+    userId: v.id("users"),
+    category: v.union(
+      v.literal("lifelong"),
+      v.literal("yearly"),
+      v.literal("quarterly"),
+      v.literal("monthly"),
+      v.literal("weekly")
+    ),
+    // "all" | "2026" | "2026-Q2" | "2026-04" | "2026-04-28"
+    periodKey: v.string(),
+    title: v.string(),
+    completed: v.boolean(),
+    createdAt: v.number(),
+  }).index("by_user_category_period", ["userId", "category", "periodKey"]),
 });
