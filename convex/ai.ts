@@ -303,6 +303,119 @@ If there is not enough data to answer meaningfully, say so in the message and se
   },
 });
 
+export const analyzeProblemResolution = action({
+  args: { userId: v.id("users") },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  handler: async (ctx, args): Promise<{ analyzed: number }> => {
+    const reports = await ctx.runQuery(internal.problems.getReportsForAnalysis, {
+      userId: args.userId,
+    });
+
+    if (reports.length === 0) return { analyzed: 0 };
+
+    // Extract unique problems (oldest first)
+    type ProblemEntry = { title: string; solutions: string; firstSeen: string };
+    const problemMap = new Map<string, ProblemEntry>();
+
+    const sortedReports = [...reports].sort(
+      (a: { date: string }, b: { date: string }) => a.date.localeCompare(b.date)
+    );
+
+    for (const report of sortedReports) {
+      const responses = report.responses as Record<string, unknown>;
+      if (!Array.isArray(responses?.problemsToSolve)) continue;
+      for (const p of responses.problemsToSolve as Array<{ title: string; solutions: string }>) {
+        if (!p.title?.trim()) continue;
+        const key = p.title.trim().toLowerCase();
+        if (!problemMap.has(key)) {
+          problemMap.set(key, {
+            title: p.title.trim(),
+            solutions: p.solutions || "",
+            firstSeen: report.date,
+          });
+        }
+      }
+    }
+
+    if (problemMap.size === 0) return { analyzed: 0 };
+
+    const problems = Array.from(problemMap.values());
+
+    // Build resolution context from recent reports
+    const contextLines: string[] = [];
+    for (const report of reports) {
+      const responses = report.responses as Record<string, unknown>;
+      const solved = Array.isArray(responses?.problemsSolvedToday)
+        ? (responses.problemsSolvedToday as string[]).filter(Boolean).join("; ")
+        : "";
+      const plan = typeof responses?.tomorrowPlan === "string" ? responses.tomorrowPlan : "";
+      if (solved || plan) {
+        contextLines.push(
+          `${report.date}:\n  Solved today: ${solved || "none"}\n  Tomorrow's plan: ${plan || "none"}`
+        );
+      }
+    }
+
+    const openai = getOpenAI();
+    let results: Array<{ problemTitle: string; aiResolved: boolean; aiEvidence: string }> = [];
+
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are analyzing an accountability tracker to determine if problems have been resolved.
+You'll receive a list of problems the user identified, and their daily reports showing what they solved and planned.
+For each problem, determine if it was likely resolved based on explicit mentions or strong contextual evidence.
+
+Respond with this exact JSON:
+{
+  "results": [
+    {
+      "problemTitle": "<exact problem title as given>",
+      "aiResolved": true | false,
+      "aiEvidence": "<1-2 sentence explanation citing specific evidence from the reports>"
+    }
+  ]
+}`,
+          },
+          {
+            role: "user",
+            content: `Problems to analyze:\n${problems
+              .map(
+                (p, i) =>
+                  `${i + 1}. "${p.title}" (first seen: ${p.firstSeen})\n   Proposed solutions: ${p.solutions || "none"}`
+              )
+              .join("\n")}\n\n---\n\nReport history (what was solved + tomorrow's plans):\n${
+              contextLines.join("\n\n") || "No resolution data found in reports."
+            }`,
+          },
+        ],
+        max_tokens: 2000,
+        response_format: { type: "json_object" },
+      });
+
+      const raw =
+        completion.choices[0].message.content ?? '{"results":[]}';
+      const parsed = JSON.parse(raw);
+      results = parsed.results ?? [];
+    } catch (err) {
+      console.error("analyzeProblemResolution failed:", err);
+      return { analyzed: 0 };
+    }
+
+    if (results.length > 0) {
+      await ctx.runMutation(internal.problems.saveAnalysisResults, {
+        userId: args.userId,
+        results,
+      });
+    }
+
+    return { analyzed: results.length };
+  },
+});
+
 export const chat = action({
   args: {
     userId: v.id("users"),

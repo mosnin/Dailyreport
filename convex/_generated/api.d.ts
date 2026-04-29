@@ -13,6 +13,7 @@ import type * as ai from "../ai.js";
 import type * as aiInternal from "../aiInternal.js";
 import type * as crons from "../crons.js";
 import type * as goals from "../goals.js";
+import type * as problems from "../problems.js";
 import type * as pushNotifications from "../pushNotifications.js";
 import type * as pushSubscriptions from "../pushSubscriptions.js";
 import type * as reports from "../reports.js";
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   aiInternal: typeof aiInternal;
   crons: typeof crons;
   goals: typeof goals;
+  problems: typeof problems;
   pushNotifications: typeof pushNotifications;
   pushSubscriptions: typeof pushSubscriptions;
   reports: typeof reports;

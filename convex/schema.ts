@@ -66,6 +66,17 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_user", ["userId"]),
 
+  problemStatuses: defineTable({
+    userId: v.id("users"),
+    problemTitle: v.string(),
+    solvedManually: v.optional(v.boolean()),
+    aiResolved: v.optional(v.boolean()),
+    aiEvidence: v.optional(v.string()),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_title", ["userId", "problemTitle"]),
+
   goals: defineTable({
     userId: v.id("users"),
     category: v.union(

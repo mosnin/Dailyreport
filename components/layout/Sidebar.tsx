@@ -16,6 +16,7 @@ import {
   Star,
   Settings,
   LogOut,
+  TriangleAlert,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,7 @@ const navGroups = [
     label: "Growth",
     items: [
       { href: "/goals", label: "Goals", icon: Target },
+      { href: "/problems", label: "Problems", icon: TriangleAlert },
       { href: "/affirmations", label: "Affirmations", icon: Star },
     ],
   },

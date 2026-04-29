@@ -10,9 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Bell, Globe, User, LogOut } from "lucide-react";
+import { Bell, Globe, User, LogOut, Sun, Moon, Monitor } from "lucide-react";
 import { toast } from "sonner";
 import { useClerk } from "@clerk/nextjs";
+import { useTheme } from "next-themes";
+import { cn } from "@/lib/utils";
 
 const COMMON_TIMEZONES = [
   "America/New_York",
@@ -44,6 +46,7 @@ export default function SettingsPage() {
   const { subscribe, subscribed } = usePushSubscription(convexUserId);
   const updateTimezone = useMutation(api.users.updateTimezone);
 
+  const { theme, setTheme } = useTheme();
   const [tz, setTz] = useState("");
   const [savingTz, setSavingTz] = useState(false);
 
@@ -97,6 +100,42 @@ export default function SettingsPage() {
           <div className="flex justify-between">
             <span className="text-muted-foreground">Email</span>
             <span className="font-medium truncate ml-4">{convexUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || "—"}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Appearance */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Sun className="w-4 h-4 text-muted-foreground" />
+            Appearance
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Choose how the app looks. System follows your device preference.
+          </p>
+          <div className="flex gap-2">
+            {(["light", "dark", "system"] as const).map((t) => {
+              const Icon = t === "light" ? Sun : t === "dark" ? Moon : Monitor;
+              const label = t.charAt(0).toUpperCase() + t.slice(1);
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTheme(t)}
+                  className={cn(
+                    "flex-1 flex flex-col items-center gap-1.5 py-3 rounded-lg border-2 text-xs font-medium transition-all",
+                    theme === t
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                  )}
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
