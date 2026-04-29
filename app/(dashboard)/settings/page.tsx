@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Bell, Globe, User, LogOut, Sun, Moon, Monitor, CreditCard, Crown, Zap } from "lucide-react";
+import { Bell, Globe, User, LogOut, Sun, Moon, Monitor, CreditCard, Crown, Zap, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { useClerk } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
@@ -45,6 +45,8 @@ export default function SettingsPage() {
   const { signOut } = useClerk();
   const { subscribe, subscribed } = usePushSubscription(convexUserId);
   const updateTimezone = useMutation(api.users.updateTimezone);
+  const updateEmailOptOut = useMutation(api.users.updateEmailOptOut);
+  const emailOptOut = (convexUser as { emailOptOut?: boolean } | null | undefined)?.emailOptOut ?? false;
 
   const { theme, setTheme } = useTheme();
   const [tz, setTz] = useState("");
@@ -248,6 +250,44 @@ export default function SettingsPage() {
               Enable notifications
             </Button>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Email notifications */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Mail className="w-4 h-4 text-muted-foreground" />
+            Email notifications
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Two emails per week at most — a Monday digest summarising your previous week, and a Sunday nudge if you haven't submitted your weekly review.
+          </p>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">
+              {emailOptOut ? "Emails disabled" : "Emails enabled"}
+            </span>
+            <button
+              onClick={async () => {
+                if (!convexUserId) return;
+                await updateEmailOptOut({ userId: convexUserId, optOut: !emailOptOut });
+                toast.success(emailOptOut ? "Emails re-enabled." : "Emails turned off.");
+              }}
+              className={cn(
+                "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none",
+                emailOptOut ? "bg-muted" : "bg-primary"
+              )}
+            >
+              <span
+                className={cn(
+                  "inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform",
+                  emailOptOut ? "translate-x-1" : "translate-x-6"
+                )}
+              />
+            </button>
+          </div>
         </CardContent>
       </Card>
 

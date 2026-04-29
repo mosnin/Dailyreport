@@ -17,6 +17,7 @@ import {
   Flame,
   Telescope,
   BrainCircuit,
+  MessageSquare,
   ScanSearch,
   LineChart,
   SlidersHorizontal,
@@ -58,6 +59,7 @@ const navGroups = [
     label: "Discover",
     items: [
       { href: "/insights", label: "AI Insights", icon: BrainCircuit },
+      { href: "/chat", label: "Chat", icon: MessageSquare },
       { href: "/analytics", label: "Analytics", icon: LineChart },
       { href: "/search", label: "Search", icon: ScanSearch },
     ],

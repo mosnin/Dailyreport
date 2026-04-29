@@ -19,6 +19,7 @@ export default defineSchema({
     creemCustomerId: v.optional(v.string()),
     creemSubscriptionId: v.optional(v.string()),
     planUpdatedAt: v.optional(v.number()),
+    emailOptOut: v.optional(v.boolean()),
     createdAt: v.number(),
   })
     .index("by_clerk_id", ["clerkId"])
@@ -62,7 +63,12 @@ export default defineSchema({
 
   sentNotifications: defineTable({
     userId: v.id("users"),
-    type: v.union(v.literal("daily"), v.literal("weekly")),
+    type: v.union(
+      v.literal("daily"),
+      v.literal("weekly"),
+      v.literal("email_digest"),
+      v.literal("email_reminder")
+    ),
     date: v.string(),
   }).index("by_user_type_date", ["userId", "type", "date"]),
 

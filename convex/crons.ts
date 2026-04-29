@@ -9,6 +9,12 @@ const crons = cronJobs();
 crons.hourly("check-8pm-notifications", { minuteUTC: 0 }, internal.crons.checkNotifications);
 crons.daily("generate-daily-visualizations", { hourUTC: 0, minuteUTC: 0 }, internal.crons.generateVisualizationsForAllUsers);
 
+// Monday 9am UTC — weekly digest email (covers the previous Mon–Sun)
+crons.weekly("send-weekly-digest-emails", { dayOfWeek: "monday", hourUTC: 9, minuteUTC: 0 }, internal.email.sendWeeklyDigestToAll);
+
+// Sunday 6pm UTC — gentle reminder if weekly report not yet submitted
+crons.weekly("send-weekly-reminder-emails", { dayOfWeek: "sunday", hourUTC: 18, minuteUTC: 0 }, internal.email.sendWeeklyRemindersToAll);
+
 export default crons;
 
 export const checkNotifications = internalAction({
