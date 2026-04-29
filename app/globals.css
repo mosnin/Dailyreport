@@ -128,3 +128,17 @@
     @apply font-sans;
   }
 }
+
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.notebook-lines {
+  background-image: linear-gradient(transparent calc(100% - 1px), #dbeafe 1px);
+  background-size: 100% 2.5rem;
+}
+
+.dark .notebook-lines {
+  background-image: linear-gradient(transparent calc(100% - 1px), rgba(147, 197, 253, 0.06) 1px);
+}
