@@ -416,6 +416,64 @@ Respond with this exact JSON:
   },
 });
 
+export const generateOnboardingAffirmations = action({
+  args: {
+    userId: v.id("users"),
+    bio: v.string(),
+    lifeGoals: v.array(v.string()),
+    yearlyGoal: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const context = [
+      args.bio ? `About me: ${args.bio}` : "",
+      args.lifeGoals.length
+        ? `Life goals:\n${args.lifeGoals.map((g) => `- ${g}`).join("\n")}`
+        : "",
+      args.yearlyGoal ? `This year's focus: ${args.yearlyGoal}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
+    const openai = getOpenAI();
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are a life coach creating deeply personal affirmations for someone just starting their accountability journey.
+Based on their bio, life goals, and yearly focus, generate 5 powerful, personal, present-tense affirmations.
+Make them specific to who they actually are and what they're working toward — not generic.
+Respond with this exact JSON: {"affirmations": ["I am...", ...]}`,
+        },
+        { role: "user", content: context || "Generate 5 powerful positive affirmations." },
+      ],
+      max_tokens: 400,
+      response_format: { type: "json_object" },
+    });
+
+    const raw = completion.choices[0].message.content ?? '{"affirmations":[]}';
+    let affirmations: string[] = [];
+    try {
+      const parsed = JSON.parse(raw);
+      affirmations = Array.isArray(parsed) ? parsed : (parsed.affirmations ?? []);
+    } catch {
+      affirmations = [];
+    }
+
+    for (const text of affirmations) {
+      if (text?.trim()) {
+        await ctx.runMutation(internal.affirmations.internalAdd, {
+          userId: args.userId,
+          text: text.trim(),
+          source: "ai",
+        });
+      }
+    }
+
+    return affirmations;
+  },
+});
+
 export const chat = action({
   args: {
     userId: v.id("users"),

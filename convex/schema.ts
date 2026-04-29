@@ -7,6 +7,8 @@ export default defineSchema({
     email: v.string(),
     name: v.string(),
     timezone: v.optional(v.string()),
+    bio: v.optional(v.string()),
+    onboardingComplete: v.optional(v.boolean()),
     createdAt: v.number(),
   }).index("by_clerk_id", ["clerkId"]),
 

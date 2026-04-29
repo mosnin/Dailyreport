@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
 async function assertOwner(ctx: any, userId: string) {
@@ -48,6 +48,22 @@ export const remove = mutation({
     if (!item) return;
     await assertOwner(ctx, item.userId);
     await ctx.db.delete(args.id);
+  },
+});
+
+export const internalAdd = internalMutation({
+  args: {
+    userId: v.id("users"),
+    text: v.string(),
+    source: v.union(v.literal("manual"), v.literal("ai")),
+  },
+  handler: async (ctx, args) => {
+    return ctx.db.insert("affirmations", {
+      userId: args.userId,
+      text: args.text,
+      source: args.source,
+      createdAt: Date.now(),
+    });
   },
 });
 

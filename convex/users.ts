@@ -22,6 +22,7 @@ export const getOrCreate = mutation({
       clerkId,
       email: args.email,
       name: args.name,
+      onboardingComplete: false,
       createdAt: Date.now(),
     });
   },
@@ -36,6 +37,52 @@ export const getByClerkId = query({
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
       .unique();
+  },
+});
+
+export const completeOnboarding = mutation({
+  args: {
+    userId: v.id("users"),
+    bio: v.string(),
+    timezone: v.string(),
+    lifeGoals: v.array(v.string()),
+    yearlyGoal: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+
+    await ctx.db.patch(args.userId, {
+      bio: args.bio,
+      timezone: args.timezone,
+      onboardingComplete: true,
+    });
+
+    const now = Date.now();
+    for (const title of args.lifeGoals.filter((g) => g.trim())) {
+      await ctx.db.insert("goals", {
+        userId: args.userId,
+        category: "lifelong",
+        periodKey: "all",
+        title: title.trim(),
+        completed: false,
+        createdAt: now,
+      });
+    }
+
+    if (args.yearlyGoal.trim()) {
+      const year = new Date().getFullYear().toString();
+      await ctx.db.insert("goals", {
+        userId: args.userId,
+        category: "yearly",
+        periodKey: year,
+        title: args.yearlyGoal.trim(),
+        completed: false,
+        createdAt: now,
+      });
+    }
   },
 });
 
