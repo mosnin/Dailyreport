@@ -38,7 +38,7 @@ export default function DailyReportPage() {
       </div>
       <DailyReportForm
         userId={convexUserId}
-        initialResponses={existing?.responses as Record<string, string> | undefined}
+        initialResponses={existing?.responses as Record<string, unknown> | undefined}
       />
     </div>
   );
