@@ -146,6 +146,95 @@ export const semanticSearch = action({
   },
 });
 
+export const insightsChat = action({
+  args: {
+    userId: v.id("users"),
+    message: v.string(),
+    history: v.array(v.object({ role: v.string(), content: v.string() })),
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  handler: async (ctx, args): Promise<any> => {
+    const reports = await ctx.runQuery(internal.aiInternal.getRecentReportsForInsights, {
+      userId: args.userId,
+    });
+
+    const dailyContext = reports.daily
+      .map((r: { date: string; responses: unknown }) =>
+        `[Daily ${r.date}]\n${reportToText(r.responses)}`
+      )
+      .join("\n\n");
+
+    const weeklyContext = reports.weekly
+      .map((r: { weekStartDate: string; responses: unknown }) =>
+        `[Weekly week-of ${r.weekStartDate}]\n${reportToText(r.responses)}`
+      )
+      .join("\n\n");
+
+    const dataContext = [
+      dailyContext ? `DAILY REPORTS (last 30):\n${dailyContext}` : "No daily reports yet.",
+      weeklyContext ? `WEEKLY REPORTS (last 12):\n${weeklyContext}` : "No weekly reports yet.",
+    ].join("\n\n---\n\n");
+
+    const systemPrompt = `You are an AI accountability coach analyzing a user's daily and weekly reports.
+Your job is to surface patterns, identify weak areas, celebrate wins, and help the user improve.
+
+You have access to their recent report history below.
+
+${dataContext}
+
+---
+
+RESPONSE FORMAT: Always respond with valid JSON in this exact shape:
+{
+  "message": "<your text response — use markdown>",
+  "chart": null | {
+    "type": "bar" | "line" | "pie" | "radar",
+    "title": "<chart title>",
+    "description": "<1 sentence describing what the chart shows>",
+    "data": <array of objects — see notes>,
+    "xKey": "<field name for x-axis (bar/line only)>",
+    "dataKeys": ["<y-axis field names (bar/line)>"],
+    "nameKey": "<field for pie slice labels (pie only)>",
+    "valueKey": "<field for pie values (pie only)>",
+    "radarKeys": ["<numeric fields for radar (radar only)>"],
+    "radarNameKey": "<category field for radar (radar only)>"
+  }
+}
+
+Chart type guidance:
+- Use "bar" for comparing categories/weeks/days (e.g. submission frequency per week)
+- Use "line" for trends over time (e.g. daily mood scores)
+- Use "pie" for proportions (e.g. problem categories)
+- Use "radar" for multi-dimension comparisons (e.g. average scores across different life areas)
+- Set chart to null when a chart wouldn't add meaningful value
+- Only include a chart when the data actually supports it (e.g. 3+ data points)
+
+If there is not enough data to answer meaningfully, say so in the message and set chart to null.`;
+
+    const openai = getOpenAI();
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...args.history.map((m) => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        })),
+        { role: "user", content: args.message },
+      ],
+      max_tokens: 1000,
+      response_format: { type: "json_object" },
+    });
+
+    const raw = completion.choices[0].message.content ?? '{"message":"No response.","chart":null}';
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return { message: raw, chart: null };
+    }
+  },
+});
+
 export const chat = action({
   args: {
     userId: v.id("users"),

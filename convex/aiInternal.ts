@@ -88,3 +88,20 @@ export const getLatestInsight = query({
       .first();
   },
 });
+
+export const getRecentReportsForInsights = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const daily = await ctx.db
+      .query("dailyReports")
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .take(30);
+    const weekly = await ctx.db
+      .query("weeklyReports")
+      .withIndex("by_user_week", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .take(12);
+    return { daily, weekly };
+  },
+});
