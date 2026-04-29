@@ -4,11 +4,6 @@ import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { todayString } from "@/lib/utils";
@@ -76,21 +71,51 @@ function wordCount(text: string): number {
   return text.trim() === "" ? 0 : text.trim().split(/\s+/).length;
 }
 
-// ── Sub-components ─────────────────────────────────────────────────────────
+// ── Journal section header ─────────────────────────────────────────────────
 
-function QuestionCard({ number, title, children }: { number: number; title: string; children: React.ReactNode }) {
+function JournalSection({
+  number,
+  title,
+  children,
+}: {
+  number: number;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-xs font-bold shrink-0">
-            {number}
-          </span>
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
+    <div className="space-y-4 py-8 border-t border-border/40 first:border-t-0 first:pt-0">
+      <div>
+        <span className="text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/40 uppercase">
+          {String(number).padStart(2, "0")}
+        </span>
+        <p className="text-[17px] font-medium leading-snug text-foreground mt-1">{title}</p>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ── Notebook textarea ──────────────────────────────────────────────────────
+
+function NoteTextarea({
+  value,
+  onChange,
+  placeholder,
+  minHeight = 120,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  minHeight?: number;
+}) {
+  return (
+    <textarea
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      style={{ minHeight }}
+      className="w-full bg-transparent border-0 border-b border-border/40 focus:border-foreground/50 focus:outline-none resize-none text-[15px] leading-[1.85] text-foreground placeholder:text-muted-foreground/35 pb-2 transition-colors"
+    />
   );
 }
 
@@ -101,9 +126,11 @@ const DRAFT_KEY_PREFIX = "dailyreport-draft-";
 export function DailyReportForm({
   userId,
   initialResponses,
+  onSuccess,
 }: {
   userId: Id<"users">;
   initialResponses?: Record<string, unknown>;
+  onSuccess?: () => void;
 }) {
   const draftKey = `${DRAFT_KEY_PREFIX}${todayString()}`;
   const isFreshForm = !initialResponses;
@@ -120,12 +147,9 @@ export function DailyReportForm({
   const [saving, setSaving] = useState(false);
   const submitDaily = useMutation(api.reports.submitDaily);
 
-  // Autosave draft to localStorage on every change (fresh forms only)
   useEffect(() => {
     if (!isFreshForm) return;
-    try {
-      localStorage.setItem(draftKey, JSON.stringify(r));
-    } catch {}
+    try { localStorage.setItem(draftKey, JSON.stringify(r)); } catch {}
   }, [r, isFreshForm, draftKey]);
 
   function set<K extends keyof DailyReportResponses>(key: K, value: DailyReportResponses[K]) {
@@ -135,19 +159,19 @@ export function DailyReportForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!r.dayActivity.trim()) {
-      toast.error("Q1 is required — describe how you spent your day.");
+      toast.error("Write something for question 1 before closing.");
       return;
     }
     if (!r.tomorrowPlan.trim()) {
-      toast.error("Q7 is required — write your plan for tomorrow.");
+      toast.error("Write tomorrow's plan before closing.");
       return;
     }
     setSaving(true);
     try {
       await submitDaily({ userId, date: todayString(), responses: r });
       try { localStorage.removeItem(draftKey); } catch {}
-      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
-      toast.success("Daily report submitted!");
+      confetti({ particleCount: 80, spread: 55, origin: { y: 0.7 }, colors: ["#6366f1", "#a5b4fc", "#e0e7ff"] });
+      onSuccess?.();
     } catch {
       toast.error("Failed to save. Please try again.");
     } finally {
@@ -155,71 +179,33 @@ export function DailyReportForm({
     }
   }
 
-  // ── Q2 helpers ───────────────────────────────────────────────────────────
+  // ── Field helpers ─────────────────────────────────────────────────────────
 
   function addPerson() {
-    set("peopleMetToday", [
-      ...r.peopleMetToday,
-      { id: makeId(), name: "", goalRelated: null, notes: "" },
-    ]);
+    set("peopleMetToday", [...r.peopleMetToday, { id: makeId(), name: "", goalRelated: null, notes: "" }]);
   }
-
   function updatePerson(id: string, patch: Partial<PersonMet>) {
-    set(
-      "peopleMetToday",
-      r.peopleMetToday.map((p) => (p.id === id ? { ...p, ...patch } : p))
-    );
+    set("peopleMetToday", r.peopleMetToday.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   }
-
   function removePerson(id: string) {
     set("peopleMetToday", r.peopleMetToday.filter((p) => p.id !== id));
   }
-
-  function addGoal() {
-    set("dailyGoals", [...r.dailyGoals, ""]);
-  }
-
+  function addGoal() { set("dailyGoals", [...r.dailyGoals, ""]); }
   function updateGoal(i: number, val: string) {
     set("dailyGoals", r.dailyGoals.map((g, idx) => (idx === i ? val : g)));
   }
-
-  function removeGoal(i: number) {
-    set("dailyGoals", r.dailyGoals.filter((_, idx) => idx !== i));
-  }
-
-  // ── Q4 helpers ───────────────────────────────────────────────────────────
-
+  function removeGoal(i: number) { set("dailyGoals", r.dailyGoals.filter((_, idx) => idx !== i)); }
   function addProblem() {
-    set("problemsToSolve", [
-      ...r.problemsToSolve,
-      { id: makeId(), title: "", solutions: "" },
-    ]);
+    set("problemsToSolve", [...r.problemsToSolve, { id: makeId(), title: "", solutions: "" }]);
   }
-
   function updateProblem(id: string, patch: Partial<Problem>) {
-    set(
-      "problemsToSolve",
-      r.problemsToSolve.map((p) => (p.id === id ? { ...p, ...patch } : p))
-    );
+    set("problemsToSolve", r.problemsToSolve.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   }
-
-  function removeProblem(id: string) {
-    set("problemsToSolve", r.problemsToSolve.filter((p) => p.id !== id));
-  }
-
-  // ── Q5 helpers ───────────────────────────────────────────────────────────
-
-  function addSolvedProblem() {
-    set("problemsSolvedToday", [...r.problemsSolvedToday, ""]);
-  }
-
+  function removeProblem(id: string) { set("problemsToSolve", r.problemsToSolve.filter((p) => p.id !== id)); }
+  function addSolvedProblem() { set("problemsSolvedToday", [...r.problemsSolvedToday, ""]); }
   function updateSolvedProblem(i: number, val: string) {
-    set(
-      "problemsSolvedToday",
-      r.problemsSolvedToday.map((p, idx) => (idx === i ? val : p))
-    );
+    set("problemsSolvedToday", r.problemsSolvedToday.map((p, idx) => (idx === i ? val : p)));
   }
-
   function removeSolvedProblem(i: number) {
     set("problemsSolvedToday", r.problemsSolvedToday.filter((_, idx) => idx !== i));
   }
@@ -227,220 +213,183 @@ export function DailyReportForm({
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-0">
 
       {/* Q1 */}
-      <QuestionCard number={1} title="What did you do today and how did you spend your time?">
+      <JournalSection number={1} title="What did you do today and how did you spend your time?">
         <div>
-          <Textarea
+          <NoteTextarea
             value={r.dayActivity}
-            onChange={(e) => set("dayActivity", e.target.value)}
-            placeholder="Walk through your day..."
-            className="min-h-[120px] resize-none"
+            onChange={(v) => set("dayActivity", v)}
+            placeholder="Walk through your day…"
           />
-          <p className="text-xs text-muted-foreground/60 mt-1 text-right">
-            {wordCount(r.dayActivity)} {wordCount(r.dayActivity) === 1 ? "word" : "words"}
-          </p>
+          {wordCount(r.dayActivity) > 0 && (
+            <p className="text-[11px] text-muted-foreground/40 mt-1.5 text-right tabular-nums">
+              {wordCount(r.dayActivity)} words
+            </p>
+          )}
         </div>
-      </QuestionCard>
+      </JournalSection>
 
       {/* Q2 */}
-      <QuestionCard number={2} title="Who did you meet or talk to today, and did they relate to your goals?">
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* People column */}
+      <JournalSection number={2} title="Who did you meet or talk to today, and did they relate to your goals?">
+        <div className="space-y-6">
+          {/* People */}
           <div className="space-y-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              People you met today
-            </p>
+            {r.peopleMetToday.length > 0 && (
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+                People
+              </p>
+            )}
             {r.peopleMetToday.map((person) => (
-              <div key={person.id} className="rounded-lg border border-border p-3 space-y-2">
+              <div key={person.id} className="space-y-2 pb-3 border-b border-border/30 last:border-0">
                 <div className="flex items-center gap-2">
                   <input
                     value={person.name}
                     onChange={(e) => updatePerson(person.id, { name: e.target.value })}
-                    placeholder="Person's name"
-                    className="flex-1 text-sm bg-transparent border-b border-border focus:border-primary focus:outline-none pb-1"
+                    placeholder="Name"
+                    className="flex-1 text-sm bg-transparent border-0 border-b border-border/40 focus:border-foreground/50 focus:outline-none pb-1 transition-colors"
                   />
-                  <button
-                    type="button"
-                    onClick={() => removePerson(person.id)}
-                    className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button type="button" onClick={() => updatePerson(person.id, { goalRelated: true })}
+                      className={cn("text-[11px] px-2 py-0.5 rounded-full border transition-colors",
+                        person.goalRelated === true ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400" : "border-border/50 text-muted-foreground/50 hover:border-emerald-400/50"
+                      )}>goal</button>
+                    <button type="button" onClick={() => removePerson(person.id)}
+                      className="text-muted-foreground/30 hover:text-muted-foreground transition-colors p-0.5">
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Goal-related?</span>
-                  <button
-                    type="button"
-                    onClick={() => updatePerson(person.id, { goalRelated: true })}
-                    className={cn(
-                      "text-xs px-2 py-0.5 rounded-full border transition-colors",
-                      person.goalRelated === true
-                        ? "bg-green-500/20 border-green-500/40 text-green-600 dark:text-green-400"
-                        : "border-border text-muted-foreground hover:border-green-400"
-                    )}
-                  >
-                    Yes
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => updatePerson(person.id, { goalRelated: false })}
-                    className={cn(
-                      "text-xs px-2 py-0.5 rounded-full border transition-colors",
-                      person.goalRelated === false
-                        ? "bg-red-500/20 border-red-500/40 text-red-500 dark:text-red-400"
-                        : "border-border text-muted-foreground hover:border-red-400"
-                    )}
-                  >
-                    No
-                  </button>
-                </div>
-                <input
-                  value={person.notes}
-                  onChange={(e) => updatePerson(person.id, { notes: e.target.value })}
-                  placeholder="Notes (optional)"
-                  className="w-full text-xs bg-transparent border-b border-border focus:border-primary focus:outline-none pb-1 text-muted-foreground"
-                />
+                {person.notes !== undefined && (
+                  <input
+                    value={person.notes}
+                    onChange={(e) => updatePerson(person.id, { notes: e.target.value })}
+                    placeholder="Notes (optional)"
+                    className="w-full text-xs bg-transparent border-0 border-b border-border/30 focus:border-foreground/40 focus:outline-none pb-1 text-muted-foreground placeholder:text-muted-foreground/30 transition-colors"
+                  />
+                )}
               </div>
             ))}
-            <Button type="button" variant="outline" size="sm" onClick={addPerson} className="w-full">
-              <Plus className="w-3.5 h-3.5 mr-1.5" />
+            <button type="button" onClick={addPerson}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors">
+              <Plus className="w-3.5 h-3.5" />
               Add person
-            </Button>
+            </button>
           </div>
 
-          {/* Goals column */}
-          <div className="space-y-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Your goals (for comparison)
-            </p>
-            {r.dailyGoals.map((goal, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground shrink-0">{i + 1}.</span>
-                <input
-                  value={goal}
-                  onChange={(e) => updateGoal(i, e.target.value)}
-                  placeholder={`Goal ${i + 1}`}
-                  className="flex-1 text-sm bg-transparent border-b border-border focus:border-primary focus:outline-none pb-1"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeGoal(i)}
-                  className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ))}
-            <Button type="button" variant="outline" size="sm" onClick={addGoal} className="w-full">
-              <Plus className="w-3.5 h-3.5 mr-1.5" />
-              Add goal
-            </Button>
-
-            {/* Alignment summary */}
-            {r.peopleMetToday.length > 0 && r.dailyGoals.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-border">
-                <p className="text-xs text-muted-foreground mb-1">Goal-aligned meetings today</p>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-green-600">
-                    {r.peopleMetToday.filter((p) => p.goalRelated).length}
-                  </span>
-                  <span className="text-xs text-muted-foreground">of</span>
-                  <span className="text-sm font-semibold">{r.peopleMetToday.length}</span>
-                  <span className="text-xs text-muted-foreground">people met</span>
+          {/* Goals for context */}
+          {(r.dailyGoals.length > 0 || true) && (
+            <div className="space-y-2">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+                Your goals (for reference)
+              </p>
+              {r.dailyGoals.map((goal, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="text-muted-foreground/30 text-xs tabular-nums shrink-0">{i + 1}.</span>
+                  <input
+                    value={goal}
+                    onChange={(e) => updateGoal(i, e.target.value)}
+                    placeholder={`Goal ${i + 1}`}
+                    className="flex-1 text-sm bg-transparent border-0 border-b border-border/40 focus:border-foreground/50 focus:outline-none pb-1 transition-colors"
+                  />
+                  <button type="button" onClick={() => removeGoal(i)}
+                    className="text-muted-foreground/30 hover:text-muted-foreground transition-colors p-0.5 shrink-0">
+                    <Trash2 className="w-3 h-3" />
+                  </button>
                 </div>
-              </div>
-            )}
-          </div>
+              ))}
+              <button type="button" onClick={addGoal}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors">
+                <Plus className="w-3.5 h-3.5" />
+                Add goal
+              </button>
+            </div>
+          )}
         </div>
-      </QuestionCard>
+      </JournalSection>
 
       {/* Q3 */}
-      <QuestionCard number={3} title="Emotional bank account — how drained did you feel today?">
-        <Textarea
+      <JournalSection number={3} title="Emotional bank account — how drained did you feel today?">
+        <NoteTextarea
           value={r.emotionalDrain}
-          onChange={(e) => set("emotionalDrain", e.target.value)}
-          placeholder="How did you feel emotionally? What drained or energised you?"
-          className="min-h-[100px] resize-none"
+          onChange={(v) => set("emotionalDrain", v)}
+          placeholder="What drained you, what energised you, how do you feel…"
+          minHeight={100}
         />
-      </QuestionCard>
+      </JournalSection>
 
       {/* Q4 */}
-      <QuestionCard number={4} title="What problems need to be solved, and how might you solve them?">
-        <div className="space-y-3">
+      <JournalSection number={4} title="What problems need to be solved, and how might you solve them?">
+        <div className="space-y-4">
           {r.problemsToSolve.map((problem, i) => (
-            <div key={problem.id} className="rounded-lg border border-border p-3 space-y-2">
+            <div key={problem.id} className="space-y-2 pb-4 border-b border-border/30 last:border-0">
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="shrink-0 text-xs">Problem {i + 1}</Badge>
+                <span className="text-muted-foreground/30 text-xs tabular-nums shrink-0">{i + 1}.</span>
                 <input
                   value={problem.title}
                   onChange={(e) => updateProblem(problem.id, { title: e.target.value })}
-                  placeholder="Problem title"
-                  className="flex-1 text-sm font-medium bg-transparent focus:outline-none border-b border-border focus:border-primary pb-1"
+                  placeholder="Problem"
+                  className="flex-1 text-sm font-medium bg-transparent border-0 border-b border-border/40 focus:border-foreground/50 focus:outline-none pb-1 transition-colors"
                 />
-                <button
-                  type="button"
-                  onClick={() => removeProblem(problem.id)}
-                  className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
+                <button type="button" onClick={() => removeProblem(problem.id)}
+                  className="text-muted-foreground/30 hover:text-muted-foreground transition-colors p-0.5 shrink-0">
+                  <Trash2 className="w-3 h-3" />
                 </button>
               </div>
-              <Textarea
+              <NoteTextarea
                 value={problem.solutions}
-                onChange={(e) => updateProblem(problem.id, { solutions: e.target.value })}
-                placeholder="Ways to solve this problem..."
-                className="min-h-[80px] resize-none text-sm"
+                onChange={(v) => updateProblem(problem.id, { solutions: v })}
+                placeholder="How might you solve this…"
+                minHeight={72}
               />
             </div>
           ))}
-          <Button type="button" variant="outline" size="sm" onClick={addProblem} className="w-full">
-            <Plus className="w-3.5 h-3.5 mr-1.5" />
+          <button type="button" onClick={addProblem}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors">
+            <Plus className="w-3.5 h-3.5" />
             Add problem
-          </Button>
+          </button>
         </div>
-      </QuestionCard>
+      </JournalSection>
 
       {/* Q5 */}
-      <QuestionCard number={5} title="What problems did you solve today that stand between you and your goal?">
+      <JournalSection number={5} title="What problems did you solve today that stand between you and your goal?">
         <div className="space-y-2">
           {r.problemsSolvedToday.map((item, i) => (
             <div key={i} className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+              <CheckCircle className="w-3.5 h-3.5 text-emerald-500/60 shrink-0" />
               <input
                 value={item}
                 onChange={(e) => updateSolvedProblem(i, e.target.value)}
-                placeholder={`Problem solved ${i + 1}`}
-                className="flex-1 text-sm bg-transparent border-b border-border focus:border-primary focus:outline-none pb-1"
+                placeholder={`Problem solved`}
+                className="flex-1 text-sm bg-transparent border-0 border-b border-border/40 focus:border-foreground/50 focus:outline-none pb-1 transition-colors"
               />
-              <button
-                type="button"
-                onClick={() => removeSolvedProblem(i)}
-                className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
+              <button type="button" onClick={() => removeSolvedProblem(i)}
+                className="text-muted-foreground/30 hover:text-muted-foreground transition-colors p-0.5 shrink-0">
+                <Trash2 className="w-3 h-3" />
               </button>
             </div>
           ))}
-          <Button type="button" variant="outline" size="sm" onClick={addSolvedProblem} className="w-full mt-1">
-            <Plus className="w-3.5 h-3.5 mr-1.5" />
+          <button type="button" onClick={addSolvedProblem}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors mt-1">
+            <Plus className="w-3.5 h-3.5" />
             Add solved problem
-          </Button>
+          </button>
         </div>
-      </QuestionCard>
+      </JournalSection>
 
       {/* Q6 */}
-      <QuestionCard number={6} title="Did you do your affirmations and visualize?">
+      <JournalSection number={6} title="Did you do your affirmations and visualize?">
         <div className="flex gap-3">
           <button
             type="button"
             onClick={() => set("didAffirmations", true)}
             className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 text-sm font-semibold transition-all",
+              "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border text-sm font-medium transition-all",
               r.didAffirmations === true
-                ? "border-green-500 bg-green-500/10 text-green-600 dark:text-green-400"
-                : "border-border text-muted-foreground hover:border-green-400 hover:text-green-600"
+                ? "border-emerald-500/50 bg-emerald-500/8 text-emerald-600 dark:text-emerald-400"
+                : "border-border/50 text-muted-foreground/60 hover:border-emerald-400/40 hover:text-emerald-600"
             )}
           >
             <CheckCircle className="w-4 h-4" />
@@ -450,38 +399,44 @@ export function DailyReportForm({
             type="button"
             onClick={() => set("didAffirmations", false)}
             className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 text-sm font-semibold transition-all",
+              "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border text-sm font-medium transition-all",
               r.didAffirmations === false
-                ? "border-red-500 bg-red-500/10 text-red-600 dark:text-red-400"
-                : "border-border text-muted-foreground hover:border-red-400 hover:text-red-500"
+                ? "border-rose-500/50 bg-rose-500/8 text-rose-600 dark:text-rose-400"
+                : "border-border/50 text-muted-foreground/60 hover:border-rose-400/40 hover:text-rose-500"
             )}
           >
             <XCircle className="w-4 h-4" />
             No
           </button>
         </div>
-      </QuestionCard>
+      </JournalSection>
 
       {/* Q7 */}
-      <QuestionCard number={7} title="What do you plan on doing tomorrow? Problems / challenges?">
+      <JournalSection number={7} title="What do you plan on doing tomorrow? Problems / challenges?">
         <div>
-          <Textarea
+          <NoteTextarea
             value={r.tomorrowPlan}
-            onChange={(e) => set("tomorrowPlan", e.target.value)}
-            placeholder="Tomorrow's plan, anticipated problems and challenges..."
-            className="min-h-[120px] resize-none"
+            onChange={(v) => set("tomorrowPlan", v)}
+            placeholder="Tomorrow's plan, anticipated problems and challenges…"
           />
-          <p className="text-xs text-muted-foreground/60 mt-1 text-right">
-            {wordCount(r.tomorrowPlan)} {wordCount(r.tomorrowPlan) === 1 ? "word" : "words"}
-          </p>
+          {wordCount(r.tomorrowPlan) > 0 && (
+            <p className="text-[11px] text-muted-foreground/40 mt-1.5 text-right tabular-nums">
+              {wordCount(r.tomorrowPlan)} words
+            </p>
+          )}
         </div>
-      </QuestionCard>
+      </JournalSection>
 
-      <Separator />
-
-      <Button type="submit" disabled={saving} className="w-full" size="lg">
-        {saving ? "Saving..." : "Submit daily report"}
-      </Button>
+      {/* Submit */}
+      <div className="pt-8 pb-4">
+        <button
+          type="submit"
+          disabled={saving}
+          className="w-full py-4 rounded-2xl bg-foreground text-background text-[15px] font-medium hover:bg-foreground/90 active:scale-[0.99] transition-all disabled:opacity-40"
+        >
+          {saving ? "Saving…" : "Close today's entry"}
+        </button>
+      </div>
     </form>
   );
 }
