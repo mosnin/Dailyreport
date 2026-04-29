@@ -1,6 +1,35 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { currentPeriodKey, type GoalCategory } from "../lib/utils";
+
+type GoalCategory = "lifelong" | "yearly" | "quarterly" | "monthly" | "weekly";
+
+function periodKeyFor(category: GoalCategory): string {
+  const now = new Date();
+  switch (category) {
+    case "lifelong":
+      return "all";
+    case "yearly":
+      return String(now.getFullYear());
+    case "quarterly": {
+      const q = Math.ceil((now.getMonth() + 1) / 3);
+      return `${now.getFullYear()}-Q${q}`;
+    }
+    case "monthly": {
+      const m = String(now.getMonth() + 1).padStart(2, "0");
+      return `${now.getFullYear()}-${m}`;
+    }
+    case "weekly": {
+      const d = new Date(now);
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      d.setDate(diff);
+      const y = d.getFullYear();
+      const mo = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${y}-${mo}-${dd}`;
+    }
+  }
+}
 
 const CATEGORY = v.union(
   v.literal("lifelong"),
@@ -29,7 +58,7 @@ export const getCurrentSummary = query({
     const result: Record<string, { total: number; completed: number; periodKey: string }> = {};
 
     for (const category of categories) {
-      const pk = currentPeriodKey(category);
+      const pk = periodKeyFor(category);
       const goals = await ctx.db
         .query("goals")
         .withIndex("by_user_category_period", (q) =>

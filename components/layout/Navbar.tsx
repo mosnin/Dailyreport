@@ -63,44 +63,46 @@ export function Navbar() {
 
   return (
     <header className="lg:hidden sticky top-0 z-50 flex items-center justify-between px-4 py-3 border-b border-border bg-card/80 backdrop-blur">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center">
         <Image
           src="/logo-light.png"
           alt="DailyReport"
-          width={28}
-          height={28}
+          width={1800}
+          height={400}
+          quality={100}
           className="h-7 w-auto dark:hidden"
         />
         <Image
           src="/logo-dark.png"
           alt="DailyReport"
-          width={28}
-          height={28}
+          width={1800}
+          height={400}
+          quality={100}
           className="h-7 w-auto hidden dark:block"
         />
-        <span className="text-base font-semibold">DailyReport</span>
       </div>
       <Sheet>
         <SheetTrigger className="p-2 rounded-lg hover:bg-accent transition-colors">
           <Menu className="w-5 h-5" />
         </SheetTrigger>
         <SheetContent side="left" className="w-72 p-0 flex flex-col">
-          <div className="flex items-center gap-2 px-5 py-5 border-b border-border shrink-0">
+          <div className="flex items-center px-5 py-4 border-b border-border shrink-0">
             <Image
               src="/logo-light.png"
               alt="DailyReport"
-              width={32}
-              height={32}
+              width={1800}
+              height={400}
+              quality={100}
               className="h-8 w-auto dark:hidden"
             />
             <Image
               src="/logo-dark.png"
               alt="DailyReport"
-              width={32}
-              height={32}
+              width={1800}
+              height={400}
+              quality={100}
               className="h-8 w-auto hidden dark:block"
             />
-            <span className="text-base font-semibold tracking-tight">DailyReport</span>
           </div>
           <ScrollArea className="flex-1 min-h-0">
             <nav className="flex flex-col gap-5 p-3">
