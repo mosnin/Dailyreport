@@ -143,8 +143,8 @@ function ProblemCard({
           )}
 
           {problem.aiEvidence && (
-            <div className="mt-2 flex gap-2 rounded-md bg-indigo-500/5 border border-indigo-500/20 px-3 py-2">
-              <BrainCircuit className="w-3.5 h-3.5 text-indigo-400 shrink-0 mt-0.5" />
+            <div className="mt-2 flex gap-2 rounded-md bg-primary/5 border border-primary/20 px-3 py-2">
+              <BrainCircuit className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
               <p className="text-xs text-muted-foreground leading-relaxed">
                 {problem.aiEvidence}
               </p>
@@ -318,9 +318,9 @@ export default function ProblemsPage() {
 
       {/* AI info banner */}
       {problems && problems.length > 0 && !problems.some((p) => p.aiEvidence) && (
-        <Card className="border-indigo-500/20 bg-indigo-500/5">
+        <Card className="border-primary/20 bg-primary/5">
           <CardContent className="py-4 flex items-start gap-3">
-            <Sparkles className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+            <Sparkles className="w-4 h-4 text-primary shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground">
               Hit <strong className="text-foreground">AI Analysis</strong> to cross-reference your problems against your
               daily reports — Claude will check what you said you solved and what you planned, and surface which

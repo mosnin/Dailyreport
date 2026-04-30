@@ -34,7 +34,7 @@ function ScoreTooltip({ active, payload, label }: {
   const d = payload[0].payload;
 
   return (
-    <div className="rounded-xl border border-border bg-card shadow-lg px-3 py-2.5 text-xs space-y-1.5 min-w-[140px]">
+    <div className="rounded-xl bg-card ring-1 ring-foreground/10 px-3 py-2.5 text-xs space-y-1.5 min-w-[140px]">
       <p className="font-semibold text-foreground">{label}</p>
       <p className="text-muted-foreground">
         Score: <span className="font-semibold text-foreground">{payload[0].value}</span>

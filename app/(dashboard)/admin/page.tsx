@@ -241,10 +241,7 @@ export default function AdminPage() {
     <div className="max-w-4xl space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2.5">
-          <ShieldAlert className="w-6 h-6 text-rose-500" />
-          Admin
-        </h1>
+        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Admin</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Manage users, plans, and access levels.
         </p>

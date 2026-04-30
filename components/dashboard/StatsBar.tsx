@@ -38,15 +38,15 @@ export function StatsBar({ userId }: { userId: Id<"users"> }) {
         icon={BarChart3}
         label="Daily accuracy"
         value={`${stats.dailyAccuracy}%`}
-        color="text-indigo-500"
-        bg="bg-indigo-500/10"
+        color="text-primary"
+        bg="bg-primary/10"
       />
       <StatCard
         icon={CalendarDays}
         label="Weekly accuracy"
         value={`${stats.weeklyAccuracy}%`}
-        color="text-green-500"
-        bg="bg-green-500/10"
+        color="text-emerald-500"
+        bg="bg-emerald-500/10"
       />
     </div>
   );
@@ -69,7 +69,7 @@ function StatCard({
     <Card>
       <CardContent className="p-4 flex items-center gap-4">
         <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
-          <Icon className={`w-6 h-6 ${color}`} />
+          <Icon className={`w-5 h-5 ${color}`} />
         </div>
         <div>
           <div className="text-xs font-medium text-muted-foreground">{label}</div>

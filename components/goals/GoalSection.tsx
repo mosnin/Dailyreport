@@ -22,22 +22,22 @@ const CATEGORY_META: Record<GoalCategory, { label: string; description: string; 
   yearly: {
     label: "Yearly Goals",
     description: "What you want to accomplish this year",
-    color: "text-blue-500",
+    color: "text-chart-1",
   },
   quarterly: {
     label: "Quarterly Goals",
     description: "Your focus for this quarter",
-    color: "text-indigo-500",
+    color: "text-chart-2",
   },
   monthly: {
     label: "Monthly Goals",
     description: "What you want to achieve this month",
-    color: "text-teal-500",
+    color: "text-chart-3",
   },
   weekly: {
     label: "Weekly Goals",
     description: "Your targets for this week",
-    color: "text-green-500",
+    color: "text-chart-4",
   },
 };
 

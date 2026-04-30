@@ -1,23 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
-import confetti from "canvas-confetti";
 import { ChevronRight, Loader2, Sparkles, Check } from "lucide-react";
-
-function fireSideCannon() {
-  const colors = ["#bb0000", "#0000ee"];
-  const end = Date.now() + 5 * 1000;
-  function frame() {
-    confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 }, colors });
-    confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1 }, colors });
-    if (Date.now() < end) requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-}
 
 const TIMEZONES = Intl.supportedValuesOf
   ? Intl.supportedValuesOf("timeZone")
@@ -112,10 +100,6 @@ export function OnboardingFlow({ userId }: Props) {
       setSubmitting(false);
     }
   }
-
-  useEffect(() => {
-    if (done) fireSideCannon();
-  }, [done]);
 
   if (done) {
     return (

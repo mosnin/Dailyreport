@@ -5,7 +5,7 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Paintbrush, Flame, Telescope, Check } from "lucide-react";
+import { Flame, Telescope, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -212,7 +212,7 @@ export default function CustomizePage() {
         <div className="flex items-center gap-2.5">
           <Flame className="w-5 h-5 text-amber-500" />
           <div>
-            <h2 className="text-base font-semibold">Affirmation Style</h2>
+            <h2 className="font-heading text-lg font-semibold">Affirmation Style</h2>
             <p className="text-xs text-muted-foreground">How AI-generated affirmations are written and framed.</p>
           </div>
         </div>
@@ -254,7 +254,7 @@ export default function CustomizePage() {
         <div className="flex items-center gap-2.5">
           <Telescope className="w-5 h-5 text-sky-500" />
           <div>
-            <h2 className="text-base font-semibold">Visualization Style</h2>
+            <h2 className="font-heading text-lg font-semibold">Visualization Style</h2>
             <p className="text-xs text-muted-foreground">The tone and energy of your daily dream scenarios.</p>
           </div>
         </div>

@@ -17,7 +17,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import {
-  LineChart as LineChartIcon,
   Target,
   AlertOctagon,
   Users,
@@ -103,7 +102,7 @@ function PracticeTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-border bg-card shadow-lg px-3 py-2.5 text-xs space-y-1.5 min-w-[140px]">
+    <div className="rounded-xl bg-card ring-1 ring-foreground/10 px-3 py-2.5 text-xs space-y-1.5 min-w-[140px]">
       <p className="font-semibold text-foreground">Week of {label}</p>
       {payload.map((entry) => (
         <div key={entry.name} className="flex items-center justify-between gap-4">
@@ -262,10 +261,7 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2.5">
-            <LineChartIcon className="w-6 h-6 text-primary" />
-            Analytics
-          </h1>
+          <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Analytics</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Your progress over time — reports, practices, goals, and patterns.
           </p>

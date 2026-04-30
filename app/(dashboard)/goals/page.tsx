@@ -11,10 +11,10 @@ import { cn } from "@/lib/utils";
 const CATEGORIES: GoalCategory[] = ["yearly", "quarterly", "monthly", "weekly"];
 
 const CATEGORY_META: Record<GoalCategory, { label: string; color: string; dot: string }> = {
-  yearly: { label: "Year", color: "text-blue-500", dot: "bg-blue-500" },
-  quarterly: { label: "Quarter", color: "text-indigo-500", dot: "bg-indigo-500" },
-  monthly: { label: "Month", color: "text-teal-500", dot: "bg-teal-500" },
-  weekly: { label: "Week", color: "text-green-500", dot: "bg-green-500" },
+  yearly:    { label: "Year",    color: "text-chart-1", dot: "bg-chart-1" },
+  quarterly: { label: "Quarter", color: "text-chart-2", dot: "bg-chart-2" },
+  monthly:   { label: "Month",   color: "text-chart-3", dot: "bg-chart-3" },
+  weekly:    { label: "Week",    color: "text-chart-4", dot: "bg-chart-4" },
 };
 
 export default function GoalsPage() {

@@ -41,7 +41,7 @@ export function TestimonialMarquee() {
   return (
     <section className="py-24 overflow-hidden">
       <div className="mb-14 text-center px-6">
-        <h2 className="text-3xl font-semibold tracking-tight mb-3">What people say</h2>
+        <h2 className="font-heading text-3xl font-semibold tracking-tight mb-3">What people say</h2>
         <p className="text-neutral-500 dark:text-neutral-400 text-base max-w-sm mx-auto">
           From people who show up every day.
         </p>

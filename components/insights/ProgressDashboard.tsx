@@ -35,7 +35,7 @@ function MomentumDisplay({ value }: { value: number }) {
   const color = isUp
     ? "text-emerald-500"
     : isDown
-    ? "text-red-500"
+    ? "text-rose-500"
     : "text-muted-foreground";
 
   return (
@@ -87,9 +87,9 @@ function MomentumTooltip({ active, payload, label }: TooltipPayload & { active?:
   if (!active || !payload?.length) return null;
   const v = payload[0].value;
   return (
-    <div className="rounded-lg border border-border bg-background shadow-sm px-3 py-2 text-xs">
+    <div className="rounded-lg bg-background ring-1 ring-foreground/10 px-3 py-2 text-xs">
       <p className="text-muted-foreground mb-0.5">Week of {label}</p>
-      <p className={cn("font-semibold", v > 0 ? "text-emerald-500" : v < 0 ? "text-red-500" : "text-muted-foreground")}>
+      <p className={cn("font-semibold", v > 0 ? "text-emerald-500" : v < 0 ? "text-rose-500" : "text-muted-foreground")}>
         {v > 0 ? "+" : ""}{v} momentum
       </p>
     </div>

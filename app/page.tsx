@@ -173,7 +173,7 @@ export default async function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
 
             {/* Mockup */}
-            <div className="notebook-lines rounded-2xl border border-neutral-200 dark:border-white/8 bg-white dark:bg-neutral-900 p-8 shadow-xl shadow-black/5 dark:shadow-black/30">
+            <div className="notebook-lines rounded-2xl ring-1 ring-foreground/10 bg-white dark:bg-neutral-900 p-8">
               <div className="mb-6">
                 <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-neutral-400 dark:text-neutral-500 mb-1">
                   Wednesday evening
@@ -284,7 +284,7 @@ export default async function LandingPage() {
       >
         <div className="max-w-2xl mx-auto">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl font-semibold tracking-tight mb-3">
+            <h2 className="font-heading text-3xl font-semibold tracking-tight mb-3">
               Questions
             </h2>
           </div>

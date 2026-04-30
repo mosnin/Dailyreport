@@ -180,10 +180,7 @@ export default function InspirationPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2.5">
-            <Lightbulb className="w-6 h-6 text-amber-400 fill-amber-400/20" />
-            Daily Inspiration
-          </h1>
+          <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Daily Inspiration</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Wisdom from Napoleon Hill, told through your story.
           </p>

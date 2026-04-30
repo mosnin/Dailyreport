@@ -292,10 +292,7 @@ export default function GivingPage() {
     <div className="max-w-lg space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2.5">
-          <Heart className="w-6 h-6 text-rose-400 fill-rose-400/30" />
-          Giving & Value
-        </h1>
+        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Giving</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           Track the value you create and give each day.
         </p>
