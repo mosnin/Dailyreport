@@ -19,9 +19,10 @@ import {
 } from "date-fns";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "motion/react";
 import { fadeUp } from "@/lib/motion";
+
+// ── Inline detail panel (used when no external onDateSelect) ──────────────
 
 function ReportDetailPanel({
   userId,
@@ -107,15 +108,26 @@ function ReportSummary({ responses }: { responses: Record<string, unknown> }) {
   );
 }
 
+// ── Calendar grid ─────────────────────────────────────────────────────────
+
 export function CalendarGrid({
   userId,
   clickable = false,
+  // Controlled mode — when provided, disables inline panel and delegates selection up
+  selectedDate: externalSelectedDate,
+  onDateSelect,
 }: {
   userId: Id<"users">;
   clickable?: boolean;
+  selectedDate?: string | null;
+  onDateSelect?: (date: string | null) => void;
 }) {
   const [current, setCurrent] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [internalSelectedDate, setInternalSelectedDate] = useState<string | null>(null);
+
+  // Use external controlled state when provided, otherwise internal
+  const isControlled = onDateSelect !== undefined;
+  const selectedDate = isControlled ? (externalSelectedDate ?? null) : internalSelectedDate;
 
   const data = useQuery(api.reports.getCalendarData, {
     userId,
@@ -151,7 +163,11 @@ export function CalendarGrid({
     if (!isSameMonth(day, current)) return;
     if (isFuture(day) && !isToday(day)) return;
     const key = format(day, "yyyy-MM-dd");
-    setSelectedDate((prev) => (prev === key ? null : key));
+    if (isControlled) {
+      onDateSelect(selectedDate === key ? null : key);
+    } else {
+      setInternalSelectedDate((prev) => (prev === key ? null : key));
+    }
   }
 
   const monthKey = format(current, "yyyy-MM");
@@ -163,14 +179,14 @@ export function CalendarGrid({
         <div className="flex gap-1">
           <motion.button
             whileTap={{ scale: 0.9 }}
-            onClick={() => { setCurrent((d) => new Date(d.getFullYear(), d.getMonth() - 1)); setSelectedDate(null); }}
+            onClick={() => { setCurrent((d) => new Date(d.getFullYear(), d.getMonth() - 1)); if (!isControlled) setInternalSelectedDate(null); }}
             className="p-1.5 rounded-lg hover:bg-accent transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.9 }}
-            onClick={() => { setCurrent((d) => new Date(d.getFullYear(), d.getMonth() + 1)); setSelectedDate(null); }}
+            onClick={() => { setCurrent((d) => new Date(d.getFullYear(), d.getMonth() + 1)); if (!isControlled) setInternalSelectedDate(null); }}
             className="p-1.5 rounded-lg hover:bg-accent transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
@@ -248,12 +264,13 @@ export function CalendarGrid({
         </span>
       </div>
 
+      {/* Inline panel — only rendered in uncontrolled mode */}
       <AnimatePresence>
-        {clickable && selectedDate && (
+        {!isControlled && clickable && selectedDate && (
           <ReportDetailPanel
             userId={userId}
             date={selectedDate}
-            onClose={() => setSelectedDate(null)}
+            onClose={() => setInternalSelectedDate(null)}
           />
         )}
       </AnimatePresence>
