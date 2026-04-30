@@ -324,9 +324,39 @@ delay: 0.25 + index * 0.055  // tighter, when rows are dense
 transition={{ type: "spring", damping: 12, stiffness: 90 }}
 ```
 
-### Page enter
+### Page transitions
 
-A `page-enter` keyframe in `globals.css` runs at 0.5s on route change. Don't reinvent it per page.
+Handled by `components/layout/PageTransition.tsx`. Wrap `{children}` in `<PageTransition>` inside the dashboard layout — never on individual pages.
+
+```tsx
+// components/layout/PageTransition.tsx
+"use client";
+import { AnimatePresence, motion } from "motion/react";
+import { usePathname } from "next/navigation";
+
+export function PageTransition({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={pathname}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -4 }}
+        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        className="flex-1 min-h-0"
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+```
+
+- `duration: 0.2` — fast enough to feel instant; slow enough to feel smooth
+- `y: 8` enter / `y: -4` exit — asymmetric: enters from slightly below, exits upward. Implies forward momentum.
+- `mode="wait"` — outgoing page fully exits before the new one enters
+- `initial={false}` — suppresses the transition on first page load
 
 ### Button press
 
