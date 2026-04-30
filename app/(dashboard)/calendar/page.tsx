@@ -5,12 +5,13 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { CalendarGrid } from "@/components/dashboard/CalendarGrid";
+import { DailyReportForm } from "@/components/reports/DailyReportForm";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "motion/react";
 import { fadeUp } from "@/lib/motion";
-import { format, parseISO, startOfWeek, endOfWeek } from "date-fns";
+import { format, parseISO, startOfWeek, endOfWeek, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, XCircle, Minus, NotepadText, BookOpen, Users, Target, AlertTriangle, CheckSquare, CalendarDays } from "lucide-react";
+import { CheckCircle2, XCircle, Minus, NotepadText, BookOpen, Users, Target, AlertTriangle, CheckSquare, CalendarDays, Pencil, X } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -318,10 +319,16 @@ function WeeklyReportView({ userId, weekStartDate }: { userId: Id<"users">; week
 
 // ── Report panel (tabs + viewer) ──────────────────────────────────────────
 
-function ReportPanel({ userId, date }: { userId: Id<"users">; date: string }) {
+function ReportPanel({ userId, date, isEditable }: { userId: Id<"users">; date: string; isEditable: boolean }) {
   const [tab, setTab] = useState<"daily" | "weekly">("daily");
+  const [editing, setEditing] = useState(false);
   const weekStartDate = getMondayOfWeek(date);
   const weekRange = getWeekRange(date);
+
+  const existingReport = useQuery(
+    api.reports.getDailyReport,
+    isEditable ? { userId, date } : "skip"
+  );
 
   return (
     <motion.div
@@ -333,55 +340,94 @@ function ReportPanel({ userId, date }: { userId: Id<"users">; date: string }) {
       className="rounded-xl border border-border bg-card overflow-hidden"
     >
       {/* Date header */}
-      <div className="px-5 pt-5 pb-4 border-b border-border/50">
-        <p className="font-heading text-lg font-semibold leading-tight">
-          {format(parseISO(date), "EEEE, MMMM d")}
-        </p>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Week of {weekRange}
-        </p>
+      <div className="px-5 pt-5 pb-4 border-b border-border/50 flex items-start justify-between gap-3">
+        <div>
+          <p className="font-heading text-lg font-semibold leading-tight">
+            {format(parseISO(date), "EEEE, MMMM d")}
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Week of {weekRange}
+          </p>
+        </div>
+        {isEditable && tab === "daily" && !editing && existingReport && (
+          <button
+            onClick={() => setEditing(true)}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0 mt-0.5"
+          >
+            <Pencil className="w-3 h-3" />
+            Edit
+          </button>
+        )}
+        {editing && (
+          <button
+            onClick={() => setEditing(false)}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0 mt-0.5"
+          >
+            <X className="w-3 h-3" />
+            Cancel
+          </button>
+        )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex border-b border-border/50">
-        {(["daily", "weekly"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-colors relative",
-              tab === t ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {t === "daily" ? <NotepadText className="w-3.5 h-3.5" /> : <BookOpen className="w-3.5 h-3.5" />}
-            {t === "daily" ? "Daily Report" : "Weekly Review"}
-            {tab === t && (
-              <motion.span
-                layoutId="tab-underline"
-                className="absolute bottom-0 left-4 right-4 h-0.5 rounded-full bg-primary"
-                transition={{ type: "spring", damping: 28, stiffness: 280 }}
-              />
-            )}
-          </button>
-        ))}
-      </div>
+      {/* Tabs — hidden when editing */}
+      {!editing && (
+        <div className="flex border-b border-border/50">
+          {(["daily", "weekly"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-colors relative",
+                tab === t ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {t === "daily" ? <NotepadText className="w-3.5 h-3.5" /> : <BookOpen className="w-3.5 h-3.5" />}
+              {t === "daily" ? "Daily Report" : "Weekly Review"}
+              {tab === t && (
+                <motion.span
+                  layoutId="tab-underline"
+                  className="absolute bottom-0 left-4 right-4 h-0.5 rounded-full bg-primary"
+                  transition={{ type: "spring", damping: 28, stiffness: 280 }}
+                />
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Content */}
-      <div className="p-5 overflow-y-auto max-h-[calc(100vh-22rem)]">
+      <div className={cn("overflow-y-auto", editing ? "p-5" : "p-5 max-h-[calc(100vh-22rem)]")}>
         <AnimatePresence mode="wait">
-          <motion.div
-            key={tab + date}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {tab === "daily" ? (
-              <DailyReportView userId={userId} date={date} />
-            ) : (
-              <WeeklyReportView userId={userId} weekStartDate={weekStartDate} />
-            )}
-          </motion.div>
+          {editing ? (
+            <motion.div
+              key="edit"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <DailyReportForm
+                userId={userId}
+                date={date}
+                initialResponses={existingReport?.responses as Record<string, unknown> | undefined}
+                onSuccess={() => setEditing(false)}
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              key={tab + date}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {tab === "daily" ? (
+                <DailyReportView userId={userId} date={date} />
+              ) : (
+                <WeeklyReportView userId={userId} weekStartDate={weekStartDate} />
+              )}
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </motion.div>
@@ -393,6 +439,7 @@ function ReportPanel({ userId, date }: { userId: Id<"users">; date: string }) {
 export default function CalendarPage() {
   const { convexUserId, isLoading } = useConvexUser();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const yesterdayStr = format(subDays(new Date(), 1), "yyyy-MM-dd");
 
   if (isLoading || !convexUserId) {
     return (
@@ -430,7 +477,7 @@ export default function CalendarPage() {
         <motion.div {...fadeUp(0.14)} className="min-h-[300px]">
           <AnimatePresence mode="wait">
             {selectedDate ? (
-              <ReportPanel key={selectedDate} userId={convexUserId} date={selectedDate} />
+              <ReportPanel key={selectedDate} userId={convexUserId} date={selectedDate} isEditable={selectedDate === yesterdayStr} />
             ) : (
               <motion.div
                 key="empty"

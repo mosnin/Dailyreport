@@ -302,10 +302,12 @@ export function DailyReportForm({
   userId,
   initialResponses,
   onSuccess,
+  date: dateProp,
 }: {
   userId: Id<"users">;
   initialResponses?: Record<string, unknown>;
   onSuccess?: () => void;
+  date?: string;
 }) {
   const draftKey = `${DRAFT_KEY_PREFIX}${todayString()}`;
   const isFreshForm = !initialResponses;
@@ -346,7 +348,7 @@ export function DailyReportForm({
     }
     setSaving(true);
     try {
-      await submitDaily({ userId, date: todayString(), responses: r });
+      await submitDaily({ userId, date: dateProp ?? todayString(), responses: r });
       try { localStorage.removeItem(draftKey); } catch {}
       // Show goal health panel
       setLoadingHealth(true);
