@@ -167,12 +167,12 @@ function AffirmationRow({
         </span>
       )}
 
-      <div className="shrink-0 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="shrink-0 flex items-center gap-0.5">
         {!editing && (
           <motion.button
             whileTap={{ scale: 0.85 }}
             onClick={() => setEditing(true)}
-            className="p-1 text-muted-foreground hover:text-foreground"
+            className="p-1 text-muted-foreground/30 hover:text-foreground transition-colors opacity-0 group-hover:opacity-100"
             title="Edit"
           >
             <Pencil className="w-3.5 h-3.5" />
@@ -181,7 +181,7 @@ function AffirmationRow({
         <motion.button
           whileTap={{ scale: 0.85 }}
           onClick={onRemove}
-          className="p-1 text-muted-foreground hover:text-destructive"
+          className="p-1 text-muted-foreground/40 hover:text-destructive transition-colors"
           title="Delete"
         >
           <Trash2 className="w-3.5 h-3.5" />

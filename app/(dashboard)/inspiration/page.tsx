@@ -14,21 +14,16 @@ import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
 // ── Principle badge colors ────────────────────────────────────────────────
 
 const PRINCIPLE_COLORS: Record<string, string> = {
-  "Definiteness of Purpose": "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  "The Master Mind": "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
-  "Applied Faith": "bg-violet-500/10 text-violet-600 dark:text-violet-400",
-  "Going the Extra Mile": "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  "Personal Initiative": "bg-teal-500/10 text-teal-600 dark:text-teal-400",
-  "Positive Mental Attitude": "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  "Self-Discipline": "bg-orange-500/10 text-orange-600 dark:text-orange-400",
-  "Accurate Thinking": "bg-sky-500/10 text-sky-600 dark:text-sky-400",
-  "Creative Vision": "bg-purple-500/10 text-purple-600 dark:text-purple-400",
-  "Learning from Adversity and Defeat": "bg-rose-500/10 text-rose-600 dark:text-rose-400",
-  "Enthusiasm": "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
-  "Controlled Attention": "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
-  "Organized Planning": "bg-lime-500/10 text-lime-600 dark:text-lime-400",
-  "Decision": "bg-red-500/10 text-red-600 dark:text-red-400",
-  "Teamwork": "bg-green-500/10 text-green-600 dark:text-green-400",
+  "Focus":       "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  "Momentum":    "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  "Resilience":  "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+  "Perspective": "bg-violet-500/10 text-violet-600 dark:text-violet-400",
+  "Discipline":  "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+  "Relationships": "bg-teal-500/10 text-teal-600 dark:text-teal-400",
+  "Energy":      "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  "Clarity":     "bg-sky-500/10 text-sky-600 dark:text-sky-400",
+  "Courage":     "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
+  "Growth":      "bg-lime-500/10 text-lime-600 dark:text-lime-400",
 };
 
 function PrincipleBadge({ principle }: { principle: string }) {
@@ -184,7 +179,7 @@ export default function InspirationPage() {
         <div>
           <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Daily Inspiration</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Wisdom from Napoleon Hill, told through your story.
+            Honest coaching from your own patterns and goals.
           </p>
         </div>
 
@@ -220,7 +215,7 @@ export default function InspirationPage() {
             <StoryCard key={i} story={s} index={i} />
           ))}
           <p className="text-[11px] text-muted-foreground/50 text-center pt-2">
-            Stories regenerate daily based on your reports, goals, and patterns.
+            Refreshes daily based on your reports, goals, and recent patterns.
           </p>
         </motion.div>
       ) : !generating ? (
@@ -231,7 +226,7 @@ export default function InspirationPage() {
           <div>
             <p className="font-semibold">No stories yet</p>
             <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
-              Add some goals, dreams, or daily reports and come back to generate your first wisdom stories.
+              Add some goals or daily reports and come back for your first coaching reflections.
             </p>
           </div>
           <button

@@ -950,20 +950,16 @@ export const generateInspirations = action({
     const userContext = contextParts.join("\n\n") || "No data yet — generate general Napoleon Hill wisdom stories.";
 
     const PRINCIPLES = [
-      "Definiteness of Purpose",
-      "The Master Mind",
-      "Applied Faith",
-      "Going the Extra Mile",
-      "Personal Initiative",
-      "Positive Mental Attitude",
-      "Self-Discipline",
-      "Accurate Thinking",
-      "Creative Vision",
-      "Learning from Adversity and Defeat",
-      "Enthusiasm",
-      "Controlled Attention",
-      "Organized Planning",
-      "Decision",
+      "Focus",
+      "Momentum",
+      "Resilience",
+      "Perspective",
+      "Discipline",
+      "Relationships",
+      "Energy",
+      "Clarity",
+      "Courage",
+      "Growth",
     ];
 
     const openai = getOpenAI();
@@ -972,29 +968,29 @@ export const generateInspirations = action({
       messages: [
         {
           role: "system",
-          content: `You are a master storyteller channeling the wisdom of Napoleon Hill.
+          content: `You are a sharp, direct personal coach who knows this person's goals, struggles, and patterns from their daily reports.
 
-Generate exactly 5 short allegorical stories (180–220 words each). Each story must:
-1. Feature a vivid, timeless fictional protagonist in a specific, concrete setting
-2. Embody ONE distinct Napoleon Hill principle (choose 5 different ones from the list)
-3. Subtly mirror the user's real patterns, challenges, or dreams WITHOUT naming them directly — weave them in allegorically
-4. Reach a wise, earned resolution with a clear takeaway lesson
-5. Feel timeless — like a fable from a great mentor
+Write exactly 5 short reflections (60–90 words each). Each reflection must:
+1. Speak directly to ONE real pattern, tension, or opportunity visible in their data
+2. Be written in second person ("You…") — like a trusted mentor talking to them directly
+3. Reference their ACTUAL situation — specific enough to feel personal, not generic
+4. Offer a concrete reframe, honest observation, or clear next step
+5. Be grounded and practical — no metaphors, no fictional stories, no inspirational clichés
 
-Available principles: ${PRINCIPLES.join(", ")}
+Choose 5 different themes from: ${PRINCIPLES.join(", ")}
 
-USER CONTEXT (use this to personalize the stories):
+USER CONTEXT:
 ${userContext}
 
-STYLE: Evocative, direct, rich with sensory detail. No platitudes — every sentence must earn its place. The story should make the reader feel seen and moved.
+TONE: Direct and warm. Like a coach who respects the person enough to tell them the truth. Not a cheerleader, not a philosopher — just someone who sees clearly and says it plainly.
 
 Respond with this exact JSON:
 {
   "stories": [
     {
-      "title": "Short evocative title (4–6 words)",
-      "principle": "The Napoleon Hill principle",
-      "story": "The full allegorical story (180–220 words)"
+      "title": "Short direct title (3–5 words)",
+      "principle": "The theme",
+      "story": "The reflection text (60–90 words)"
     }
   ]
 }`,
