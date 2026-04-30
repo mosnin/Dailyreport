@@ -147,7 +147,7 @@ export default function ChatPage() {
   const empty = messages.length === 0;
 
   return (
-    <div className="max-w-2xl flex flex-col h-[calc(100vh-8rem)]">
+    <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-8rem)]">
       {/* Header */}
       <motion.div {...fadeUp(0)} className="shrink-0 pb-4">
         <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Chat</h1>

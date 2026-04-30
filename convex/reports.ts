@@ -46,6 +46,16 @@ export const submitDaily = mutation({
       reportId,
     });
 
+    const d = new Date(args.date + "T12:00:00");
+    const mondayOffset = (d.getDay() + 6) % 7;
+    const monday = new Date(d);
+    monday.setDate(d.getDate() - mondayOffset);
+    const weekStartDate = monday.toISOString().split("T")[0];
+    await ctx.scheduler.runAfter(0, internal.ai.generateWeeklyInsight, {
+      userId: args.userId,
+      weekStartDate,
+    });
+
     return reportId;
   },
 });
@@ -186,5 +196,69 @@ export const getRecentReports = query({
       .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
       .order("desc")
       .take(limit);
+  },
+});
+
+export const getPeopleInsights = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return null;
+
+    const reports = await ctx.db
+      .query("dailyReports")
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .take(180);
+
+    const personMap = new Map<string, { name: string; count: number; goalRelatedCount: number; lastSeen: string; noteCount: number }>();
+    const recentPeople: { name: string; date: string; goalRelated: boolean | null }[] = [];
+
+    const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0];
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+
+    for (const report of reports) {
+      const people = (report.responses as any)?.peopleMetToday ?? [];
+      for (const p of people) {
+        if (!p.name?.trim()) continue;
+        const key = p.name.toLowerCase().trim();
+        const existing = personMap.get(key) ?? { name: p.name, count: 0, goalRelatedCount: 0, lastSeen: report.date, noteCount: 0 };
+        existing.count++;
+        if (p.goalRelated === true) existing.goalRelatedCount++;
+        if (p.notes?.trim()) existing.noteCount++;
+        personMap.set(key, existing);
+        if (report.date >= sevenDaysAgo) {
+          recentPeople.push({ name: p.name, date: report.date, goalRelated: p.goalRelated ?? null });
+        }
+      }
+    }
+
+    const allPeople = Array.from(personMap.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 20)
+      .map((p) => ({
+        ...p,
+        goalAlignmentPct: p.count > 0 ? Math.round((p.goalRelatedCount / p.count) * 100) : 0,
+      }));
+
+    const uniqueThisMonth = new Set(
+      reports
+        .filter((r) => r.date >= monthStart)
+        .flatMap((r) =>
+          ((r.responses as any)?.peopleMetToday ?? [])
+            .map((p: any) => p.name?.toLowerCase().trim())
+            .filter(Boolean)
+        )
+    ).size;
+
+    return {
+      allPeople,
+      recentPeople: recentPeople.slice(0, 15),
+      uniqueThisMonth,
+      totalUnique: personMap.size,
+    };
   },
 });

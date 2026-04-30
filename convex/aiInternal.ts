@@ -335,6 +335,68 @@ export const getRecentReportsForInsights = internalQuery({
   },
 });
 
+export const getActiveGoalsForHealth = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const now = new Date();
+    const year = String(now.getFullYear());
+    const month = `${year}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const q = Math.ceil((now.getMonth() + 1) / 3);
+    const quarter = `${year}-Q${q}`;
+    const dayOfWeek = now.getDay();
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
+    const weekKey = monday.toISOString().split("T")[0];
+    const periodKeys: Record<string, string> = {
+      yearly: year,
+      quarterly: quarter,
+      monthly: month,
+      weekly: weekKey,
+    };
+
+    const categories = ["yearly", "quarterly", "monthly", "weekly"] as const;
+    const goals: { id: string; title: string; category: string }[] = [];
+    for (const cat of categories) {
+      const catGoals = await ctx.db
+        .query("goals")
+        .withIndex("by_user_category_period", (q) =>
+          q.eq("userId", args.userId).eq("category", cat).eq("periodKey", periodKeys[cat])
+        )
+        .collect();
+      goals.push(
+        ...catGoals
+          .filter((g) => !g.completed)
+          .map((g) => ({ id: g._id, title: g.title, category: cat }))
+      );
+    }
+    return goals;
+  },
+});
+
+export const getRecentReportDatesForGoalHealth = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const reports = await ctx.db
+      .query("dailyReports")
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .take(7);
+    return reports.map((r) => ({
+      date: r.date,
+      text: [
+        (r.responses as Record<string, unknown>)?.dayActivity ?? "",
+        (r.responses as Record<string, unknown>)?.tomorrowPlan ?? "",
+        ...((r.responses as Record<string, unknown>)?.problemsSolvedToday as string[] ?? []),
+        ...((r.responses as Record<string, unknown>)?.problemsToSolve as Array<{ title?: string }> ?? []).map(
+          (p) => p.title ?? ""
+        ),
+      ]
+        .join(" ")
+        .toLowerCase(),
+    }));
+  },
+});
+
 export const getDailyBriefInternal = internalQuery({
   args: { userId: v.id("users"), date: v.string() },
   handler: async (ctx, args) =>
@@ -374,6 +436,70 @@ export const getDailyBriefPublic = query({
       .query("dailyBriefs")
       .withIndex("by_user_date", (q) => q.eq("userId", args.userId).eq("date", args.date))
       .unique();
+  },
+});
+
+export const getRecentReportsForEnergy = internalQuery({
+  args: { userId: v.id("users"), limit: v.number() },
+  handler: async (ctx, args) => {
+    return ctx.db
+      .query("dailyReports")
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .take(args.limit);
+  },
+});
+
+export const getEnergyAnalysis = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    return ctx.db
+      .query("energyAnalysis")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .first();
+  },
+});
+
+export const getEnergyAnalysisPublic = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return null;
+    return ctx.db
+      .query("energyAnalysis")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .first();
+  },
+});
+
+export const saveEnergyAnalysis = internalMutation({
+  args: {
+    userId: v.id("users"),
+    dayScores: v.array(v.object({ date: v.string(), score: v.number(), keywords: v.array(v.string()) })),
+    drainFactors: v.array(v.object({ factor: v.string(), count: v.number() })),
+    rechargeFactors: v.array(v.object({ factor: v.string(), count: v.number() })),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("energyAnalysis")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first();
+    const data = {
+      userId: args.userId,
+      analyzedAt: Date.now(),
+      dayScores: args.dayScores,
+      drainFactors: args.drainFactors,
+      rechargeFactors: args.rechargeFactors,
+    };
+    if (existing) {
+      await ctx.db.patch(existing._id, data);
+    } else {
+      await ctx.db.insert("energyAnalysis", data);
+    }
   },
 });
 

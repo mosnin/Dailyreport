@@ -291,7 +291,7 @@ export default function GivingPage() {
   const canGoForward = selectedDate < todayStr;
 
   return (
-    <div className="max-w-lg space-y-6">
+    <div className="max-w-lg mx-auto space-y-6">
       {/* Header */}
       <motion.div {...fadeUp(0)}>
         <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Giving</h1>

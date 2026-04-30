@@ -22,6 +22,9 @@ import {
   Heart,
   Lightbulb,
   AlertCircle,
+  Users,
+  Zap,
+  CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
@@ -203,6 +206,9 @@ export function Sidebar() {
         <Section label="Reflect" collapsed={collapsed} />
         <div className="space-y-0.5">
           <NavItem href="/insights"    label="Progress"     icon={BrainCircuit} active={is("/insights")}    collapsed={collapsed} />
+          <NavItem href="/energy"      label="Energy"       icon={Zap}          active={is("/energy")}      collapsed={collapsed} />
+          <NavItem href="/people"      label="People"       icon={Users}        active={is("/people")}      collapsed={collapsed} />
+          <NavItem href="/calendar"    label="History"      icon={CalendarDays} active={is("/calendar")}    collapsed={collapsed} />
           <NavItem href="/inspiration" label="Inspiration"  icon={Lightbulb}    active={is("/inspiration")} collapsed={collapsed} />
         </div>
 

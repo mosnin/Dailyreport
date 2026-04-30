@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 import { todayString } from "@/lib/utils";
-import { Plus, Trash2, CheckCircle, XCircle } from "lucide-react";
+import { Plus, Trash2, CheckCircle, XCircle, ArrowRight, Target, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -126,6 +126,174 @@ function NoteTextarea({
   );
 }
 
+// ── Goal Health types ──────────────────────────────────────────────────────
+
+type GoalHealthResult = {
+  touched: Array<{ goalTitle: string; evidence: string }>;
+  dark: string[];
+  encouragement: string;
+};
+
+// ── Goal Health Panel ──────────────────────────────────────────────────────
+
+function GoalHealthPanel({
+  result,
+  loading,
+  onContinue,
+}: {
+  result: GoalHealthResult | null;
+  loading: boolean;
+  onContinue: () => void;
+}) {
+  return (
+    <motion.div
+      key="goal-health"
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -16 }}
+      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-[420px] flex flex-col gap-8"
+    >
+      {/* Saved header */}
+      <div className="flex items-center gap-2.5">
+        <motion.div
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.15, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <CheckCircle className="w-5 h-5 text-emerald-500" />
+        </motion.div>
+        <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+          Report saved
+        </span>
+      </div>
+
+      {/* Loading skeleton */}
+      {loading && (
+        <div className="space-y-4">
+          <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/40 mb-4">
+            Analyzing your goals…
+          </div>
+          {[1, 2, 3].map((i) => (
+            <motion.div
+              key={i}
+              className="h-10 rounded-xl bg-muted/40"
+              animate={{ opacity: [0.4, 0.7, 0.4] }}
+              transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.15 }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Results */}
+      {!loading && result && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.35, delay: 0.1 }}
+          className="space-y-7"
+        >
+          {/* Goals touched */}
+          {result.touched.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/45">
+                Worked on today
+              </p>
+              <div className="space-y-2">
+                {result.touched.map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.05 * i, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex items-start gap-3 py-2.5 px-3.5 rounded-xl bg-emerald-500/7 border border-emerald-500/15"
+                  >
+                    <Target className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-medium text-foreground leading-snug">
+                        {item.goalTitle}
+                      </p>
+                      {item.evidence && (
+                        <p className="text-[11px] text-muted-foreground/60 mt-0.5 leading-snug">
+                          {item.evidence}
+                        </p>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Goals going dark */}
+          {result.dark.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/45">
+                Going quiet
+              </p>
+              <div className="space-y-2">
+                {result.dark.map((goalTitle, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.05 * i + 0.1, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex items-center gap-3 py-2.5 px-3.5 rounded-xl bg-amber-500/7 border border-amber-500/15"
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <p className="text-[13px] font-medium text-foreground leading-snug">
+                      {goalTitle}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* No goals matched at all */}
+          {result.touched.length === 0 && result.dark.length === 0 && (
+            <p className="text-sm text-muted-foreground/60">
+              No active goals were matched in today&apos;s report.
+            </p>
+          )}
+
+          {/* Encouragement */}
+          {result.encouragement && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="text-[15px] italic text-muted-foreground leading-relaxed border-l-2 border-primary/20 pl-4"
+            >
+              {result.encouragement}
+            </motion.p>
+          )}
+        </motion.div>
+      )}
+
+      {/* Continue button */}
+      {!loading && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: loading ? 0 : 0.5, duration: 0.4 }}
+          className="mt-auto pt-2"
+        >
+          <motion.button
+            type="button"
+            onClick={onContinue}
+            whileTap={{ scale: 0.98 }}
+            className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-foreground text-background font-heading text-[15px] font-medium hover:bg-foreground/90 transition-colors"
+          >
+            Continue
+            <ArrowRight className="w-4 h-4" />
+          </motion.button>
+        </motion.div>
+      )}
+    </motion.div>
+  );
+}
+
 // ── Main form ──────────────────────────────────────────────────────────────
 
 const DRAFT_KEY_PREFIX = "dailyreport-draft-";
@@ -152,7 +320,10 @@ export function DailyReportForm({
   });
 
   const [saving, setSaving] = useState(false);
+  const [loadingHealth, setLoadingHealth] = useState(false);
+  const [goalHealth, setGoalHealth] = useState<GoalHealthResult | null>(null);
   const submitDaily = useMutation(api.reports.submitDaily);
+  const analyzeGoalHealthAction = useAction(api.ai.analyzeGoalHealth);
 
   useEffect(() => {
     if (!isFreshForm) return;
@@ -177,7 +348,25 @@ export function DailyReportForm({
     try {
       await submitDaily({ userId, date: todayString(), responses: r });
       try { localStorage.removeItem(draftKey); } catch {}
-      onSuccess?.();
+      // Show goal health panel
+      setLoadingHealth(true);
+      const reportText = [
+        r.dayActivity,
+        r.tomorrowPlan,
+        r.emotionalDrain,
+        ...r.problemsSolvedToday,
+        ...r.problemsToSolve.map((p) => `${p.title} ${p.solutions}`),
+        ...r.dailyGoals,
+      ].join(" ");
+      analyzeGoalHealthAction({ userId, reportText })
+        .then((result) => {
+          setGoalHealth(result);
+          setLoadingHealth(false);
+        })
+        .catch(() => {
+          setLoadingHealth(false);
+          onSuccess?.();
+        });
     } catch {
       toast.error("Failed to save. Please try again.");
     } finally {
@@ -218,6 +407,19 @@ export function DailyReportForm({
 
   // ── Render ────────────────────────────────────────────────────────────────
 
+  // Show goal health panel while loading or after result arrives
+  if (loadingHealth || goalHealth) {
+    return (
+      <AnimatePresence mode="wait">
+        <GoalHealthPanel
+          result={goalHealth}
+          loading={loadingHealth}
+          onContinue={() => onSuccess?.()}
+        />
+      </AnimatePresence>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-0">
 
@@ -248,7 +450,7 @@ export function DailyReportForm({
               </p>
             )}
             {r.peopleMetToday.map((person) => (
-              <div key={person.id} className="space-y-2 pb-3 border-b border-border/30 last:border-0">
+              <div key={person.id} className="space-y-2 pb-3">
                 <div className="flex items-center gap-2">
                   <input
                     value={person.name}
@@ -329,7 +531,7 @@ export function DailyReportForm({
       <JournalSection number={4} title="What problems need to be solved, and how might you solve them?">
         <div className="space-y-4">
           {r.problemsToSolve.map((problem, i) => (
-            <div key={problem.id} className="space-y-2 pb-4 border-b border-border/30 last:border-0">
+            <div key={problem.id} className="space-y-2 pb-4">
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground/30 text-xs tabular-nums shrink-0">{i + 1}.</span>
                 <input

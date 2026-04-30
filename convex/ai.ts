@@ -1181,3 +1181,146 @@ export const chat = action({
     return completion.choices[0].message.content ?? "";
   },
 });
+
+export const analyzeGoalHealth = action({
+  args: { userId: v.id("users"), reportText: v.string() },
+  handler: async (ctx, args): Promise<{
+    touched: Array<{ goalTitle: string; evidence: string }>;
+    dark: string[];
+    encouragement: string;
+  }> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const [goals, recentDates] = await Promise.all([
+      ctx.runQuery(internal.aiInternal.getActiveGoalsForHealth, { userId: args.userId }),
+      ctx.runQuery(internal.aiInternal.getRecentReportDatesForGoalHealth, { userId: args.userId }),
+    ]);
+
+    if (!goals.length) return { touched: [], dark: [], encouragement: "Keep building your goals." };
+
+    const openai = getOpenAI();
+
+    const prompt = `You are analyzing a daily report to see which goals were worked on.
+
+Active goals:
+${goals.map((g, i) => `${i + 1}. [${g.category}] ${g.title}`).join("\n")}
+
+Today's report text:
+"${args.reportText.slice(0, 2000)}"
+
+Last 7 days of reports context (for detecting goals that "went dark"):
+${(recentDates as Array<{ date: string; text: string }>).map((r) => `${r.date}: ${r.text.slice(0, 200)}`).join("\n")}
+
+Respond with JSON:
+{
+  "touched": [{ "goalTitle": string, "evidence": string (10 words max showing what they did) }],
+  "dark": [string] (goal titles not mentioned in ANY of the last 7 days),
+  "encouragement": string (one sentence, specific and personal, max 20 words)
+}
+
+Only include a goal in "touched" if there's CLEAR evidence in today's report. Be strict.
+Only include a goal in "dark" if it genuinely hasn't appeared for 7+ days AND it's not today's touched goals.
+Keep dark list to max 2 goals.`;
+
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        response_format: { type: "json_object" },
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3,
+        max_tokens: 400,
+      });
+
+      const result = JSON.parse(response.choices[0].message.content ?? "{}");
+      return {
+        touched: ((result.touched ?? []) as Array<{ goalTitle: string; evidence: string }>).slice(0, 5),
+        dark: ((result.dark ?? []) as string[]).slice(0, 2),
+        encouragement: (result.encouragement ?? "") as string,
+      };
+    } catch {
+      return { touched: [], dark: [], encouragement: "" };
+    }
+  },
+});
+
+export const analyzeEnergy = action({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const reports = await ctx.runQuery(internal.aiInternal.getRecentReportsForEnergy, {
+      userId: args.userId,
+      limit: 90,
+    });
+
+    type DailyReport = { date: string; responses: unknown };
+    const filtered = (reports as DailyReport[]).filter((r) => {
+      const res = r.responses as Record<string, unknown>;
+      return typeof res?.emotionalDrain === "string" && res.emotionalDrain.trim().length > 0;
+    });
+
+    if (filtered.length === 0) return { skipped: true };
+
+    const entries = filtered
+      .map((r) => {
+        const res = r.responses as Record<string, unknown>;
+        return `Date: ${r.date}\nEmotional energy entry: ${(res.emotionalDrain as string).trim()}`;
+      })
+      .join("\n\n");
+
+    const openai = getOpenAI();
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content: `You are an energy pattern analyst. Analyze the user's daily emotional energy entries and return JSON in this exact shape:
+{
+  "dayScores": [
+    { "date": "YYYY-MM-DD", "score": <1-10 integer, 1=completely drained, 10=fully energized>, "keywords": ["<1-3 key themes from this entry>"] }
+  ],
+  "drainFactors": [
+    { "factor": "<concise label for what drains energy>", "count": <how many entries mention this> }
+  ],
+  "rechargeFactors": [
+    { "factor": "<concise label for what restores energy>", "count": <how many entries mention this> }
+  ]
+}
+
+Rules:
+- Score each day based solely on its entry: negative/draining entries score 1-4, neutral entries 5-6, positive/energizing entries 7-10.
+- Extract up to 8 drain factors and up to 8 recharge factors, sorted by count descending.
+- Drain factors = things that consistently drain or exhaust the user.
+- Recharge factors = things that restore, energize, or uplift the user.
+- Keywords per day: 1-3 short tags (e.g. "meetings", "exercise", "conflict").
+- Return only the JSON object, no extra keys.`,
+        },
+        {
+          role: "user",
+          content: `Here are my daily emotional energy entries:\n\n${entries}`,
+        },
+      ],
+    });
+
+    const raw = completion.choices[0].message.content ?? "{}";
+    let parsed: {
+      dayScores?: { date: string; score: number; keywords: string[] }[];
+      drainFactors?: { factor: string; count: number }[];
+      rechargeFactors?: { factor: string; count: number }[];
+    };
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      parsed = {};
+    }
+
+    await ctx.runMutation(internal.aiInternal.saveEnergyAnalysis, {
+      userId: args.userId,
+      dayScores: parsed.dayScores ?? [],
+      drainFactors: parsed.drainFactors ?? [],
+      rechargeFactors: parsed.rechargeFactors ?? [],
+    });
+
+    return { ok: true };
+  },
+});

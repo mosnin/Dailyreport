@@ -177,4 +177,12 @@ export default defineSchema({
     date: v.string(),
     content: v.string(),
   }).index("by_user_date", ["userId", "date"]),
+
+  energyAnalysis: defineTable({
+    userId: v.id("users"),
+    analyzedAt: v.number(),
+    dayScores: v.array(v.object({ date: v.string(), score: v.number(), keywords: v.array(v.string()) })),
+    drainFactors: v.array(v.object({ factor: v.string(), count: v.number() })),
+    rechargeFactors: v.array(v.object({ factor: v.string(), count: v.number() })),
+  }).index("by_user", ["userId"]),
 });

@@ -178,7 +178,7 @@ export default function InspirationPage() {
   const showSkeletons = generating && !displayStories;
 
   return (
-    <div className="max-w-xl space-y-6">
+    <div className="max-w-xl mx-auto space-y-6">
       {/* Header */}
       <motion.div {...fadeUp(0)} className="flex items-start justify-between gap-4">
         <div>

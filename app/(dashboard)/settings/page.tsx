@@ -152,7 +152,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-lg space-y-10">
+    <div className="max-w-lg mx-auto space-y-10">
       <motion.h1 {...fadeUp(0)} className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">
         Settings
       </motion.h1>
