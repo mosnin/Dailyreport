@@ -6,53 +6,23 @@ import { useConvexUser } from "@/hooks/useConvexUser";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "motion/react";
 import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
-import { Users, Target, Clock } from "lucide-react";
+import { Users, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 
 function AlignmentBar({ pct }: { pct: number }) {
-  const fillClass =
-    pct > 60
-      ? "bg-emerald-500"
-      : pct >= 30
-      ? "bg-amber-400"
-      : "bg-muted-foreground/30";
-
+  const fill = pct > 60 ? "bg-emerald-500" : pct >= 30 ? "bg-amber-400" : "bg-muted-foreground/25";
   return (
     <div className="flex items-center gap-2 min-w-0">
-      <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-        <div
-          className={cn("h-full rounded-full transition-all", fillClass)}
-          style={{ width: `${pct}%` }}
+      <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
+        <motion.div
+          className={cn("h-full rounded-full", fill)}
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         />
       </div>
-      <span className="text-xs text-muted-foreground tabular-nums w-8 text-right shrink-0">
-        {pct}%
-      </span>
-    </div>
-  );
-}
-
-function LoadingSkeleton() {
-  return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-border/50 bg-card p-4 space-y-3">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-3">
-            <Skeleton className="h-8 w-8 rounded-full shrink-0" />
-            <div className="flex-1 space-y-1.5">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-2.5 w-full" />
-            </div>
-            <Skeleton className="h-5 w-10 rounded-full" />
-          </div>
-        ))}
-      </div>
-      <div className="rounded-2xl border border-border/50 bg-card p-4 space-y-2">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-9 w-full rounded-xl" />
-        ))}
-      </div>
+      <span className="text-xs text-muted-foreground tabular-nums w-8 text-right shrink-0">{pct}%</span>
     </div>
   );
 }
@@ -64,56 +34,59 @@ export default function PeoplePage() {
     convexUserId ? { userId: convexUserId } : "skip"
   );
 
-  const isLoading = data === undefined;
-  const isEmpty = data !== null && data !== undefined && data.allPeople.length === 0;
+  if (data === undefined) {
+    return (
+      <div className="max-w-2xl space-y-6">
+        <div>
+          <Skeleton className="h-9 w-36 mb-2" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <div className="flex gap-3">
+          <Skeleton className="h-20 flex-1 rounded-2xl" />
+          <Skeleton className="h-20 flex-1 rounded-2xl" />
+        </div>
+        <Skeleton className="h-64 w-full rounded-2xl" />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-2xl space-y-6">
+
       <motion.div {...fadeUp(0)}>
-        <h1 className="text-2xl font-heading font-bold tracking-tight">People</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Your connection patterns across all reports
-        </p>
+        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">People</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">Your connection patterns across all reports.</p>
       </motion.div>
 
-      {isLoading && (
-        <motion.div {...fadeUp(0.05)}>
-          <LoadingSkeleton />
-        </motion.div>
-      )}
-
-      {!isLoading && data && (
+      {data && (
         <>
-          <motion.div
-            {...fadeUp(0.05)}
-            className="flex flex-wrap gap-3"
-          >
-            <div className="flex items-center gap-2 rounded-2xl border border-border/50 bg-card px-4 py-3 flex-1 min-w-[140px]">
-              <Users className="w-4 h-4 text-primary shrink-0" />
+          <motion.div {...fadeUp(0.06)} className="flex gap-3">
+            <div className="flex-1 rounded-2xl border border-border bg-card px-4 py-3 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Users className="w-4 h-4 text-primary" />
+              </div>
               <div>
-                <p className="text-xl font-bold tabular-nums leading-none">
-                  {data.uniqueThisMonth}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">unique this month</p>
+                <p className="text-2xl font-bold tabular-nums leading-none">{data.uniqueThisMonth}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">this month</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 rounded-2xl border border-border/50 bg-card px-4 py-3 flex-1 min-w-[140px]">
-              <Target className="w-4 h-4 text-emerald-500 shrink-0" />
+            <div className="flex-1 rounded-2xl border border-border bg-card px-4 py-3 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                <Users className="w-4 h-4 text-emerald-500" />
+              </div>
               <div>
-                <p className="text-xl font-bold tabular-nums leading-none">
-                  {data.totalUnique}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">total connections</p>
+                <p className="text-2xl font-bold tabular-nums leading-none">{data.totalUnique}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">total unique</p>
               </div>
             </div>
           </motion.div>
 
           {data.allPeople.length > 0 && (
-            <motion.section {...fadeUp(0.1)}>
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest mb-3">
+            <motion.section {...fadeUp(0.12)}>
+              <p className="text-[10px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40 mb-3">
                 Top Connections
-              </h2>
-              <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
+              </p>
+              <div className="rounded-2xl border border-border bg-card overflow-hidden">
                 <motion.ul
                   variants={listVariants}
                   initial="hidden"
@@ -129,20 +102,13 @@ export default function PeoplePage() {
                       <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0 uppercase">
                         {person.name.trim()[0]}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold font-heading truncate">
-                          {person.name}
-                        </p>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <p className="text-sm font-medium truncate">{person.name}</p>
                         <AlignmentBar pct={person.goalAlignmentPct} />
                       </div>
-                      <div className="flex flex-col items-end shrink-0 gap-0.5">
-                        <span className="text-xs font-bold tabular-nums bg-muted/60 rounded-full px-2 py-0.5">
-                          {person.count}×
-                        </span>
-                        <span className="text-[10px] text-muted-foreground leading-none">
-                          goal-aligned
-                        </span>
-                      </div>
+                      <span className="text-xs font-semibold tabular-nums bg-muted/50 rounded-full px-2 py-0.5 shrink-0">
+                        {person.count}×
+                      </span>
                     </motion.li>
                   ))}
                 </motion.ul>
@@ -151,12 +117,12 @@ export default function PeoplePage() {
           )}
 
           {data.recentPeople.length > 0 && (
-            <motion.section {...fadeUp(0.15)}>
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5" />
+            <motion.section {...fadeUp(0.18)}>
+              <p className="text-[10px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40 mb-3 flex items-center gap-1.5">
+                <Clock className="w-3 h-3" />
                 Last 7 Days
-              </h2>
-              <div className="rounded-2xl border border-border/50 bg-muted/30 overflow-hidden">
+              </p>
+              <div className="rounded-2xl border border-border bg-card overflow-hidden">
                 <motion.ul
                   variants={listVariants}
                   initial="hidden"
@@ -185,15 +151,17 @@ export default function PeoplePage() {
             </motion.section>
           )}
 
-          {isEmpty && (
+          {data.allPeople.length === 0 && (
             <motion.div
               {...fadeUp(0.1)}
-              className="rounded-2xl border border-border/50 bg-muted/30 flex flex-col items-center justify-center py-16 px-6 text-center"
+              className="rounded-2xl border border-dashed border-border/60 bg-muted/10 py-16 px-6 text-center space-y-3"
             >
-              <Users className="w-10 h-10 text-muted-foreground/40 mb-4" />
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+                <Users className="w-5 h-5 text-primary/60" />
+              </div>
               <p className="text-sm font-medium">No connections logged yet</p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-xs">
-                Start filling in the "People met today" field in your daily reports to see your connection patterns here.
+              <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                Fill in the "People met today" field in your daily reports to see your connection patterns here.
               </p>
             </motion.div>
           )}

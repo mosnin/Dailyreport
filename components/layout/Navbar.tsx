@@ -22,6 +22,9 @@ import {
   Heart,
   Lightbulb,
   AlertCircle,
+  Zap,
+  Users,
+  CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -136,7 +139,10 @@ export function Navbar() {
                 <MobileSection label="Reflect" />
                 <div className="space-y-0.5 mb-2">
                   <MobileNavItem href="/insights"    label="Progress"    icon={BrainCircuit} active={is("/insights")}    onClose={close} />
-                  <MobileNavItem href="/inspiration" label="Inspiration" icon={Lightbulb}   active={is("/inspiration")} onClose={close} />
+                  <MobileNavItem href="/energy"      label="Energy"      icon={Zap}          active={is("/energy")}      onClose={close} />
+                  <MobileNavItem href="/people"      label="People"      icon={Users}        active={is("/people")}      onClose={close} />
+                  <MobileNavItem href="/calendar"    label="History"     icon={CalendarDays} active={is("/calendar")}    onClose={close} />
+                  <MobileNavItem href="/inspiration" label="Inspiration" icon={Lightbulb}    active={is("/inspiration")} onClose={close} />
                 </div>
 
               </nav>

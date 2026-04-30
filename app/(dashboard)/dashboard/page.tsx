@@ -278,7 +278,6 @@ export default function DashboardPage() {
                 <div className="lg:hidden space-y-6">
                   <motion.div {...fadeUp(0.3)}><StatsBar userId={convexUserId} /></motion.div>
                   <motion.div {...fadeUp(0.4)}><ScoreChart userId={convexUserId} /></motion.div>
-                  <motion.div {...fadeUp(0.45)}><CalendarGrid userId={convexUserId} /></motion.div>
                 </div>
               </motion.div>
             )}
@@ -288,8 +287,7 @@ export default function DashboardPage() {
         {/* ── Right column: persistent context panel (desktop only) ── */}
         <div className="hidden lg:flex flex-col gap-5 sticky top-6">
           <motion.div {...fadeUp(0.1)}><StatsBar userId={convexUserId} compact /></motion.div>
-          <motion.div {...fadeUp(0.18)}><CalendarGrid userId={convexUserId} /></motion.div>
-          {reportDone && <motion.div {...fadeUp(0.26)}><ScoreChart userId={convexUserId} /></motion.div>}
+          {reportDone && <motion.div {...fadeUp(0.18)}><ScoreChart userId={convexUserId} /></motion.div>}
         </div>
 
       </div>
