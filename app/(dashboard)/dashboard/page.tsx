@@ -286,8 +286,8 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Right column: persistent context panel (desktop only) ── */}
-        <div className="hidden lg:flex flex-col gap-6 sticky top-6">
-          <motion.div {...fadeUp(0.1)}><StatsBar userId={convexUserId} /></motion.div>
+        <div className="hidden lg:flex flex-col gap-5 sticky top-6">
+          <motion.div {...fadeUp(0.1)}><StatsBar userId={convexUserId} compact /></motion.div>
           <motion.div {...fadeUp(0.18)}><CalendarGrid userId={convexUserId} /></motion.div>
           {reportDone && <motion.div {...fadeUp(0.26)}><ScoreChart userId={convexUserId} /></motion.div>}
         </div>
