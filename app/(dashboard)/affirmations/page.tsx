@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import Link from "next/link";
 import { todayString } from "@/lib/utils";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useConvexUser } from "@/hooks/useConvexUser";
@@ -15,8 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Flame,
-  Bookmark,
-  BookmarkCheck,
+  Star,
   X,
   CheckCircle2,
   Loader2,
@@ -25,7 +23,8 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
-import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
+import { fadeUp } from "@/lib/motion";
+import { StagingArea } from "@/components/affirmations/StagingArea";
 
 const GOAL_ROUNDS = 5;
 
@@ -35,6 +34,12 @@ type Affirmation = {
   _id: Id<"affirmations">;
   text: string;
   source: AffirmationSource;
+};
+
+type StagingItem = {
+  id: string;
+  text: string;
+  status: "pending" | "accepted" | "dismissed";
 };
 
 // ── Progress ring ─────────────────────────────────────────────────────────
@@ -82,7 +87,7 @@ function RoundDots({ completed, goal = GOAL_ROUNDS }: { completed: number; goal?
             "w-2.5 h-2.5 rounded-full transition-colors",
             i < completed
               ? i < goal ? "bg-amber-400" : "bg-amber-300"
-              : "bg-neutral-200 dark:bg-neutral-700"
+              : "bg-background/15"
           )}
         />
       ))}
@@ -90,26 +95,25 @@ function RoundDots({ completed, goal = GOAL_ROUNDS }: { completed: number; goal?
   );
 }
 
-// ── Editable affirmation row ──────────────────────────────────────────────
+// ── Affirmation row ───────────────────────────────────────────────────────
 
 function AffirmationRow({
   item,
   onRemove,
   onUpdateText,
-  onMoveToSaved,
-  onMoveToPool,
-  isSaved,
+  onTogglePin,
 }: {
   item: Affirmation;
   onRemove: () => void;
   onUpdateText: (t: string) => void;
-  onMoveToSaved?: () => void;
-  onMoveToPool?: () => void;
-  isSaved: boolean;
+  onTogglePin: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(item.text);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const isPinned = item.source === "saved";
+  const isAI = item.source === "ai";
 
   useEffect(() => {
     if (editing) inputRef.current?.focus();
@@ -123,12 +127,18 @@ function AffirmationRow({
   }
 
   return (
-    <div className="group flex items-center gap-2 rounded-xl px-2 py-2 hover:bg-muted/50 transition-colors">
-      {isSaved ? (
-        <Bookmark className="w-4 h-4 text-sky-400 shrink-0 fill-sky-400" />
-      ) : (
-        <Flame className="w-4 h-4 text-amber-400 shrink-0" />
-      )}
+    <div className="group flex items-center gap-2.5 rounded-xl px-2 py-2.5 hover:bg-muted/50 transition-colors">
+      <motion.button
+        whileTap={{ scale: 0.75 }}
+        onClick={onTogglePin}
+        className={cn(
+          "shrink-0 transition-colors",
+          isPinned ? "text-amber-400" : "text-muted-foreground/25 hover:text-muted-foreground/60"
+        )}
+        title={isPinned ? "Unpin" : "Pin to top"}
+      >
+        <Star className={cn("w-4 h-4", isPinned && "fill-amber-400")} />
+      </motion.button>
 
       {editing ? (
         <input
@@ -145,29 +155,35 @@ function AffirmationRow({
       ) : (
         <span
           onDoubleClick={() => setEditing(true)}
-          className="flex-1 text-sm cursor-default select-none leading-snug"
+          className="flex-1 text-sm leading-snug cursor-default select-none"
         >
           {item.text}
         </span>
       )}
 
-      <div className="shrink-0 flex items-center gap-0.5">
-        {!isSaved && onMoveToSaved && (
-          <motion.button whileTap={{ scale: 0.85 }} onClick={onMoveToSaved} className="p-1 text-muted-foreground hover:text-sky-500 transition-colors" title="Save permanently">
-            <Bookmark className="w-4 h-4" />
-          </motion.button>
-        )}
-        {isSaved && onMoveToPool && (
-          <motion.button whileTap={{ scale: 0.85 }} onClick={onMoveToPool} className="p-1 text-muted-foreground hover:text-amber-500 transition-colors" title="Move back to practice pool">
-            <Flame className="w-4 h-4" />
-          </motion.button>
-        )}
+      {isAI && (
+        <span className="text-[10px] font-medium bg-sky-500/10 text-sky-500 dark:text-sky-400 rounded-full px-1.5 py-0.5 shrink-0 leading-none">
+          AI
+        </span>
+      )}
+
+      <div className="shrink-0 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
         {!editing && (
-          <motion.button whileTap={{ scale: 0.85 }} onClick={() => setEditing(true)} className="p-1 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity" title="Edit">
+          <motion.button
+            whileTap={{ scale: 0.85 }}
+            onClick={() => setEditing(true)}
+            className="p-1 text-muted-foreground hover:text-foreground"
+            title="Edit"
+          >
             <Pencil className="w-3.5 h-3.5" />
           </motion.button>
         )}
-        <motion.button whileTap={{ scale: 0.85 }} onClick={onRemove} className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" title="Delete">
+        <motion.button
+          whileTap={{ scale: 0.85 }}
+          onClick={onRemove}
+          className="p-1 text-muted-foreground hover:text-destructive"
+          title="Delete"
+        >
           <Trash2 className="w-3.5 h-3.5" />
         </motion.button>
       </div>
@@ -359,15 +375,9 @@ function RecapScreen({ onContinue }: { onContinue: () => void }) {
 // ── Inline add row ────────────────────────────────────────────────────────
 
 function AddRow({
-  placeholder,
   onAdd,
-  icon: Icon,
-  iconClass,
 }: {
-  placeholder: string;
   onAdd: (text: string) => void;
-  icon: React.ElementType;
-  iconClass: string;
 }) {
   const [adding, setAdding] = useState(false);
   const [text, setText] = useState("");
@@ -388,16 +398,16 @@ function AddRow({
 
   if (adding) {
     return (
-      <form onSubmit={handleSubmit} className="flex items-center gap-2 pt-2 px-2">
-        <Icon className={cn("w-4 h-4 shrink-0", iconClass)} />
+      <form onSubmit={handleSubmit} className="flex items-center gap-2 px-2 py-2.5">
+        <Plus className="w-4 h-4 shrink-0 text-muted-foreground/40" />
         <input
           ref={ref}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onBlur={() => { if (!text.trim()) setAdding(false); }}
           onKeyDown={(e) => { if (e.key === "Escape") { setAdding(false); setText(""); } }}
-          placeholder={placeholder}
-          className="flex-1 text-sm bg-transparent border-b border-primary focus:outline-none pb-1"
+          placeholder="I am… / I have… / I can…"
+          className="flex-1 text-sm bg-transparent border-b border-primary focus:outline-none pb-0.5"
         />
         <button type="submit" disabled={!text.trim()} className="text-xs font-medium text-primary disabled:opacity-40">
           Add
@@ -413,7 +423,7 @@ function AddRow({
     <motion.button
       whileTap={{ scale: 0.97 }}
       onClick={() => setAdding(true)}
-      className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pt-2 px-2 w-full"
+      className="flex items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-2.5 w-full"
     >
       <Plus className="w-4 h-4" />
       Add affirmation
@@ -424,7 +434,7 @@ function AddRow({
 // ── Main page ─────────────────────────────────────────────────────────────
 
 export default function AffirmationsPage() {
-  const { convexUserId, convexUser, isLoading } = useConvexUser();
+  const { convexUserId, isLoading } = useConvexUser();
   const todayStr = todayString();
 
   const affirmations = useQuery(
@@ -494,12 +504,15 @@ export default function AffirmationsPage() {
   const [inRound, setInRound] = useState(false);
   const [showRecap, setShowRecap] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [staging, setStaging] = useState<StagingItem[]>([]);
 
   const rounds = session?.rounds ?? 0;
   const goalMet = rounds >= GOAL_ROUNDS;
 
-  const savedList = (affirmations ?? []).filter((a) => a.source === "saved") as Affirmation[];
-  const practiceList = (affirmations ?? []).filter((a) => a.source !== "saved") as Affirmation[];
+  const sorted = [...((affirmations ?? []) as Affirmation[])].sort((a, b) => {
+    const rank = (s: AffirmationSource) => s === "saved" ? 0 : s === "manual" ? 1 : 2;
+    return rank(a.source) - rank(b.source);
+  });
 
   async function handleCompleteRound() {
     if (!convexUserId) return;
@@ -514,25 +527,47 @@ export default function AffirmationsPage() {
   }
 
   async function handleGenerate() {
-    if (!convexUserId || generating) return;
+    if (!convexUserId || generating || staging.length > 0) return;
     setGenerating(true);
     try {
       const results = await generateAffirmations({ userId: convexUserId, count: 5 });
       if (Array.isArray(results) && results.length > 0) {
-        for (const text of results as string[]) {
-          if (text?.trim()) {
-            await addAffirmation({ userId: convexUserId, text: text.trim(), source: "ai" });
-          }
+        const items: StagingItem[] = (results as string[])
+          .map((text, i) => ({
+            id: `s-${Date.now()}-${i}`,
+            text: String(text).trim(),
+            status: "pending" as const,
+          }))
+          .filter((s) => s.text.length > 0);
+        if (items.length > 0) {
+          setStaging(items);
+        } else {
+          toast.error("Couldn't generate affirmations. Try adding more reports first.");
         }
-        toast.success(`Added ${results.length} affirmations to your practice pool.`);
       } else {
-        toast.error("Couldn't generate affirmations. Try adding more reports or dreams first.");
+        toast.error("Couldn't generate affirmations. Try adding more reports first.");
       }
     } catch {
       toast.error("Generation failed. Please try again.");
     } finally {
       setGenerating(false);
     }
+  }
+
+  async function handleAccept(id: string) {
+    if (!convexUserId) return;
+    const item = staging.find((s) => s.id === id);
+    if (!item) return;
+    try {
+      await addAffirmation({ userId: convexUserId, text: item.text, source: "ai" });
+      setStaging((prev) => prev.map((s) => s.id === id ? { ...s, status: "accepted" } : s));
+    } catch {
+      toast.error("Couldn't save. Try again.");
+    }
+  }
+
+  function handleDismiss(id: string) {
+    setStaging((prev) => prev.map((s) => s.id === id ? { ...s, status: "dismissed" } : s));
   }
 
   if (isLoading || !convexUserId) {
@@ -544,11 +579,11 @@ export default function AffirmationsPage() {
     );
   }
 
-  if (inRound && practiceList.length > 0) {
+  if (inRound && sorted.length > 0) {
     return (
       <div className="max-w-lg mx-auto">
         <RoundSession
-          affirmations={practiceList}
+          affirmations={sorted}
           roundNumber={rounds + 1}
           onComplete={handleCompleteRound}
           onCancel={() => setInRound(false)}
@@ -575,182 +610,156 @@ export default function AffirmationsPage() {
         </p>
       </motion.div>
 
-      {/* ── Saved affirmations ── */}
-      <motion.div {...fadeUp(0.06)} className="rounded-2xl border border-border bg-card p-4 space-y-1">
-        <div className="flex items-center gap-2 px-2 mb-3">
-          <BookmarkCheck className="w-4 h-4 text-sky-400" />
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Saved affirmations
-          </p>
-        </div>
-        <p className="text-xs text-muted-foreground/60 px-2 mb-3">
-          Personal affirmations you keep as a permanent reference. Not used in practice rounds.
-        </p>
-
-        {affirmations === undefined ? (
-          <div className="space-y-2">
-            {[0, 1].map((i) => <Skeleton key={i} className="h-8 w-full" />)}
-          </div>
-        ) : savedList.length === 0 ? (
-          <p className="text-xs text-muted-foreground/50 italic px-2">None saved yet. Bookmark any affirmation to save it here.</p>
-        ) : (
-          <AnimatePresence mode="popLayout">
-            {savedList.map((item) => (
-              <motion.div
-                key={item._id}
-                initial={{ opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -16, transition: { duration: 0.18 } }}
-                layout
-                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <AffirmationRow
-                  item={item}
-                  isSaved
-                  onRemove={() => removeAffirmation({ id: item._id })}
-                  onUpdateText={(t) => updateText({ id: item._id, text: t })}
-                  onMoveToPool={() => updateSource({ id: item._id, source: "manual" })}
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
+      {/* Practice hero */}
+      <motion.div
+        {...fadeUp(0.06)}
+        className={cn(
+          "rounded-2xl p-6 space-y-4",
+          goalMet
+            ? "bg-emerald-500/10 border border-emerald-500/20"
+            : "bg-foreground text-background"
         )}
-
-        <AddRow
-          placeholder="I am so happy and grateful that I am…"
-          onAdd={(text) => addAffirmation({ userId: convexUserId, text, source: "saved" })}
-          icon={Bookmark}
-          iconClass="text-sky-400"
-        />
-      </motion.div>
-
-      {/* ── Today's practice ── */}
-      <motion.div {...fadeUp(0.12)} className="rounded-2xl border border-border bg-card p-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <AnimatePresence mode="wait">
-                {goalMet && (
-                  <motion.div
-                    key="check"
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: "spring", damping: 14, stiffness: 200 }}
-                  >
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  </motion.div>
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p
+              className={cn(
+                "text-[11px] font-semibold tracking-[0.16em] uppercase",
+                goalMet ? "text-emerald-600 dark:text-emerald-400" : "text-background/50"
+              )}
+            >
+              {goalMet ? "Daily goal complete" : "Today's practice"}
+            </p>
+            <div className="flex items-end gap-2 mt-2">
+              <span
+                className={cn(
+                  "text-4xl font-bold tabular-nums leading-none",
+                  goalMet ? "text-foreground" : "text-background"
                 )}
-              </AnimatePresence>
-              <span className="text-sm font-semibold">
-                {goalMet ? "Daily goal complete" : "Today's progress"}
+              >
+                {rounds}
+              </span>
+              <span
+                className={cn(
+                  "text-sm mb-1",
+                  goalMet ? "text-muted-foreground" : "text-background/50"
+                )}
+              >
+                / {GOAL_ROUNDS} rounds
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-3xl font-bold tabular-nums">{rounds}</span>
-              <span className="text-sm text-muted-foreground">/ {GOAL_ROUNDS} rounds</span>
-            </div>
+            {sorted.length > 0 && (
+              <p
+                className={cn(
+                  "text-xs mt-1.5",
+                  goalMet ? "text-muted-foreground/70" : "text-background/40"
+                )}
+              >
+                {sorted.length} affirmation{sorted.length === 1 ? "" : "s"} in rotation
+              </p>
+            )}
           </div>
-          <RoundDots completed={rounds} />
+          <RoundDots completed={rounds} goal={GOAL_ROUNDS} />
         </div>
 
-        {practiceList.length > 0 ? (
+        {goalMet ? (
           <motion.button
             whileTap={{ scale: 0.98 }}
-            onClick={() => goalMet ? setShowRecap(true) : setInRound(true)}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-900 font-semibold text-sm transition-colors"
+            onClick={() => setShowRecap(true)}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm transition-colors"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            All done — view recap
+          </motion.button>
+        ) : sorted.length > 0 ? (
+          <motion.button
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setInRound(true)}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-background text-foreground hover:bg-background/90 font-semibold text-sm transition-colors"
           >
             <Flame className="w-4 h-4" />
-            {rounds === 0 ? "Start first round" : goalMet ? "View recap" : `Start round ${rounds + 1}`}
+            {rounds === 0 ? "Begin practice" : `Start round ${rounds + 1}`}
           </motion.button>
         ) : (
-          <p className="text-sm text-muted-foreground text-center py-2">
-            Add affirmations to your practice pool below to begin.
+          <p className="text-sm text-background/40 text-center py-1">
+            Add affirmations below to begin
           </p>
         )}
       </motion.div>
 
-      {/* ── Practice pool ── */}
-      <motion.div {...fadeUp(0.18)} className="rounded-2xl border border-border bg-card p-4 space-y-1">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-2 mb-1">
-          Practice pool
-        </p>
-        <p className="text-xs text-muted-foreground/60 px-2 mb-3">
-          These cycle through your daily rounds. Use the{" "}
-          <Bookmark className="inline w-3 h-3" /> icon to move one to Saved.
-        </p>
-
-        {affirmations === undefined ? (
-          <div className="space-y-2">
-            {[0, 1, 2].map((i) => <Skeleton key={i} className="h-8 w-full" />)}
-          </div>
-        ) : practiceList.length === 0 && (
-          <div className="py-4 text-center space-y-2">
-            <Flame className="w-7 h-7 text-amber-400 mx-auto" />
-            <p className="text-sm text-muted-foreground">No practice affirmations yet.</p>
-          </div>
+      {/* Staging area */}
+      <AnimatePresence>
+        {staging.length > 0 && (
+          <StagingArea
+            key="staging"
+            items={staging}
+            onAccept={handleAccept}
+            onDismiss={handleDismiss}
+            onDone={() => setStaging([])}
+          />
         )}
+      </AnimatePresence>
 
-        <AnimatePresence mode="popLayout">
-          {practiceList.map((item) => (
-            <motion.div
-              key={item._id}
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: -16, transition: { duration: 0.18 } }}
-              layout
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <AffirmationRow
-                item={item}
-                isSaved={false}
-                onRemove={() => removeAffirmation({ id: item._id })}
-                onUpdateText={(t) => updateText({ id: item._id, text: t })}
-                onMoveToSaved={() => updateSource({ id: item._id, source: "saved" })}
-              />
-            </motion.div>
-          ))}
-        </AnimatePresence>
+      {/* Your affirmations */}
+      <motion.section {...fadeUp(0.12)}>
+        <p className="text-[10px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40 mb-3">
+          Your affirmations
+        </p>
+        <div className="rounded-2xl border border-border bg-card p-4 space-y-1">
+          {affirmations === undefined ? (
+            <div className="space-y-2">
+              {[0, 1, 2].map((i) => <Skeleton key={i} className="h-8 w-full" />)}
+            </div>
+          ) : sorted.length === 0 ? (
+            <div className="py-6 text-center">
+              <Star className="w-7 h-7 text-amber-400 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">No affirmations yet</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">
+                Add one below or generate with AI
+              </p>
+            </div>
+          ) : (
+            <AnimatePresence mode="popLayout">
+              {sorted.map((item) => (
+                <motion.div
+                  key={item._id}
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -16, transition: { duration: 0.18 } }}
+                  layout
+                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <AffirmationRow
+                    item={item}
+                    onRemove={() => removeAffirmation({ id: item._id })}
+                    onUpdateText={(t) => updateText({ id: item._id, text: t })}
+                    onTogglePin={() => updateSource({
+                      id: item._id,
+                      source: item.source === "saved" ? "manual" : "saved",
+                    })}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          )}
 
-        <AddRow
-          placeholder="I am… / I have… / I can…"
-          onAdd={(text) => addAffirmation({ userId: convexUserId, text, source: "manual" })}
-          icon={Flame}
-          iconClass="text-amber-400"
-        />
-      </motion.div>
-
-      {/* AI generate */}
-      <motion.div {...fadeUp(0.24)} className="rounded-2xl border border-border bg-card p-4 space-y-3">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-sky-500" />
-              Generate with AI
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Craft 5 affirmations from your dreams — added to your practice pool.
-            </p>
-          </div>
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={handleGenerate}
-            disabled={generating}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-border hover:bg-accent transition-colors disabled:opacity-50 shrink-0"
-          >
-            {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-            {generating ? "Generating…" : "Generate"}
-          </motion.button>
+          <AddRow
+            onAdd={(text) => addAffirmation({ userId: convexUserId, text, source: "manual" })}
+          />
         </div>
-        <div className="flex items-center justify-between border-t border-border/40 pt-2.5">
-          <span className="text-xs text-muted-foreground/50">
-            Style: <span className="text-muted-foreground capitalize">
-              {((convexUser as { affirmationStyle?: string } | null | undefined)?.affirmationStyle ?? "grateful").replace(/_/g, " ")}
-            </span>
-          </span>
-          <Link href="/customize" className="text-xs text-muted-foreground/50 hover:text-primary transition-colors">
-            Personalize →
-          </Link>
-        </div>
+      </motion.section>
+
+      {/* Generate with AI */}
+      <motion.div {...fadeUp(0.18)} className="flex justify-center pt-1">
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={handleGenerate}
+          disabled={generating || staging.length > 0}
+          className="flex items-center gap-1.5 mx-auto text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
+        >
+          {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+          {generating ? "Generating…" : "Generate with AI"}
+        </motion.button>
       </motion.div>
     </div>
   );
