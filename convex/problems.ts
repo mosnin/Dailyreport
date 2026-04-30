@@ -77,6 +77,7 @@ export const getAllProblems = query({
         solvedManually: status?.solvedManually ?? null,
         aiResolved: status?.aiResolved ?? null,
         aiEvidence: status?.aiEvidence ?? null,
+        resolvedAt: status?.updatedAt ?? null,
       };
     });
   },

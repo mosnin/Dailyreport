@@ -114,7 +114,7 @@ function DreamRow({
         </span>
       )}
       {!editing && (
-        <div className="shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="shrink-0 flex items-center gap-1 opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
           <button onClick={() => setEditing(true)} className="p-0.5 text-muted-foreground hover:text-foreground">
             <Pencil className="w-3 h-3" />
           </button>

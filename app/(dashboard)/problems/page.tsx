@@ -31,6 +31,7 @@ type Problem = {
   solvedManually: boolean | null;
   aiResolved: boolean | null;
   aiEvidence: string | null;
+  resolvedAt: number | null;
 };
 
 function isSolved(p: Problem) {
@@ -94,17 +95,25 @@ function ProblemCard({
               {problem.title}
             </CardTitle>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
-              <span className="text-xs text-muted-foreground">
-                First seen {format(parseISO(problem.firstSeen), "MMM d, yyyy")}
-              </span>
+              {solved && problem.resolvedAt ? (
+                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                  Resolved {format(new Date(problem.resolvedAt), "MMM d, yyyy")}
+                </span>
+              ) : (
+                <span className="text-xs text-muted-foreground">
+                  First seen {format(parseISO(problem.firstSeen), "MMM d, yyyy")}
+                </span>
+              )}
               {problem.occurrences > 1 && (
                 <span className="text-xs text-muted-foreground">
                   · {problem.occurrences}× recurring
                 </span>
               )}
-              <span className={cn("text-xs font-medium", statusColor(problem))}>
-                · {statusLabel(problem)}
-              </span>
+              {!solved && (
+                <span className={cn("text-xs font-medium", statusColor(problem))}>
+                  · {statusLabel(problem)}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -190,7 +199,9 @@ export default function ProblemsPage() {
     if (!problems) return { openProblems: [], resolvedProblems: [] };
     return {
       openProblems: problems.filter((p) => !isSolved(p)),
-      resolvedProblems: problems.filter((p) => isSolved(p)),
+      resolvedProblems: problems
+        .filter((p) => isSolved(p))
+        .sort((a, b) => (b.resolvedAt ?? 0) - (a.resolvedAt ?? 0)),
     };
   }, [problems]);
 

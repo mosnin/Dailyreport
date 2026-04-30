@@ -113,7 +113,7 @@ export default async function LandingPage() {
             </Link>
             <Link
               href="/sign-up"
-              className="px-4 py-1.5 text-sm font-medium rounded-full bg-sky-500 hover:bg-sky-400 text-white transition-colors"
+              className="px-4 py-1.5 text-sm font-medium rounded-full bg-brand-blue hover:opacity-90 text-white transition-opacity"
             >
               Start free
             </Link>
@@ -130,7 +130,7 @@ export default async function LandingPage() {
           <h1 className="font-heading text-5xl sm:text-6xl lg:text-[4.5rem] font-semibold tracking-tight leading-[1.06] mb-6">
             Show up in writing.
             <br />
-            <span className="text-sky-500 dark:text-sky-400">Every day.</span>
+            <span className="text-brand-blue">Every day.</span>
           </h1>
 
           <p className="text-base sm:text-lg text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-lg mx-auto mb-10">
@@ -142,7 +142,7 @@ export default async function LandingPage() {
           <div className="flex items-center justify-center gap-3">
             <Link
               href="/sign-up"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-sky-500 hover:bg-sky-400 text-white font-medium text-sm transition-colors shadow-lg shadow-sky-500/25"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-brand-blue hover:opacity-90 text-white font-medium text-sm transition-opacity shadow-lg shadow-brand-blue/25"
             >
               Start for free
               <ChevronRight className="w-4 h-4" />
@@ -232,7 +232,7 @@ export default async function LandingPage() {
             <div className="space-y-8">
               {FACTS.map(({ number, body }) => (
                 <div key={number} className="flex gap-5">
-                  <span className="text-xs font-mono font-bold text-sky-500 dark:text-sky-400 mt-0.5 shrink-0 w-5">
+                  <span className="text-xs font-mono font-bold text-brand-blue mt-0.5 shrink-0 w-5">
                     {number}
                   </span>
                   <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed">
@@ -269,7 +269,7 @@ export default async function LandingPage() {
           </p>
           <Link
             href="/sign-up"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-sky-500 hover:bg-sky-400 text-white font-medium text-sm transition-colors shadow-xl shadow-sky-500/20"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-brand-blue hover:opacity-90 text-white font-medium text-sm transition-opacity shadow-xl shadow-brand-blue/20"
           >
             Start for free
             <ChevronRight className="w-4 h-4" />

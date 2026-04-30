@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
+import { todayString } from "@/lib/utils";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,7 +26,6 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const GOAL_ROUNDS = 5;
-const today = () => new Date().toISOString().split("T")[0];
 
 type AffirmationSource = "manual" | "ai" | "saved";
 
@@ -391,7 +391,7 @@ function AddRow({
 
 export default function AffirmationsPage() {
   const { convexUserId, convexUser, isLoading } = useConvexUser();
-  const todayStr = today();
+  const todayStr = todayString();
 
   const affirmations = useQuery(
     api.affirmations.list,

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { CheckCircle2, Eye, RefreshCw, Play, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { todayString } from "@/lib/utils";
 import { DreamsManagement } from "./DreamsManagement";
 
 // ── Countdown ring ─────────────────────────────────────────────────────────
@@ -109,7 +110,7 @@ function ScenarioCard({
 // ── Main component ─────────────────────────────────────────────────────────
 
 export function DreamsClient({ userId }: { userId: Id<"users"> }) {
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = todayString();
 
   const viz = useQuery(api.visualizations.getForDate, { userId, date: todayStr });
   const generateVisualizations = useAction(api.ai.generateVisualizations);
