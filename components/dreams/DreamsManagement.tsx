@@ -6,6 +6,8 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
 import { Plus, Trash2, Pencil, Check, X } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { fadeUp, listVariants, itemVariants, itemExitVariants } from "@/lib/motion";
 
 type DreamCategory = "financial" | "health" | "relationships" | "other";
 
@@ -83,7 +85,14 @@ function DreamRow({
   }
 
   return (
-    <div className="group flex items-start gap-2 py-1.5 px-1 rounded-lg hover:bg-muted/40 transition-colors">
+    <motion.div
+      variants={itemExitVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      layout
+      className="group flex items-start gap-2 py-1.5 px-1 rounded-lg hover:bg-muted/40 transition-colors"
+    >
       <span className={cn("w-1.5 h-1.5 rounded-full shrink-0 mt-2", meta.dot)} />
       {editing ? (
         <div className="flex-1 flex items-center gap-1.5">
@@ -115,15 +124,15 @@ function DreamRow({
       )}
       {!editing && (
         <div className="shrink-0 flex items-center gap-1 opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-          <button onClick={() => setEditing(true)} className="p-0.5 text-muted-foreground hover:text-foreground">
+          <motion.button whileTap={{ scale: 0.85 }} onClick={() => setEditing(true)} className="p-0.5 text-muted-foreground hover:text-foreground">
             <Pencil className="w-3 h-3" />
-          </button>
-          <button onClick={onRemove} className="p-0.5 text-muted-foreground hover:text-destructive">
+          </motion.button>
+          <motion.button whileTap={{ scale: 0.85 }} onClick={onRemove} className="p-0.5 text-muted-foreground hover:text-destructive">
             <Trash2 className="w-3 h-3" />
-          </button>
+          </motion.button>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -161,7 +170,7 @@ function DreamCategoryCard({
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 flex flex-col gap-3">
+    <motion.div variants={itemVariants} className="rounded-2xl border border-border bg-card p-4 flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <span className="text-base">{meta.emoji}</span>
         <h3 className={cn("text-sm font-semibold", meta.color)}>{meta.label}</h3>
@@ -174,15 +183,17 @@ function DreamCategoryCard({
         {dreams.length === 0 && !adding && (
           <p className="text-xs text-muted-foreground/60 italic">No {meta.label.toLowerCase()} dreams yet.</p>
         )}
-        {dreams.map((d) => (
-          <DreamRow
-            key={d._id}
-            dream={d}
-            category={category}
-            onRemove={() => onRemove(d._id)}
-            onUpdate={(title) => onUpdate(d._id, title)}
-          />
-        ))}
+        <AnimatePresence mode="popLayout">
+          {dreams.map((d) => (
+            <DreamRow
+              key={d._id}
+              dream={d}
+              category={category}
+              onRemove={() => onRemove(d._id)}
+              onUpdate={(title) => onUpdate(d._id, title)}
+            />
+          ))}
+        </AnimatePresence>
       </div>
 
       {adding ? (
@@ -208,7 +219,8 @@ function DreamCategoryCard({
           </button>
         </form>
       ) : (
-        <button
+        <motion.button
+          whileTap={{ scale: 0.97 }}
           onClick={() => setAdding(true)}
           className={cn(
             "flex items-center gap-1.5 text-xs font-medium transition-colors",
@@ -218,9 +230,9 @@ function DreamCategoryCard({
         >
           <Plus className="w-3.5 h-3.5" />
           Add dream
-        </button>
+        </motion.button>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -242,13 +254,18 @@ export function DreamsManagement({ userId }: { userId: Id<"users"> }) {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-xl font-bold">My Dreams</h2>
+      <motion.div {...fadeUp(0)}>
+        <h2 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">My Dreams</h2>
         <p className="text-sm text-muted-foreground mt-0.5">
           Your big life visions — the foundation everything else is built on.
         </p>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      </motion.div>
+      <motion.div
+        className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+        initial="hidden"
+        animate="visible"
+        variants={listVariants}
+      >
         {CATEGORIES.map((cat) => (
           <DreamCategoryCard
             key={cat}
@@ -259,7 +276,7 @@ export function DreamsManagement({ userId }: { userId: Id<"users"> }) {
             onUpdate={(dreamId, title) => updateTitle({ dreamId, title })}
           />
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }

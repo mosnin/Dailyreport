@@ -11,6 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Send, Sparkles, BarChart2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
+import { motion, AnimatePresence } from "motion/react";
+import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
 
 type HistoryItem = { role: "user" | "assistant"; content: string };
 
@@ -137,15 +139,17 @@ export default function InsightsPage() {
   return (
     <div className="max-w-2xl space-y-6">
       {/* Header */}
-      <div>
+      <motion.div {...fadeUp(0)}>
         <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Progress</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           Your direction at a glance — ask anything about your patterns.
         </p>
-      </div>
+      </motion.div>
 
       {/* Progress scores dashboard */}
-      <ProgressDashboard userId={convexUserId} />
+      <motion.div {...fadeUp(0.1)}>
+        <ProgressDashboard userId={convexUserId} />
+      </motion.div>
 
       {/* Chat section */}
       <div className="flex flex-col h-[calc(100vh-28rem)]">
@@ -153,31 +157,42 @@ export default function InsightsPage() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-5 pr-1">
         {messages.length === 0 && !loading && (
-          <div className="rounded-2xl border border-dashed border-border/60 px-6 py-10 text-center">
+          <motion.div
+            {...fadeUp(0.15)}
+            className="rounded-2xl border border-dashed border-border/60 px-6 py-10 text-center"
+          >
             <Sparkles className="w-6 h-6 text-indigo-500 mx-auto mb-3" />
             <p className="text-sm font-medium mb-1">Ready when you are.</p>
             <p className="text-xs text-muted-foreground">
               Pick a starter below or ask anything about your reports.
             </p>
-          </div>
+          </motion.div>
         )}
 
-        {messages.map((msg, i) => (
-          <div key={i} className={msg.role === "user" ? "flex justify-end" : "flex justify-start"}>
-            {msg.role === "user" ? (
-              <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-sm px-4 py-2.5 max-w-[80%] text-sm">
-                {msg.text}
-              </div>
-            ) : (
-              <div className="max-w-[92%] space-y-2">
-                <div className="rounded-2xl rounded-tl-sm bg-muted/60 border border-border/40 px-5 py-4">
-                  <ReactMarkdown components={mdComponents}>{msg.text}</ReactMarkdown>
+        <AnimatePresence initial={false}>
+          {messages.map((msg, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+              className={msg.role === "user" ? "flex justify-end" : "flex justify-start"}
+            >
+              {msg.role === "user" ? (
+                <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-sm px-4 py-2.5 max-w-[80%] text-sm">
+                  {msg.text}
                 </div>
-                {msg.chart && <ChartBlock chart={msg.chart} />}
-              </div>
-            )}
-          </div>
-        ))}
+              ) : (
+                <div className="max-w-[92%] space-y-2">
+                  <div className="rounded-2xl rounded-tl-sm bg-muted/60 border border-border/40 px-5 py-4">
+                    <ReactMarkdown components={mdComponents}>{msg.text}</ReactMarkdown>
+                  </div>
+                  {msg.chart && <ChartBlock chart={msg.chart} />}
+                </div>
+              )}
+            </motion.div>
+          ))}
+        </AnimatePresence>
 
         {loading && messages.length > 0 && (
           <div className="flex justify-start">
@@ -196,18 +211,25 @@ export default function InsightsPage() {
 
       {/* Starter prompts */}
       {messages.filter((m) => m.role === "user").length === 0 && !loading && (
-        <div className="shrink-0 pt-3 pb-2 flex flex-wrap gap-2">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={listVariants}
+          className="shrink-0 pt-3 pb-2 flex flex-wrap gap-2"
+        >
           {STARTER_PROMPTS.map((p) => (
-            <button
+            <motion.button
               key={p}
+              variants={itemVariants}
+              whileTap={{ scale: 0.96 }}
               onClick={() => send(p)}
               className="text-xs border border-border rounded-full px-3 py-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors flex items-center gap-1.5"
             >
               <BarChart2 className="w-3 h-3" />
               {p}
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Input */}
@@ -227,9 +249,11 @@ export default function InsightsPage() {
           className="flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
           disabled={loading}
         />
-        <Button type="submit" size="sm" disabled={!input.trim() || loading} className="h-10 px-3">
-          <Send className="w-4 h-4" />
-        </Button>
+        <motion.div whileTap={{ scale: 0.93 }}>
+          <Button type="submit" size="sm" disabled={!input.trim() || loading} className="h-10 px-3">
+            <Send className="w-4 h-4" />
+          </Button>
+        </motion.div>
       </form>
       </div>
     </div>

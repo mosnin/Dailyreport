@@ -11,6 +11,8 @@ import { todayString } from "@/lib/utils";
 import { CheckCircle2, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { motion } from "motion/react";
+import { fadeUp } from "@/lib/motion";
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -106,7 +108,7 @@ export default function DailyReportPage() {
 
       <div className="max-w-2xl py-4">
         {/* Notebook header */}
-        <div className="mb-10">
+        <motion.div {...fadeUp(0)} className="mb-10">
           <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-muted-foreground/40 mb-1.5">
             {greeting()}
           </p>
@@ -130,14 +132,16 @@ export default function DailyReportPage() {
               </span>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* The form */}
-        <DailyReportForm
-          userId={convexUserId}
-          initialResponses={existing?.responses as Record<string, unknown> | undefined}
-          onSuccess={() => setCompleted(true)}
-        />
+        <motion.div {...fadeUp(0.08)}>
+          <DailyReportForm
+            userId={convexUserId}
+            initialResponses={existing?.responses as Record<string, unknown> | undefined}
+            onSuccess={() => setCompleted(true)}
+          />
+        </motion.div>
 
         <div className="mt-6 pt-6 border-t border-border/40 flex items-center justify-center gap-6 text-xs text-muted-foreground/40">
           <Link href="/affirmations" className="hover:text-muted-foreground transition-colors">Affirmations</Link>

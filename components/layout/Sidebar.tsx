@@ -24,6 +24,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion } from "motion/react";
 
 // ── Nav item ──────────────────────────────────────────────────────────────
 
@@ -50,17 +51,24 @@ function NavItem({
         "group relative flex items-center rounded-xl text-sm font-medium transition-colors",
         collapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2",
         active
-          ? "bg-primary text-primary-foreground"
+          ? "text-primary-foreground"
           : "text-muted-foreground hover:bg-accent hover:text-foreground"
       )}
     >
-      <Icon className="w-4 h-4 shrink-0" />
-      {!collapsed && <span className="flex-1 leading-none">{label}</span>}
+      {active && (
+        <motion.span
+          layoutId="nav-active"
+          className="absolute inset-0 rounded-xl bg-primary"
+          transition={{ type: "spring", damping: 28, stiffness: 280 }}
+        />
+      )}
+      <Icon className="w-4 h-4 shrink-0 relative z-10" />
+      {!collapsed && <span className="flex-1 leading-none relative z-10">{label}</span>}
       {dot === true && !active && (
-        <span className={cn("w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0", collapsed && "absolute top-1.5 right-1.5")} />
+        <span className={cn("w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 relative z-10", collapsed && "absolute top-1.5 right-1.5")} />
       )}
       {dot === false && !active && (
-        <span className={cn("w-1.5 h-1.5 rounded-full bg-amber-400/60 shrink-0", collapsed && "absolute top-1.5 right-1.5")} />
+        <span className={cn("w-1.5 h-1.5 rounded-full bg-amber-400/60 shrink-0 relative z-10", collapsed && "absolute top-1.5 right-1.5")} />
       )}
     </Link>
   );
@@ -122,13 +130,19 @@ export function Sidebar() {
             D
           </Link>
         )}
-        <button
+        <motion.button
           onClick={toggleCollapsed}
+          whileTap={{ scale: 0.9 }}
           className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors shrink-0"
           title={collapsed ? "Expand" : "Collapse"}
         >
-          <ChevronLeft className={cn("w-4 h-4 transition-transform duration-300", collapsed && "rotate-180")} />
-        </button>
+          <motion.div
+            animate={{ rotate: collapsed ? 180 : 0 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </motion.div>
+        </motion.button>
       </div>
 
       {/* Today progress strip */}
@@ -242,9 +256,10 @@ export function Sidebar() {
           <SlidersHorizontal className="w-4 h-4 shrink-0" />
           {!collapsed && "Settings"}
         </Link>
-        <button
+        <motion.button
           onClick={() => signOut({ redirectUrl: "/" })}
           title={collapsed ? "Sign out" : undefined}
+          whileTap={{ scale: 0.97 }}
           className={cn(
             "w-full flex items-center rounded-xl text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors",
             collapsed ? "justify-center p-2" : "gap-2.5 px-2.5 py-2"
@@ -252,7 +267,7 @@ export function Sidebar() {
         >
           <LogOut className="w-4 h-4 shrink-0" />
           {!collapsed && "Sign out"}
-        </button>
+        </motion.button>
       </div>
     </aside>
   );

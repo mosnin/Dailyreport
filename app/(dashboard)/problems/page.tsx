@@ -21,6 +21,8 @@ import {
   BrainCircuit,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "motion/react";
+import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
 
 type Problem = {
   title: string;
@@ -68,7 +70,8 @@ function ProblemCard({
     <Card className={cn("transition-opacity", solved && "opacity-60")}>
       <CardHeader className="pb-2 pt-4 px-4">
         <div className="flex items-start gap-3">
-          <button
+          <motion.button
+            whileTap={{ scale: 0.85 }}
             onClick={() => onToggle(problem.title, !solved)}
             className={cn(
               "mt-0.5 shrink-0 transition-colors",
@@ -83,7 +86,7 @@ function ProblemCard({
             ) : (
               <Circle className="w-5 h-5" />
             )}
-          </button>
+          </motion.button>
 
           <div className="flex-1 min-w-0">
             <CardTitle
@@ -130,15 +133,25 @@ function ProblemCard({
                 {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                 {expanded ? "Hide" : "Show"} proposed solutions
               </button>
-              {expanded && (
-                <div className="mt-2 space-y-1.5">
-                  {problem.solutions.map((s, i) => (
-                    <p key={i} className="text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2">
-                      {s}
-                    </p>
-                  ))}
-                </div>
-              )}
+              <AnimatePresence>
+                {expanded && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <div className="mt-2 space-y-1.5">
+                      {problem.solutions.map((s, i) => (
+                        <p key={i} className="text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2">
+                          {s}
+                        </p>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
 
@@ -219,7 +232,7 @@ export default function ProblemsPage() {
   return (
     <div className="max-w-2xl space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <motion.div {...fadeUp(0)} className="flex items-start justify-between gap-4">
         <div>
           <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Problems</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
@@ -236,22 +249,31 @@ export default function ProblemsPage() {
           <BrainCircuit className="w-4 h-4 mr-1.5" />
           {analyzing ? "Analyzing…" : "AI Analysis"}
         </Button>
-      </div>
+      </motion.div>
 
       {/* Stats strip */}
       {problems && problems.length > 0 && (
-        <div className="grid grid-cols-3 gap-3">
+        <motion.div
+          className="grid grid-cols-3 gap-3"
+          initial="hidden"
+          animate="visible"
+          variants={listVariants}
+        >
           {([
             { label: "Total", count: problems.length, color: "text-foreground" },
             { label: "Open", count: openProblems.length, color: "text-amber-500" },
             { label: "Resolved", count: resolvedProblems.length, color: "text-emerald-500" },
           ]).map(({ label, count, color }) => (
-            <div key={label} className="rounded-xl border border-border p-3 text-center">
+            <motion.div
+              key={label}
+              variants={itemVariants}
+              className="rounded-xl border border-border p-3 text-center"
+            >
               <div className={cn("text-2xl font-bold", color)}>{count}</div>
               <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Problem list */}
@@ -276,9 +298,20 @@ export default function ProblemsPage() {
           {/* Open problems */}
           {openProblems.length > 0 && (
             <div className="space-y-3">
-              {openProblems.map((problem) => (
-                <ProblemCard key={problem.title} problem={problem} onToggle={handleToggle} />
-              ))}
+              <AnimatePresence mode="popLayout">
+                {openProblems.map((problem) => (
+                  <motion.div
+                    key={problem.title}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, x: -12, transition: { duration: 0.18 } }}
+                    layout
+                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    <ProblemCard problem={problem} onToggle={handleToggle} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           )}
 
@@ -304,13 +337,23 @@ export default function ProblemsPage() {
                 <span className="text-xs opacity-50">click any to reopen</span>
               </button>
 
-              {resolvedOpen && (
-                <div className="space-y-3 mt-2">
-                  {resolvedProblems.map((problem) => (
-                    <ProblemCard key={problem.title} problem={problem} onToggle={handleToggle} />
-                  ))}
-                </div>
-              )}
+              <AnimatePresence>
+                {resolvedOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <div className="space-y-3 mt-2">
+                      {resolvedProblems.map((problem) => (
+                        <ProblemCard key={problem.title} problem={problem} onToggle={handleToggle} />
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
         </div>
@@ -318,16 +361,18 @@ export default function ProblemsPage() {
 
       {/* AI info banner */}
       {problems && problems.length > 0 && !problems.some((p) => p.aiEvidence) && (
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="py-4 flex items-start gap-3">
-            <Sparkles className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-            <p className="text-xs text-muted-foreground">
-              Hit <strong className="text-foreground">AI Analysis</strong> to cross-reference your problems against your
-              daily reports — Claude will check what you said you solved and what you planned, and surface which
-              problems are likely still open.
-            </p>
-          </CardContent>
-        </Card>
+        <motion.div {...fadeUp(0.3)}>
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="py-4 flex items-start gap-3">
+              <Sparkles className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+              <p className="text-xs text-muted-foreground">
+                Hit <strong className="text-foreground">AI Analysis</strong> to cross-reference your problems against your
+                daily reports — Claude will check what you said you solved and what you planned, and surface which
+                problems are likely still open.
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
     </div>
   );

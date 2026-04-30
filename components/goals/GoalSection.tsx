@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Trash2, CheckCircle2, Circle, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { itemExitVariants } from "@/lib/motion";
 
 const CATEGORY_META: Record<GoalCategory, { label: string; description: string; color: string }> = {
   yearly: {
@@ -124,25 +126,27 @@ export function GoalSection({
           <div className="shrink-0 flex flex-col items-end gap-1">
             <div className="flex items-center gap-1">
               {prevKey && (
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => setPeriodKey(prevKey)}
                   className="p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
                   title="Previous period"
                 >
                   <ChevronLeft className="w-4 h-4" />
-                </button>
+                </motion.button>
               )}
               <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
                 {label}
               </span>
               {nextKey && (
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => setPeriodKey(nextKey)}
                   className="p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
                   title="Next period"
                 >
                   <ChevronRight className="w-4 h-4" />
-                </button>
+                </motion.button>
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -162,9 +166,11 @@ export function GoalSection({
               {total > 0 && (
                 <div className="flex items-center gap-1.5">
                   <div className="h-1.5 w-14 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-green-500 transition-all"
-                      style={{ width: `${Math.round((completed / total) * 100)}%` }}
+                    <motion.div
+                      className="h-full rounded-full bg-green-500"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.round((completed / total) * 100)}%` }}
+                      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                     />
                   </div>
                   <span className="text-xs text-muted-foreground">
@@ -195,19 +201,27 @@ export function GoalSection({
             )}
           </p>
         ) : (
-          <>
+          <AnimatePresence mode="popLayout">
             {goals.map((goal) => (
-              <GoalRow
+              <motion.div
                 key={goal._id}
-                title={goal.title}
-                completed={goal.completed}
-                readonly={!isCurrentPeriod}
-                onToggle={() => toggleGoal({ goalId: goal._id })}
-                onRemove={() => removeGoal({ goalId: goal._id })}
-                onUpdateTitle={(t) => updateTitle({ goalId: goal._id, title: t })}
-              />
+                variants={itemExitVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                layout
+              >
+                <GoalRow
+                  title={goal.title}
+                  completed={goal.completed}
+                  readonly={!isCurrentPeriod}
+                  onToggle={() => toggleGoal({ goalId: goal._id })}
+                  onRemove={() => removeGoal({ goalId: goal._id })}
+                  onUpdateTitle={(t) => updateTitle({ goalId: goal._id, title: t })}
+                />
+              </motion.div>
             ))}
-          </>
+          </AnimatePresence>
         )}
 
         {isCurrentPeriod && (
@@ -235,13 +249,14 @@ export function GoalSection({
               </button>
             </form>
           ) : (
-            <button
+            <motion.button
+              whileTap={{ scale: 0.97 }}
               onClick={() => setAdding(true)}
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pt-1 w-full"
             >
               <Plus className="w-4 h-4" />
               Add goal
-            </button>
+            </motion.button>
           )
         )}
       </CardContent>
@@ -297,10 +312,11 @@ function GoalRow({
         flash ? "bg-emerald-50 dark:bg-emerald-950/30" : "hover:bg-muted/50"
       )}
     >
-      <button
+      <motion.button
         type="button"
         onClick={readonly ? undefined : handleToggle}
         disabled={readonly}
+        whileTap={readonly ? {} : { scale: 0.85 }}
         className={cn(
           "shrink-0 transition-colors",
           readonly
@@ -308,12 +324,18 @@ function GoalRow({
             : "text-muted-foreground hover:text-green-500"
         )}
       >
-        {completed ? (
-          <CheckCircle2 className="w-5 h-5 text-green-500" />
-        ) : (
-          <Circle className="w-5 h-5" />
-        )}
-      </button>
+        <AnimatePresence mode="wait" initial={false}>
+          {completed ? (
+            <motion.span key="done" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} transition={{ duration: 0.2 }}>
+              <CheckCircle2 className="w-5 h-5 text-green-500" />
+            </motion.span>
+          ) : (
+            <motion.span key="empty" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} transition={{ duration: 0.2 }}>
+              <Circle className="w-5 h-5" />
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </motion.button>
 
       {editing && !readonly ? (
         <input
@@ -340,13 +362,14 @@ function GoalRow({
       )}
 
       {!readonly && (
-        <button
+        <motion.button
           type="button"
           onClick={onRemove}
+          whileTap={{ scale: 0.85 }}
           className="shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
         >
           <Trash2 className="w-4 h-4" />
-        </button>
+        </motion.button>
       )}
     </div>
   );

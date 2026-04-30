@@ -25,6 +25,8 @@ import {
   Flame,
   Telescope,
 } from "lucide-react";
+import { motion } from "motion/react";
+import { fadeUp } from "@/lib/motion";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -259,7 +261,7 @@ export default function AnalyticsPage() {
   return (
     <div className="max-w-3xl space-y-10">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <motion.div {...fadeUp(0)} className="flex items-start justify-between gap-4">
         <div>
           <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Analytics</h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -267,10 +269,10 @@ export default function AnalyticsPage() {
           </p>
         </div>
         <RangeSelector weeks={weeks} onChange={setWeeks} />
-      </div>
+      </motion.div>
 
       {/* Summary stat strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <motion.div {...fadeUp(0.1)} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatTile
           label="Total reports"
           value={data.totalDailyReports}
@@ -300,158 +302,168 @@ export default function AnalyticsPage() {
           sub="unique connections"
           accent="text-sky-600 dark:text-sky-400"
         />
-      </div>
+      </motion.div>
 
       {/* Practice consistency */}
-      <Section title="Practice Consistency" icon={NotepadText} iconClass="text-emerald-500">
-        <div className="rounded-2xl border border-border bg-card p-5">
-          <p className="text-xs text-muted-foreground mb-4">
-            Days per week each practice was completed
-          </p>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart
-              data={data.weeklyData}
-              margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
-              barSize={8}
-              barCategoryGap="30%"
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke="currentColor"
-                strokeOpacity={0.06}
-              />
-              <XAxis
-                dataKey="label"
-                tick={{ fontSize: 10, fill: "currentColor", opacity: 0.45 }}
-                tickLine={false}
-                axisLine={false}
-                interval={weeks <= 8 ? 0 : Math.floor(weeks / 8)}
-              />
-              <YAxis
-                tick={{ fontSize: 10, fill: "currentColor", opacity: 0.45 }}
-                tickLine={false}
-                axisLine={false}
-                allowDecimals={false}
-                domain={[0, 7]}
-                ticks={[0, 2, 4, 6, 7]}
-              />
-              <Tooltip content={<PracticeTooltip />} cursor={{ fill: "currentColor", fillOpacity: 0.03 }} />
-              <Legend
-                iconType="circle"
-                iconSize={7}
-                wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
-              />
-              <Bar dataKey="reports" name="Reports" fill="#22c55e" radius={[2, 2, 0, 0]} />
-              <Bar dataKey="affirmations" name="Affirmations" fill="#f59e0b" radius={[2, 2, 0, 0]} />
-              <Bar dataKey="visualizations" name="Visualizations" fill="#0ea5e9" radius={[2, 2, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </Section>
+      <motion.div {...fadeUp(0.2)}>
+        <Section title="Practice Consistency" icon={NotepadText} iconClass="text-emerald-500">
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <p className="text-xs text-muted-foreground mb-4">
+              Days per week each practice was completed
+            </p>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart
+                data={data.weeklyData}
+                margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
+                barSize={8}
+                barCategoryGap="30%"
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="currentColor"
+                  strokeOpacity={0.06}
+                />
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontSize: 10, fill: "currentColor", opacity: 0.45 }}
+                  tickLine={false}
+                  axisLine={false}
+                  interval={weeks <= 8 ? 0 : Math.floor(weeks / 8)}
+                />
+                <YAxis
+                  tick={{ fontSize: 10, fill: "currentColor", opacity: 0.45 }}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                  domain={[0, 7]}
+                  ticks={[0, 2, 4, 6, 7]}
+                />
+                <Tooltip content={<PracticeTooltip />} cursor={{ fill: "currentColor", fillOpacity: 0.03 }} />
+                <Legend
+                  iconType="circle"
+                  iconSize={7}
+                  wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
+                />
+                <Bar dataKey="reports" name="Reports" fill="#22c55e" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="affirmations" name="Affirmations" fill="#f59e0b" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="visualizations" name="Visualizations" fill="#0ea5e9" radius={[2, 2, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Section>
+      </motion.div>
 
       <div className="border-t border-border" />
 
       {/* Goals by category */}
-      <Section title="Goal Completion" icon={Target} iconClass="text-violet-500">
-        <div className="rounded-2xl border border-border bg-card p-5 space-y-5">
-          {goalOrder.map((cat) => {
-            const s = data.goalStats[cat];
-            if (!s) return null;
-            return (
-              <GoalBar
-                key={cat}
-                label={goalLabels[cat]}
-                total={s.total}
-                completed={s.completed}
-                periodKey={s.periodKey}
-              />
-            );
-          })}
-          {goalOrder.every((c) => (data.goalStats[c]?.total ?? 0) === 0) && (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              No goals set yet. Add some in the Goals page.
-            </p>
-          )}
-        </div>
-      </Section>
+      <motion.div {...fadeUp(0.1)}>
+        <Section title="Goal Completion" icon={Target} iconClass="text-violet-500">
+          <div className="rounded-2xl border border-border bg-card p-5 space-y-5">
+            {goalOrder.map((cat) => {
+              const s = data.goalStats[cat];
+              if (!s) return null;
+              return (
+                <GoalBar
+                  key={cat}
+                  label={goalLabels[cat]}
+                  total={s.total}
+                  completed={s.completed}
+                  periodKey={s.periodKey}
+                />
+              );
+            })}
+            {goalOrder.every((c) => (data.goalStats[c]?.total ?? 0) === 0) && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No goals set yet. Add some in the Goals page.
+              </p>
+            )}
+          </div>
+        </Section>
+      </motion.div>
 
       <div className="border-t border-border" />
 
       {/* Problem stats */}
-      <Section title="Problem Tracker" icon={AlertOctagon} iconClass="text-rose-500">
-        <div className="grid grid-cols-3 gap-3">
-          <StatTile label="Total logged" value={data.problemStats.total} />
-          <StatTile
-            label="Still open"
-            value={data.problemStats.open}
-            accent={data.problemStats.open > 5 ? "text-rose-500" : undefined}
-          />
-          <StatTile
-            label="Resolved"
-            value={data.problemStats.resolved}
-            accent="text-emerald-600 dark:text-emerald-400"
-          />
-        </div>
-        {data.problemStats.total === 0 && (
-          <p className="text-sm text-muted-foreground">No problems logged yet.</p>
-        )}
-      </Section>
+      <motion.div {...fadeUp(0.1)}>
+        <Section title="Problem Tracker" icon={AlertOctagon} iconClass="text-rose-500">
+          <div className="grid grid-cols-3 gap-3">
+            <StatTile label="Total logged" value={data.problemStats.total} />
+            <StatTile
+              label="Still open"
+              value={data.problemStats.open}
+              accent={data.problemStats.open > 5 ? "text-rose-500" : undefined}
+            />
+            <StatTile
+              label="Resolved"
+              value={data.problemStats.resolved}
+              accent="text-emerald-600 dark:text-emerald-400"
+            />
+          </div>
+          {data.problemStats.total === 0 && (
+            <p className="text-sm text-muted-foreground">No problems logged yet.</p>
+          )}
+        </Section>
+      </motion.div>
 
       <div className="border-t border-border" />
 
       {/* Emotional drain themes */}
-      <Section title="Emotional Drain Patterns" icon={Brain} iconClass="text-amber-500">
-        <div className="rounded-2xl border border-border bg-card p-5">
-          {data.topDrainThemes.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-2">
-              Fill in the &ldquo;emotional drain&rdquo; field in daily reports to see patterns here.
+      <motion.div {...fadeUp(0.1)}>
+        <Section title="Emotional Drain Patterns" icon={Brain} iconClass="text-amber-500">
+          <div className="rounded-2xl border border-border bg-card p-5">
+            {data.topDrainThemes.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-2">
+                Fill in the &ldquo;emotional drain&rdquo; field in daily reports to see patterns here.
+              </p>
+            ) : (
+              <div className="space-y-2.5">
+                {data.topDrainThemes.map((entry: { word: string; count: number }) => (
+                  <HBarRow
+                    key={entry.word}
+                    label={entry.word}
+                    count={entry.count}
+                    max={drainMax}
+                    color="#f59e0b"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+          {data.topDrainThemes.length > 0 && (
+            <p className="text-xs text-muted-foreground/60">
+              Most frequent words in your daily emotional drain entries. Use this to spot recurring stressors.
             </p>
-          ) : (
-            <div className="space-y-2.5">
-              {data.topDrainThemes.map((entry: { word: string; count: number }) => (
-                <HBarRow
-                  key={entry.word}
-                  label={entry.word}
-                  count={entry.count}
-                  max={drainMax}
-                  color="#f59e0b"
-                />
-              ))}
-            </div>
           )}
-        </div>
-        {data.topDrainThemes.length > 0 && (
-          <p className="text-xs text-muted-foreground/60">
-            Most frequent words in your daily emotional drain entries. Use this to spot recurring stressors.
-          </p>
-        )}
-      </Section>
+        </Section>
+      </motion.div>
 
       <div className="border-t border-border" />
 
       {/* People network */}
-      <Section title="Your Network" icon={Users} iconClass="text-sky-500">
-        <div className="rounded-2xl border border-border bg-card p-5 pb-6">
-          {data.topPeople.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-2">
-              Log people you meet in daily reports to see who you interact with most.
-            </p>
-          ) : (
-            <div className="space-y-2.5">
-              {data.topPeople.map((entry: { name: string; count: number }) => (
-                <HBarRow
-                  key={entry.name}
-                  label={entry.name}
-                  count={entry.count}
-                  max={peopleMax}
-                  color="#0ea5e9"
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </Section>
+      <motion.div {...fadeUp(0.1)}>
+        <Section title="Your Network" icon={Users} iconClass="text-sky-500">
+          <div className="rounded-2xl border border-border bg-card p-5 pb-6">
+            {data.topPeople.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-2">
+                Log people you meet in daily reports to see who you interact with most.
+              </p>
+            ) : (
+              <div className="space-y-2.5">
+                {data.topPeople.map((entry: { name: string; count: number }) => (
+                  <HBarRow
+                    key={entry.name}
+                    label={entry.name}
+                    count={entry.count}
+                    max={peopleMax}
+                    color="#0ea5e9"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </Section>
+      </motion.div>
     </div>
   );
 }

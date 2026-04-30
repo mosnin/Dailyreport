@@ -20,6 +20,8 @@ import {
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { motion, AnimatePresence } from "motion/react";
+import { fadeUp } from "@/lib/motion";
 
 function ReportDetailPanel({
   userId,
@@ -33,7 +35,13 @@ function ReportDetailPanel({
   const report = useQuery(api.reports.getDailyReport, { userId, date });
 
   return (
-    <div className="mt-4 rounded-xl border border-border bg-muted/50 p-4 relative">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 4 }}
+      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      className="mt-4 rounded-xl border border-border bg-muted/50 p-4 relative"
+    >
       <button
         onClick={onClose}
         className="absolute top-3 right-3 p-1 rounded-lg hover:bg-accent transition-colors"
@@ -50,7 +58,7 @@ function ReportDetailPanel({
       ) : (
         <ReportSummary responses={report.responses as Record<string, unknown>} />
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -146,25 +154,29 @@ export function CalendarGrid({
     setSelectedDate((prev) => (prev === key ? null : key));
   }
 
+  const monthKey = format(current, "yyyy-MM");
+
   return (
     <div className="rounded-xl border border-border bg-card p-4">
-      <div className="flex items-center justify-between mb-4">
+      <motion.div {...fadeUp(0)} className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-sm">{format(current, "MMMM yyyy")}</h3>
         <div className="flex gap-1">
-          <button
-            onClick={() => setCurrent((d) => new Date(d.getFullYear(), d.getMonth() - 1))}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => { setCurrent((d) => new Date(d.getFullYear(), d.getMonth() - 1)); setSelectedDate(null); }}
             className="p-1.5 rounded-lg hover:bg-accent transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setCurrent((d) => new Date(d.getFullYear(), d.getMonth() + 1))}
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => { setCurrent((d) => new Date(d.getFullYear(), d.getMonth() + 1)); setSelectedDate(null); }}
             className="p-1.5 rounded-lg hover:bg-accent transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
 
       <div className="grid grid-cols-7 gap-1 mb-1">
         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
@@ -174,40 +186,52 @@ export function CalendarGrid({
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-1">
-        {days.map((day) => {
-          const status = dayStatus(day);
-          const weeklyDone = isWeeklySubmitted(day);
-          const key = format(day, "yyyy-MM-dd");
-          const isSelected = selectedDate === key;
-          const isClickable =
-            clickable && isSameMonth(day, current) && (isPast(day) || isToday(day));
-          return (
-            <button
-              key={day.toISOString()}
-              type="button"
-              onClick={() => handleDayClick(day)}
-              disabled={!isClickable}
-              className={cn(
-                "relative aspect-square rounded-lg flex items-center justify-center text-xs font-medium transition-colors",
-                status === "outside" && "opacity-20 text-muted-foreground",
-                status === "submitted" && "bg-green-500/20 text-green-600 dark:text-green-400",
-                status === "missed" && "bg-red-500/10 text-red-500 dark:text-red-400",
-                status === "today" && "bg-amber-500/20 text-amber-600 dark:text-amber-400 ring-1 ring-amber-400",
-                status === "future" && "text-muted-foreground",
-                isSelected && "ring-2 ring-primary ring-offset-1",
-                isClickable && "cursor-pointer hover:brightness-90",
-                !isClickable && "cursor-default"
-              )}
-            >
-              {format(day, "d")}
-              {weeklyDone && (
-                <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-indigo-400" />
-              )}
-            </button>
-          );
-        })}
-      </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={monthKey}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+          className="grid grid-cols-7 gap-1"
+        >
+          {days.map((day) => {
+            const status = dayStatus(day);
+            const weeklyDone = isWeeklySubmitted(day);
+            const key = format(day, "yyyy-MM-dd");
+            const isSelected = selectedDate === key;
+            const isClickable =
+              clickable && isSameMonth(day, current) && (isPast(day) || isToday(day));
+            return (
+              <motion.button
+                key={day.toISOString()}
+                type="button"
+                onClick={() => handleDayClick(day)}
+                disabled={!isClickable}
+                whileHover={isClickable ? { scale: 1.08 } : {}}
+                whileTap={isClickable ? { scale: 0.95 } : {}}
+                transition={{ duration: 0.15 }}
+                className={cn(
+                  "relative aspect-square rounded-lg flex items-center justify-center text-xs font-medium transition-colors",
+                  status === "outside" && "opacity-20 text-muted-foreground",
+                  status === "submitted" && "bg-green-500/20 text-green-600 dark:text-green-400",
+                  status === "missed" && "bg-red-500/10 text-red-500 dark:text-red-400",
+                  status === "today" && "bg-amber-500/20 text-amber-600 dark:text-amber-400 ring-1 ring-amber-400",
+                  status === "future" && "text-muted-foreground",
+                  isSelected && "ring-2 ring-primary ring-offset-1",
+                  isClickable && "cursor-pointer",
+                  !isClickable && "cursor-default"
+                )}
+              >
+                {format(day, "d")}
+                {weeklyDone && (
+                  <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                )}
+              </motion.button>
+            );
+          })}
+        </motion.div>
+      </AnimatePresence>
 
       <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
@@ -224,13 +248,15 @@ export function CalendarGrid({
         </span>
       </div>
 
-      {clickable && selectedDate && (
-        <ReportDetailPanel
-          userId={userId}
-          date={selectedDate}
-          onClose={() => setSelectedDate(null)}
-        />
-      )}
+      <AnimatePresence>
+        {clickable && selectedDate && (
+          <ReportDetailPanel
+            userId={userId}
+            date={selectedDate}
+            onClose={() => setSelectedDate(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

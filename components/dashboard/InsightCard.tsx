@@ -4,11 +4,12 @@ import { useState } from "react";
 import { useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BrainCircuit, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "motion/react";
+import { fadeUp } from "@/lib/motion";
 
 export function InsightCard({ userId }: { userId: Id<"users"> }) {
   const insight = useQuery(api.aiInternal.getLatestInsight, { userId });
@@ -28,40 +29,64 @@ export function InsightCard({ userId }: { userId: Id<"users"> }) {
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between gap-2">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <BrainCircuit className="w-5 h-5 text-indigo-500" />
-            Weekly AI Insight
-          </CardTitle>
-          <button
-            onClick={handleRegenerate}
-            disabled={regenerating}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-40"
-            title="Regenerate insight from this week's reports"
+    <motion.div
+      {...fadeUp(0.1)}
+      className="rounded-2xl border border-border bg-card p-5"
+    >
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div className="flex items-center gap-2">
+          <motion.div
+            animate={regenerating ? { rotate: 360 } : { rotate: 0 }}
+            transition={regenerating ? { repeat: Infinity, duration: 1.2, ease: "linear" } : { duration: 0 }}
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${regenerating ? "animate-spin" : ""}`} />
-          </button>
+            <BrainCircuit className="w-5 h-5 text-indigo-500" />
+          </motion.div>
+          <span className="text-sm font-semibold">Weekly AI Insight</span>
         </div>
-      </CardHeader>
-      <CardContent>
+        <motion.button
+          onClick={handleRegenerate}
+          disabled={regenerating}
+          whileTap={{ scale: 0.9 }}
+          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-40"
+          title="Regenerate insight from this week's reports"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+        </motion.button>
+      </div>
+
+      <AnimatePresence mode="wait">
         {insight === undefined ? (
-          <div className="space-y-2">
+          <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-4/5" />
-          </div>
+          </motion.div>
         ) : insight === null ? (
-          <p className="text-sm text-muted-foreground">
+          <motion.p
+            key="empty"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="text-sm text-muted-foreground"
+          >
             Complete your first weekly report to receive an AI-generated insight about your progress.{" "}
             <Link href="/reports/weekly" className="text-primary underline-offset-2 hover:underline">
               Submit weekly report →
             </Link>
-          </p>
+          </motion.p>
         ) : (
-          <p className="text-sm leading-relaxed">{insight.content}</p>
+          <motion.p
+            key={insight.content}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="text-sm leading-relaxed"
+          >
+            {insight.content}
+          </motion.p>
         )}
-      </CardContent>
-    </Card>
+      </AnimatePresence>
+    </motion.div>
   );
 }

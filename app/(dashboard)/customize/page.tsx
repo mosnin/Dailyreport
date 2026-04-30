@@ -8,6 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Flame, Telescope, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "motion/react";
+import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
 
 // ── Style definitions ─────────────────────────────────────────────────────
 
@@ -108,8 +110,9 @@ function StyleCard({
   onSelect: () => void;
 }) {
   return (
-    <button
+    <motion.button
       onClick={onSelect}
+      whileTap={{ scale: 0.97 }}
       className={cn(
         "relative w-full text-left rounded-2xl border p-4 transition-all",
         selected
@@ -129,7 +132,7 @@ function StyleCard({
           &ldquo;{option.example}&rdquo;
         </p>
       )}
-    </button>
+    </motion.button>
   );
 }
 
@@ -200,15 +203,15 @@ export default function CustomizePage() {
   return (
     <div className="max-w-2xl space-y-10">
       {/* Header */}
-      <div>
+      <motion.div {...fadeUp(0)}>
         <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Personalize</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Choose how your affirmations and visualizations are written. Applied the next time you generate.
         </p>
-      </div>
+      </motion.div>
 
       {/* Affirmation style */}
-      <section className="space-y-4">
+      <motion.section {...fadeUp(0.08)} className="space-y-4">
         <div className="flex items-center gap-2.5">
           <Flame className="w-5 h-5 text-amber-500" />
           <div>
@@ -217,40 +220,54 @@ export default function CustomizePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={listVariants}
+          className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+        >
           {AFFIRMATION_STYLES.map((opt) => (
-            <StyleCard
-              key={opt.key}
-              option={opt}
-              selected={affirmStyle === opt.key}
-              onSelect={() => { setAffirmStyle(opt.key); setDirty(true); }}
-            />
+            <motion.div key={opt.key} variants={itemVariants}>
+              <StyleCard
+                option={opt}
+                selected={affirmStyle === opt.key}
+                onSelect={() => { setAffirmStyle(opt.key); setDirty(true); }}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
-        {affirmStyle === "custom" && (
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Your format instructions
-            </label>
-            <textarea
-              value={affirmCustom}
-              onChange={(e) => { setAffirmCustom(e.target.value); setDirty(true); }}
-              placeholder="e.g. Each affirmation should start with 'I choose...' and be written as a firm decision rather than a statement of current reality. Keep each to one short sentence."
-              rows={4}
-              className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none placeholder:text-muted-foreground/50"
-            />
-            <p className="text-xs text-muted-foreground/60">
-              Be specific. Describe the opening format, tone, length, and any phrases to use or avoid.
-            </p>
-          </div>
-        )}
-      </section>
+        <AnimatePresence>
+          {affirmStyle === "custom" && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              className="overflow-hidden space-y-2"
+            >
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Your format instructions
+              </label>
+              <textarea
+                value={affirmCustom}
+                onChange={(e) => { setAffirmCustom(e.target.value); setDirty(true); }}
+                placeholder="e.g. Each affirmation should start with 'I choose...' and be written as a firm decision rather than a statement of current reality. Keep each to one short sentence."
+                rows={4}
+                className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none placeholder:text-muted-foreground/50"
+              />
+              <p className="text-xs text-muted-foreground/60">
+                Be specific. Describe the opening format, tone, length, and any phrases to use or avoid.
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.section>
 
       <div className="border-t border-border" />
 
       {/* Visualization style */}
-      <section className="space-y-4">
+      <motion.section {...fadeUp(0.14)} className="space-y-4">
         <div className="flex items-center gap-2.5">
           <Telescope className="w-5 h-5 text-sky-500" />
           <div>
@@ -259,48 +276,63 @@ export default function CustomizePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={listVariants}
+          className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+        >
           {VISUALIZATION_STYLES.map((opt) => (
-            <StyleCard
-              key={opt.key}
-              option={opt}
-              selected={vizStyle === opt.key}
-              onSelect={() => { setVizStyle(opt.key); setDirty(true); }}
-            />
+            <motion.div key={opt.key} variants={itemVariants}>
+              <StyleCard
+                option={opt}
+                selected={vizStyle === opt.key}
+                onSelect={() => { setVizStyle(opt.key); setDirty(true); }}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
-        {vizStyle === "custom" && (
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Your style instructions
-            </label>
-            <textarea
-              value={vizCustom}
-              onChange={(e) => { setVizCustom(e.target.value); setDirty(true); }}
-              placeholder="e.g. Write each visualization as a 3rd-person observer watching the user succeed. Use past tense as if recounting a memory. Include specific numbers and sensory details."
-              rows={4}
-              className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none placeholder:text-muted-foreground/50"
-            />
-            <p className="text-xs text-muted-foreground/60">
-              Describe the perspective, tense, pacing, energy level, and any specific language patterns you want.
-            </p>
-          </div>
-        )}
-      </section>
+        <AnimatePresence>
+          {vizStyle === "custom" && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              className="overflow-hidden space-y-2"
+            >
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Your style instructions
+              </label>
+              <textarea
+                value={vizCustom}
+                onChange={(e) => { setVizCustom(e.target.value); setDirty(true); }}
+                placeholder="e.g. Write each visualization as a 3rd-person observer watching the user succeed. Use past tense as if recounting a memory. Include specific numbers and sensory details."
+                rows={4}
+                className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none placeholder:text-muted-foreground/50"
+              />
+              <p className="text-xs text-muted-foreground/60">
+                Describe the perspective, tense, pacing, energy level, and any specific language patterns you want.
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.section>
 
       {/* Save */}
       <div className="flex items-center justify-between pt-2 pb-8">
         <p className="text-xs text-muted-foreground">
           Changes apply to new generations only — existing affirmations are unaffected.
         </p>
-        <button
+        <motion.button
+          whileTap={{ scale: 0.97 }}
           onClick={handleSave}
           disabled={saving || !dirty}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? "Saving…" : "Save preferences"}
-        </button>
+        </motion.button>
       </div>
     </div>
   );

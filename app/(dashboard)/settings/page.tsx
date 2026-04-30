@@ -11,6 +11,8 @@ import { useClerk } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Check, Sun, Moon, Monitor } from "lucide-react";
+import { motion } from "motion/react";
+import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
 
 const COMMON_TIMEZONES = [
   "America/New_York", "America/Chicago", "America/Denver",
@@ -57,7 +59,12 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
         on ? "bg-primary" : "bg-muted"
       )}
     >
-      <span className={cn("inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform", on ? "translate-x-6" : "translate-x-1")} />
+      <motion.span
+        layout
+        animate={{ x: on ? 24 : 4 }}
+        transition={{ type: "spring", damping: 20, stiffness: 300 }}
+        className="inline-block h-4 w-4 rounded-full bg-white shadow"
+      />
     </button>
   );
 }
@@ -146,190 +153,210 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-lg space-y-10">
-      <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Settings</h1>
+      <motion.h1 {...fadeUp(0)} className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">
+        Settings
+      </motion.h1>
 
       {/* ── Account ── */}
-      <section>
-        <SectionLabel>Account</SectionLabel>
-        <div className="space-y-0">
-          <div className="py-3.5 border-b border-border/40">
-            <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-wider mb-1.5">Name</p>
-            <input
-              type="text"
-              value={profileName}
-              onChange={(e) => setProfileName(e.target.value)}
-              placeholder="Your name"
-              className="w-full bg-transparent text-sm focus:outline-none text-foreground placeholder:text-muted-foreground/30 border-b border-border/30 focus:border-primary/50 pb-1 transition-colors"
-            />
-          </div>
-          <div className="py-3.5 border-b border-border/40">
-            <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-wider mb-1.5">About you</p>
-            <textarea
-              value={profileBio}
-              onChange={(e) => setProfileBio(e.target.value)}
-              placeholder="A short bio…"
-              rows={2}
-              className="w-full bg-transparent text-sm focus:outline-none text-foreground placeholder:text-muted-foreground/30 resize-none border-b border-border/30 focus:border-primary/50 pb-1 transition-colors"
-            />
-          </div>
-          <div className="flex items-center justify-between py-3.5 border-b border-border/40">
-            <div>
-              <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-wider mb-0.5">Email</p>
-              <p className="text-sm">{convexUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || "—"}</p>
+      <motion.div {...fadeUp(0.05)}>
+        <section>
+          <SectionLabel>Account</SectionLabel>
+          <div className="space-y-0">
+            <div className="py-3.5 border-b border-border/40">
+              <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-wider mb-1.5">Name</p>
+              <input
+                type="text"
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+                placeholder="Your name"
+                className="w-full bg-transparent text-sm focus:outline-none text-foreground placeholder:text-muted-foreground/30 border-b border-border/30 focus:border-primary/50 pb-1 transition-colors"
+              />
             </div>
-            <button
-              onClick={handleSaveProfile}
-              disabled={savingProfile || !profileName.trim()}
-              className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
-            >
-              {profileSaved ? <><Check className="w-3.5 h-3.5 text-emerald-500" /> Saved</> : savingProfile ? "Saving…" : "Save"}
-            </button>
+            <div className="py-3.5 border-b border-border/40">
+              <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-wider mb-1.5">About you</p>
+              <textarea
+                value={profileBio}
+                onChange={(e) => setProfileBio(e.target.value)}
+                placeholder="A short bio…"
+                rows={2}
+                className="w-full bg-transparent text-sm focus:outline-none text-foreground placeholder:text-muted-foreground/30 resize-none border-b border-border/30 focus:border-primary/50 pb-1 transition-colors"
+              />
+            </div>
+            <div className="flex items-center justify-between py-3.5 border-b border-border/40">
+              <div>
+                <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-wider mb-0.5">Email</p>
+                <p className="text-sm">{convexUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || "—"}</p>
+              </div>
+              <button
+                onClick={handleSaveProfile}
+                disabled={savingProfile || !profileName.trim()}
+                className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
+              >
+                {profileSaved ? <><Check className="w-3.5 h-3.5 text-emerald-500" /> Saved</> : savingProfile ? "Saving…" : "Save"}
+              </button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </motion.div>
 
       {/* ── Appearance ── */}
-      <section>
-        <SectionLabel>Appearance</SectionLabel>
-        <div className="flex gap-2">
-          {(["light", "dark", "system"] as const).map((t) => {
-            const Icon = t === "light" ? Sun : t === "dark" ? Moon : Monitor;
-            return (
-              <button
-                key={t}
-                onClick={() => setTheme(t)}
-                className={cn(
-                  "flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl border text-xs font-medium transition-all",
-                  theme === t
-                    ? "border-primary/50 bg-primary/5 text-primary"
-                    : "border-border/40 text-muted-foreground hover:border-border hover:text-foreground"
-                )}
-              >
-                <Icon className="w-4 h-4" />
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </button>
-            );
-          })}
-        </div>
-      </section>
+      <motion.div {...fadeUp(0.12)}>
+        <section>
+          <SectionLabel>Appearance</SectionLabel>
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={listVariants}
+            className="flex gap-2"
+          >
+            {(["light", "dark", "system"] as const).map((t) => {
+              const Icon = t === "light" ? Sun : t === "dark" ? Moon : Monitor;
+              return (
+                <motion.button
+                  key={t}
+                  variants={itemVariants}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setTheme(t)}
+                  className={cn(
+                    "flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl border text-xs font-medium transition-all",
+                    theme === t
+                      ? "border-primary/50 bg-primary/5 text-primary"
+                      : "border-border/40 text-muted-foreground hover:border-border hover:text-foreground"
+                  )}
+                >
+                  <Icon className="w-4 h-4" />
+                  {t.charAt(0).toUpperCase() + t.slice(1)}
+                </motion.button>
+              );
+            })}
+          </motion.div>
+        </section>
+      </motion.div>
 
       {/* ── Timezone ── */}
-      <section>
-        <SectionLabel>Reminders</SectionLabel>
-        <div className="space-y-0">
-          <Row label="Timezone" sub="Daily reminders sent at 8pm in your local time">
-            <div className="flex items-center gap-2">
-              <select
-                value={tz}
-                onChange={(e) => setTz(e.target.value)}
-                className="text-sm bg-transparent border-b border-border/40 focus:border-primary/50 focus:outline-none pb-0.5 text-foreground transition-colors"
-              >
-                {COMMON_TIMEZONES.map((t) => (
-                  <option key={t} value={t}>{t.replace(/_/g, " ")}</option>
-                ))}
-              </select>
-              <button
-                onClick={handleSaveTz}
-                disabled={savingTz || !tz}
-                className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
-              >
-                {savingTz ? "…" : "Save"}
-              </button>
-            </div>
-          </Row>
-          <Row label="Push notifications" sub={subscribed ? "Active — you'll be reminded at 8pm" : "Off"}>
-            {subscribed ? (
-              <span className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                On
-              </span>
-            ) : (
-              <button
-                onClick={subscribe}
-                disabled={typeof window !== "undefined" && !("Notification" in window)}
-                className="text-xs font-medium text-primary hover:text-primary/80 transition-colors disabled:opacity-40"
-              >
-                Enable
-              </button>
-            )}
-          </Row>
-          <Row label="Email digest" sub="Monday summary + Sunday nudge if no weekly review">
-            <Toggle
-              on={!emailOptOut}
-              onToggle={async () => {
-                if (!convexUserId) return;
-                await updateEmailOptOut({ userId: convexUserId, optOut: !emailOptOut });
-                toast.success(emailOptOut ? "Emails re-enabled." : "Emails turned off.");
-              }}
-            />
-          </Row>
-        </div>
-      </section>
+      <motion.div {...fadeUp(0.19)}>
+        <section>
+          <SectionLabel>Reminders</SectionLabel>
+          <div className="space-y-0">
+            <Row label="Timezone" sub="Daily reminders sent at 8pm in your local time">
+              <div className="flex items-center gap-2">
+                <select
+                  value={tz}
+                  onChange={(e) => setTz(e.target.value)}
+                  className="text-sm bg-transparent border-b border-border/40 focus:border-primary/50 focus:outline-none pb-0.5 text-foreground transition-colors"
+                >
+                  {COMMON_TIMEZONES.map((t) => (
+                    <option key={t} value={t}>{t.replace(/_/g, " ")}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={handleSaveTz}
+                  disabled={savingTz || !tz}
+                  className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
+                >
+                  {savingTz ? "…" : "Save"}
+                </button>
+              </div>
+            </Row>
+            <Row label="Push notifications" sub={subscribed ? "Active — you'll be reminded at 8pm" : "Off"}>
+              {subscribed ? (
+                <span className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  On
+                </span>
+              ) : (
+                <button
+                  onClick={subscribe}
+                  disabled={typeof window !== "undefined" && !("Notification" in window)}
+                  className="text-xs font-medium text-primary hover:text-primary/80 transition-colors disabled:opacity-40"
+                >
+                  Enable
+                </button>
+              )}
+            </Row>
+            <Row label="Email digest" sub="Monday summary + Sunday nudge if no weekly review">
+              <Toggle
+                on={!emailOptOut}
+                onToggle={async () => {
+                  if (!convexUserId) return;
+                  await updateEmailOptOut({ userId: convexUserId, optOut: !emailOptOut });
+                  toast.success(emailOptOut ? "Emails re-enabled." : "Emails turned off.");
+                }}
+              />
+            </Row>
+          </div>
+        </section>
+      </motion.div>
 
       {/* ── Subscription ── */}
-      <section>
-        <SectionLabel>Plan</SectionLabel>
-        <div className="space-y-0">
-          <Row label="Current plan" sub={hasPaidAccess ? "Full access to all features" : "Core features included"}>
-            <span className={cn(
-              "text-xs font-semibold px-2.5 py-1 rounded-full",
-              plan === "unlimited" ? "bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300"
-              : plan === "pro" ? "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300"
-              : role === "admin" ? "bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300"
-              : "bg-muted text-muted-foreground"
-            )}>
-              {role === "admin" ? "Admin" : plan.charAt(0).toUpperCase() + plan.slice(1)}
-            </span>
-          </Row>
-          {!hasPaidAccess && (
-            <div className="py-3.5 border-b border-border/40">
-              <p className="text-sm text-muted-foreground mb-3">
-                Upgrade to Pro for <span className="font-medium text-foreground">$12.99/month</span> — AI insights, affirmations, and visualizations.
-              </p>
-              <button
-                onClick={async () => {
-                  try {
-                    const res = await fetch("/api/checkout", { method: "POST" });
-                    const data = await res.json() as { checkoutUrl?: string; error?: string };
-                    if (data.checkoutUrl) window.location.href = data.checkoutUrl;
-                    else toast.error(data.error ?? "Failed to start checkout");
-                  } catch { toast.error("Failed to start checkout"); }
-                }}
-                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-              >
-                Upgrade to Pro →
-              </button>
-            </div>
-          )}
-          {plan === "pro" && (
-            <Row label="Billing" sub="">
-              <button
-                onClick={async () => {
-                  try {
-                    const res = await fetch("/api/billing", { method: "POST" });
-                    const data = await res.json() as { portalUrl?: string; error?: string };
-                    if (data.portalUrl) window.open(data.portalUrl, "_blank");
-                    else toast.error(data.error ?? "Failed to open billing portal");
-                  } catch { toast.error("Failed to open billing portal"); }
-                }}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Manage →
-              </button>
+      <motion.div {...fadeUp(0.26)}>
+        <section>
+          <SectionLabel>Plan</SectionLabel>
+          <div className="space-y-0">
+            <Row label="Current plan" sub={hasPaidAccess ? "Full access to all features" : "Core features included"}>
+              <span className={cn(
+                "text-xs font-semibold px-2.5 py-1 rounded-full",
+                plan === "unlimited" ? "bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300"
+                : plan === "pro" ? "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300"
+                : role === "admin" ? "bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300"
+                : "bg-muted text-muted-foreground"
+              )}>
+                {role === "admin" ? "Admin" : plan.charAt(0).toUpperCase() + plan.slice(1)}
+              </span>
             </Row>
-          )}
-        </div>
-      </section>
+            {!hasPaidAccess && (
+              <div className="py-3.5 border-b border-border/40">
+                <p className="text-sm text-muted-foreground mb-3">
+                  Upgrade to Pro for <span className="font-medium text-foreground">$12.99/month</span> — AI insights, affirmations, and visualizations.
+                </p>
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch("/api/checkout", { method: "POST" });
+                      const data = await res.json() as { checkoutUrl?: string; error?: string };
+                      if (data.checkoutUrl) window.location.href = data.checkoutUrl;
+                      else toast.error(data.error ?? "Failed to start checkout");
+                    } catch { toast.error("Failed to start checkout"); }
+                  }}
+                  className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                >
+                  Upgrade to Pro →
+                </button>
+              </div>
+            )}
+            {plan === "pro" && (
+              <Row label="Billing" sub="">
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch("/api/billing", { method: "POST" });
+                      const data = await res.json() as { portalUrl?: string; error?: string };
+                      if (data.portalUrl) window.open(data.portalUrl, "_blank");
+                      else toast.error(data.error ?? "Failed to open billing portal");
+                    } catch { toast.error("Failed to open billing portal"); }
+                  }}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Manage →
+                </button>
+              </Row>
+            )}
+          </div>
+        </section>
+      </motion.div>
 
       {/* ── Sign out ── */}
-      <section className="pb-8">
-        <button
-          onClick={() => signOut({ redirectUrl: "/" })}
-          className="text-sm text-muted-foreground/50 hover:text-destructive transition-colors"
-        >
-          Sign out
-        </button>
-      </section>
+      <motion.div {...fadeUp(0.33)}>
+        <section className="pb-8">
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={() => signOut({ redirectUrl: "/" })}
+            className="text-sm text-muted-foreground/50 hover:text-destructive transition-colors"
+          >
+            Sign out
+          </motion.button>
+        </section>
+      </motion.div>
     </div>
   );
 }

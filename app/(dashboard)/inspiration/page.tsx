@@ -8,6 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn, todayString } from "@/lib/utils";
 import { Lightbulb, RefreshCw, BookOpen } from "lucide-react";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "motion/react";
+import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
 
 // ── Principle badge colors ────────────────────────────────────────────────
 
@@ -50,7 +52,7 @@ function StoryCard({
   const [expanded, setExpanded] = useState(index === 0);
 
   return (
-    <div className="rounded-2xl border border-border bg-card overflow-hidden">
+    <motion.div variants={itemVariants} className="rounded-2xl border border-border bg-card overflow-hidden">
       <button
         onClick={() => setExpanded((v) => !v)}
         className="w-full text-left px-5 py-4 hover:bg-muted/30 transition-colors"
@@ -74,7 +76,7 @@ function StoryCard({
           </p>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -178,7 +180,7 @@ export default function InspirationPage() {
   return (
     <div className="max-w-xl space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <motion.div {...fadeUp(0)} className="flex items-start justify-between gap-4">
         <div>
           <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Daily Inspiration</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
@@ -197,7 +199,7 @@ export default function InspirationPage() {
           <RefreshCw className={cn("w-3.5 h-3.5", generating && "animate-spin")} />
           {generating ? "Generating…" : "Regenerate"}
         </button>
-      </div>
+      </motion.div>
 
       {/* Content */}
       {showSkeletons ? (
@@ -208,16 +210,21 @@ export default function InspirationPage() {
           {[0, 1, 2, 3, 4].map((i) => <StorySkeleton key={i} index={i} />)}
         </>
       ) : displayStories && displayStories.length > 0 ? (
-        <div className="space-y-3">
+        <motion.div
+          className="space-y-3"
+          variants={listVariants}
+          initial="hidden"
+          animate="visible"
+        >
           {displayStories.map((s, i) => (
             <StoryCard key={i} story={s} index={i} />
           ))}
           <p className="text-[11px] text-muted-foreground/50 text-center pt-2">
             Stories regenerate daily based on your reports, goals, and patterns.
           </p>
-        </div>
+        </motion.div>
       ) : !generating ? (
-        <div className="text-center py-16 space-y-4">
+        <motion.div {...fadeUp(0.1)} className="text-center py-16 space-y-4">
           <div className="w-14 h-14 rounded-2xl bg-amber-400/10 flex items-center justify-center mx-auto">
             <Lightbulb className="w-7 h-7 text-amber-400" />
           </div>
@@ -234,7 +241,7 @@ export default function InspirationPage() {
             <Lightbulb className="w-4 h-4" />
             Generate stories
           </button>
-        </div>
+        </motion.div>
       ) : null}
     </div>
   );

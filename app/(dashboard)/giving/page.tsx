@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn, todayString } from "@/lib/utils";
 import { Heart, Plus, Trash2, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "motion/react";
+import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -291,15 +293,15 @@ export default function GivingPage() {
   return (
     <div className="max-w-lg space-y-6">
       {/* Header */}
-      <div>
+      <motion.div {...fadeUp(0)}>
         <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Giving</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           Track the value you create and give each day.
         </p>
-      </div>
+      </motion.div>
 
       {/* Date navigator */}
-      <div className="flex items-center gap-2 justify-center">
+      <motion.div {...fadeUp(0.08)} className="flex items-center gap-2 justify-center">
         <button
           onClick={() => setSelectedDate(offsetDate(selectedDate, -1))}
           className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
@@ -324,10 +326,10 @@ export default function GivingPage() {
             Today
           </button>
         )}
-      </div>
+      </motion.div>
 
       {/* Today / Selected day entries */}
-      <div className="rounded-2xl border border-border bg-card p-4 space-y-0.5">
+      <motion.div {...fadeUp(0.13)} className="rounded-2xl border border-border bg-card p-4 space-y-0.5">
         <div className="flex items-center gap-2 px-2 mb-3">
           <Heart className="w-4 h-4 text-rose-400" />
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -347,38 +349,56 @@ export default function GivingPage() {
             {isToday ? "Nothing yet — how have you given value today?" : "No entries for this day."}
           </p>
         ) : (
-          (entries as Entry[]).map((e) => (
-            <EntryRow
-              key={e._id}
-              entry={e}
-              onRemove={() => removeEntry({ id: e._id })}
-              onUpdateText={(t) => updateText({ id: e._id, text: t })}
-            />
-          ))
+          <AnimatePresence initial={false}>
+            <motion.div
+              className="space-y-0.5"
+              variants={listVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {(entries as Entry[]).map((e) => (
+                <motion.div key={e._id} variants={itemVariants}>
+                  <EntryRow
+                    entry={e}
+                    onRemove={() => removeEntry({ id: e._id })}
+                    onUpdateText={(t) => updateText({ id: e._id, text: t })}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
         )}
 
         <AddRow onAdd={handleAdd} />
-      </div>
+      </motion.div>
 
       {/* Past entries history */}
       {pastDates.length > 0 && (
-        <div className="space-y-2">
+        <motion.div {...fadeUp(0.18)} className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70 px-1">
             Past days
           </p>
-          {pastDates.map((date) => (
-            <PastDaySection
-              key={date}
-              date={date}
-              entries={pastGroups[date]}
-              todayStr={todayStr}
-            />
-          ))}
-        </div>
+          <AnimatePresence>
+            {pastDates.map((date, index) => (
+              <motion.div
+                key={date}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: index * 0.04 }}
+              >
+                <PastDaySection
+                  date={date}
+                  entries={pastGroups[date]}
+                  todayStr={todayStr}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
       )}
 
       {pastDates.length === 0 && entries !== undefined && entries.length === 0 && (
-        <div className="text-center py-12 space-y-3">
+        <motion.div {...fadeUp(0.18)} className="text-center py-12 space-y-3">
           <div className="w-14 h-14 rounded-2xl bg-rose-400/10 flex items-center justify-center mx-auto">
             <Heart className="w-7 h-7 text-rose-400" />
           </div>
@@ -386,7 +406,7 @@ export default function GivingPage() {
           <p className="text-sm text-muted-foreground max-w-xs mx-auto">
             Each day, record the moments where you created value — for others, your work, or yourself.
           </p>
-        </div>
+        </motion.div>
       )}
     </div>
   );

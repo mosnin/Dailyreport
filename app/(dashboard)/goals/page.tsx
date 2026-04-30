@@ -7,6 +7,8 @@ import { GoalSection } from "@/components/goals/GoalSection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type GoalCategory, periodLabel } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { motion } from "motion/react";
+import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
 
 const CATEGORIES: GoalCategory[] = ["yearly", "quarterly", "monthly", "weekly"];
 
@@ -38,15 +40,20 @@ export default function GoalsPage() {
 
   return (
     <div className="max-w-3xl space-y-6">
-      <div>
+      <motion.div {...fadeUp(0)}>
         <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Goals</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           Track what you&apos;re working toward across every time horizon.
         </p>
-      </div>
+      </motion.div>
 
       {/* Overview strip */}
-      <div className="grid grid-cols-4 gap-2">
+      <motion.div
+        className="grid grid-cols-4 gap-2"
+        initial="hidden"
+        animate="visible"
+        variants={listVariants}
+      >
         {CATEGORIES.map((cat) => {
           const meta = CATEGORY_META[cat];
           const data = summary?.[cat];
@@ -56,8 +63,9 @@ export default function GoalsPage() {
           const pk = data?.periodKey ?? "";
 
           return (
-            <div
+            <motion.div
               key={cat}
+              variants={itemVariants}
               className="rounded-xl border border-border bg-card p-2.5 flex flex-col gap-1.5"
             >
               <div className="flex items-center gap-1.5">
@@ -88,17 +96,27 @@ export default function GoalsPage() {
                   {periodLabel(cat, pk)}
                 </p>
               )}
-            </div>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
       {/* Full sections with period navigation */}
-      <div className="space-y-4">
+      <motion.div
+        className="space-y-4"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: {},
+          visible: { transition: { staggerChildren: 0.09, delayChildren: 0.15 } },
+        }}
+      >
         {CATEGORIES.map((category) => (
-          <GoalSection key={category} userId={convexUserId} category={category} />
+          <motion.div key={category} variants={itemVariants}>
+            <GoalSection userId={convexUserId} category={category} />
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { NotepadText, Flame, Telescope, CheckCircle2, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTodayStatus } from "@/hooks/useTodayStatus";
+import { motion } from "motion/react";
+import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
 
 const AFFIRMATION_GOAL = 5;
 
@@ -30,46 +32,48 @@ function PracticeCard({
   barColor: string;
 }) {
   return (
-    <Link
-      href={href}
-      className={cn(
-        "group rounded-2xl border p-4 flex flex-col gap-3 transition-colors hover:bg-accent/40",
-        done
-          ? "border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/30 dark:bg-emerald-950/10"
-          : "border-border bg-card"
-      )}
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Icon className={cn("w-5 h-5", iconColor)} />
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            {label}
-          </span>
-        </div>
-        {done ? (
-          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-        ) : (
-          <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
+    <motion.div variants={itemVariants} whileTap={{ scale: 0.98 }}>
+      <Link
+        href={href}
+        className={cn(
+          "group rounded-2xl border p-4 flex flex-col gap-3 transition-colors hover:bg-accent/40",
+          done
+            ? "border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/30 dark:bg-emerald-950/10"
+            : "border-border bg-card"
         )}
-      </div>
-
-      <div>
-        <div className="text-2xl font-bold tabular-nums leading-none mb-0.5">
-          {value}
-        </div>
-        <div className="text-xs text-muted-foreground">{subtext}</div>
-      </div>
-
-      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-        <div
-          className={cn(
-            "h-full rounded-full transition-all duration-500",
-            done ? "bg-emerald-400" : barColor
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Icon className={cn("w-5 h-5", iconColor)} />
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              {label}
+            </span>
+          </div>
+          {done ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
           )}
-          style={{ width: `${Math.min(progress * 100, 100)}%` }}
-        />
-      </div>
-    </Link>
+        </div>
+
+        <div>
+          <div className="text-2xl font-bold tabular-nums leading-none mb-0.5">
+            {value}
+          </div>
+          <div className="text-xs text-muted-foreground">{subtext}</div>
+        </div>
+
+        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+          <div
+            className={cn(
+              "h-full rounded-full transition-all duration-700",
+              done ? "bg-emerald-400" : barColor
+            )}
+            style={{ width: `${Math.min(progress * 100, 100)}%` }}
+          />
+        </div>
+      </Link>
+    </motion.div>
   );
 }
 
@@ -79,15 +83,20 @@ export function TodayPractice({ userId }: { userId: Id<"users"> }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-end justify-between px-0.5">
+      <motion.div {...fadeUp(0)} className="flex items-end justify-between px-0.5">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
           Today&apos;s Practice
         </h2>
         <span className="text-xs text-muted-foreground tabular-nums">
           {totalDone}/3 complete
         </span>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      </motion.div>
+      <motion.div
+        className="grid grid-cols-1 sm:grid-cols-3 gap-3"
+        initial="hidden"
+        animate="visible"
+        variants={listVariants}
+      >
         <PracticeCard
           href="/reports/daily"
           icon={NotepadText}
@@ -121,7 +130,7 @@ export function TodayPractice({ userId }: { userId: Id<"users"> }) {
           done={vizDone}
           barColor="bg-sky-400"
         />
-      </div>
+      </motion.div>
     </div>
   );
 }

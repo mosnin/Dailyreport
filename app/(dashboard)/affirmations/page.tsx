@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "motion/react";
+import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
 
 const GOAL_ROUNDS = 5;
 
@@ -71,8 +73,11 @@ function RoundDots({ completed, goal = GOAL_ROUNDS }: { completed: number; goal?
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       {Array.from({ length: display }).map((_, i) => (
-        <div
+        <motion.div
           key={i}
+          initial={i < completed ? { scale: 0 } : false}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", damping: 12, stiffness: 200, delay: i * 0.04 }}
           className={cn(
             "w-2.5 h-2.5 rounded-full transition-colors",
             i < completed
@@ -148,45 +153,35 @@ function AffirmationRow({
 
       <div className="shrink-0 flex items-center gap-0.5">
         {!isSaved && onMoveToSaved && (
-          <button
-            onClick={onMoveToSaved}
-            className="p-1 text-muted-foreground hover:text-sky-500 transition-colors"
-            title="Save permanently (don't use in rounds)"
-          >
+          <motion.button whileTap={{ scale: 0.85 }} onClick={onMoveToSaved} className="p-1 text-muted-foreground hover:text-sky-500 transition-colors" title="Save permanently">
             <Bookmark className="w-4 h-4" />
-          </button>
+          </motion.button>
         )}
         {isSaved && onMoveToPool && (
-          <button
-            onClick={onMoveToPool}
-            className="p-1 text-muted-foreground hover:text-amber-500 transition-colors"
-            title="Move back to practice pool"
-          >
+          <motion.button whileTap={{ scale: 0.85 }} onClick={onMoveToPool} className="p-1 text-muted-foreground hover:text-amber-500 transition-colors" title="Move back to practice pool">
             <Flame className="w-4 h-4" />
-          </button>
+          </motion.button>
         )}
         {!editing && (
-          <button
-            onClick={() => setEditing(true)}
-            className="p-1 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-            title="Edit"
-          >
+          <motion.button whileTap={{ scale: 0.85 }} onClick={() => setEditing(true)} className="p-1 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity" title="Edit">
             <Pencil className="w-3.5 h-3.5" />
-          </button>
+          </motion.button>
         )}
-        <button
-          onClick={onRemove}
-          className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-          title="Delete"
-        >
+        <motion.button whileTap={{ scale: 0.85 }} onClick={onRemove} className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" title="Delete">
           <Trash2 className="w-3.5 h-3.5" />
-        </button>
+        </motion.button>
       </div>
     </div>
   );
 }
 
 // ── Round flashcard mode ──────────────────────────────────────────────────
+
+const slideVariants = {
+  enter: (dir: number) => ({ x: dir * 48, opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (dir: number) => ({ x: dir * -48, opacity: 0 }),
+};
 
 function RoundSession({
   affirmations,
@@ -200,23 +195,38 @@ function RoundSession({
   onCancel: () => void;
 }) {
   const [index, setIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
+
+  function goNext() {
+    if (index < affirmations.length - 1) {
+      setDirection(1);
+      setIndex((i) => i + 1);
+    } else {
+      onComplete();
+    }
+  }
+
+  function goPrev() {
+    setDirection(-1);
+    setIndex((i) => Math.max(0, i - 1));
+  }
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "Enter") {
         e.preventDefault();
-        if (index < affirmations.length - 1) setIndex((i) => i + 1);
-        else onComplete();
+        goNext();
       }
       if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
         e.preventDefault();
-        setIndex((i) => Math.max(0, i - 1));
+        goPrev();
       }
       if (e.key === "Escape") onCancel();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [index, affirmations.length, onComplete, onCancel]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index, affirmations.length]);
 
   const current = affirmations[index];
   const isLast = index === affirmations.length - 1;
@@ -224,25 +234,26 @@ function RoundSession({
   return (
     <div className="flex flex-col min-h-[calc(100vh-8rem)]">
       <div className="flex items-center justify-between mb-6">
-        <button
+        <motion.button
+          whileTap={{ scale: 0.97 }}
           onClick={onCancel}
           className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <X className="w-4 h-4" />
           Cancel round
-        </button>
+        </motion.button>
         <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Round {roundNumber}
         </span>
-        {/* Progress ring replaces plain text counter */}
         <ProgressRing current={index} total={affirmations.length} />
       </div>
 
       <div className="flex justify-center gap-1.5 mb-8">
         {affirmations.map((_, i) => (
-          <button
+          <motion.button
             key={i}
-            onClick={() => setIndex(i)}
+            whileTap={{ scale: 0.85 }}
+            onClick={() => { setDirection(i > index ? 1 : -1); setIndex(i); }}
             className={cn(
               "h-1.5 rounded-full transition-all duration-200",
               i === index ? "w-6 bg-amber-400" : i < index ? "w-2 bg-amber-300" : "w-2 bg-neutral-200 dark:bg-neutral-700"
@@ -251,42 +262,56 @@ function RoundSession({
         ))}
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-2">
-        <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 sm:p-12 text-center shadow-sm">
-          <div className="mb-6">
-            <Flame className="w-7 h-7 text-amber-400 mx-auto" />
-          </div>
-          <p className="text-xl sm:text-2xl font-medium leading-relaxed text-foreground">
-            {current?.text}
-          </p>
-        </div>
+      <div className="flex-1 flex items-center justify-center px-2 relative overflow-hidden">
+        <AnimatePresence mode="wait" custom={direction} initial={false}>
+          <motion.div
+            key={index}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full max-w-md rounded-2xl border border-border bg-card p-8 sm:p-12 text-center"
+          >
+            <div className="mb-6">
+              <Flame className="w-7 h-7 text-amber-400 mx-auto" />
+            </div>
+            <p className="text-xl sm:text-2xl font-medium leading-relaxed text-foreground">
+              {current?.text}
+            </p>
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       <div className="flex items-center justify-center gap-4 mt-8">
-        <button
-          onClick={() => setIndex((i) => Math.max(0, i - 1))}
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={goPrev}
           disabled={index === 0}
           className="p-2.5 rounded-full border border-border hover:bg-accent transition-colors disabled:opacity-30"
         >
           <ChevronLeft className="w-5 h-5" />
-        </button>
+        </motion.button>
 
         {isLast ? (
-          <button
+          <motion.button
+            whileTap={{ scale: 0.97 }}
             onClick={onComplete}
             className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-900 font-medium text-sm transition-colors"
           >
             <CheckCircle2 className="w-4 h-4" />
             Complete round
-          </button>
+          </motion.button>
         ) : (
-          <button
-            onClick={() => setIndex((i) => i + 1)}
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={goNext}
             className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-border hover:bg-accent text-sm font-medium transition-colors"
           >
             Next
             <ChevronRight className="w-4 h-4" />
-          </button>
+          </motion.button>
         )}
 
         <button aria-hidden className="p-2.5 rounded-full opacity-0 pointer-events-none">
@@ -306,19 +331,27 @@ function RoundSession({
 function RecapScreen({ onContinue }: { onContinue: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] text-center gap-6 max-w-sm mx-auto">
-      <Flame className="w-8 h-8 text-amber-400" />
-      <p className="font-heading italic text-2xl leading-relaxed text-foreground">
+      <motion.div
+        initial={{ scale: 0.6, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", damping: 14, stiffness: 100 }}
+      >
+        <Flame className="w-8 h-8 text-amber-400" />
+      </motion.div>
+      <motion.p {...fadeUp(0.18)} className="font-heading italic text-2xl leading-relaxed text-foreground">
         Five rounds done.
-      </p>
-      <p className="text-sm text-muted-foreground/70 max-w-xs">
+      </motion.p>
+      <motion.p {...fadeUp(0.28)} className="text-sm text-muted-foreground/70 max-w-xs">
         The words are in you now. Let them work.
-      </p>
-      <button
+      </motion.p>
+      <motion.button
+        {...fadeUp(0.38)}
+        whileTap={{ scale: 0.97 }}
         onClick={onContinue}
         className="mt-4 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
       >
         Continue →
-      </button>
+      </motion.button>
     </div>
   );
 }
@@ -377,13 +410,14 @@ function AddRow({
   }
 
   return (
-    <button
+    <motion.button
+      whileTap={{ scale: 0.97 }}
       onClick={() => setAdding(true)}
       className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pt-2 px-2 w-full"
     >
       <Plus className="w-4 h-4" />
       Add affirmation
-    </button>
+    </motion.button>
   );
 }
 
@@ -419,11 +453,7 @@ export default function AffirmationsPage() {
       if (!convexUserId) return;
       const current = localStore.getQuery(api.affirmations.list, { userId: convexUserId });
       if (current === undefined) return;
-      localStore.setQuery(
-        api.affirmations.list,
-        { userId: convexUserId },
-        current.filter((a) => a._id !== args.id)
-      );
+      localStore.setQuery(api.affirmations.list, { userId: convexUserId }, current.filter((a) => a._id !== args.id));
     }
   );
   const updateText = useMutation(api.affirmations.updateText).withOptimisticUpdate(
@@ -431,11 +461,7 @@ export default function AffirmationsPage() {
       if (!convexUserId) return;
       const current = localStore.getQuery(api.affirmations.list, { userId: convexUserId });
       if (current === undefined) return;
-      localStore.setQuery(
-        api.affirmations.list,
-        { userId: convexUserId },
-        current.map((a) => a._id === args.id ? { ...a, text: args.text } : a)
-      );
+      localStore.setQuery(api.affirmations.list, { userId: convexUserId }, current.map((a) => a._id === args.id ? { ...a, text: args.text } : a));
     }
   );
   const updateSource = useMutation(api.affirmations.updateSource).withOptimisticUpdate(
@@ -443,11 +469,7 @@ export default function AffirmationsPage() {
       if (!convexUserId) return;
       const current = localStore.getQuery(api.affirmations.list, { userId: convexUserId });
       if (current === undefined) return;
-      localStore.setQuery(
-        api.affirmations.list,
-        { userId: convexUserId },
-        current.map((a) => a._id === args.id ? { ...a, source: args.source } : a)
-      );
+      localStore.setQuery(api.affirmations.list, { userId: convexUserId }, current.map((a) => a._id === args.id ? { ...a, source: args.source } : a));
     }
   );
   const recordRound = useMutation(api.affirmations.recordRound).withOptimisticUpdate(
@@ -463,10 +485,7 @@ export default function AffirmationsPage() {
           rounds: 1,
         });
       } else {
-        localStore.setQuery(api.affirmations.getTodaySession, { userId: args.userId, date: args.date }, {
-          ...current,
-          rounds: current.rounds + 1,
-        });
+        localStore.setQuery(api.affirmations.getTodaySession, { userId: args.userId, date: args.date }, { ...current, rounds: current.rounds + 1 });
       }
     }
   );
@@ -549,15 +568,15 @@ export default function AffirmationsPage() {
   return (
     <div className="max-w-lg space-y-6">
       {/* Header */}
-      <div>
+      <motion.div {...fadeUp(0)}>
         <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Affirmations</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
         </p>
-      </div>
+      </motion.div>
 
       {/* ── Saved affirmations ── */}
-      <div className="rounded-2xl border border-border bg-card p-4 space-y-1">
+      <motion.div {...fadeUp(0.06)} className="rounded-2xl border border-border bg-card p-4 space-y-1">
         <div className="flex items-center gap-2 px-2 mb-3">
           <BookmarkCheck className="w-4 h-4 text-sky-400" />
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -575,16 +594,26 @@ export default function AffirmationsPage() {
         ) : savedList.length === 0 ? (
           <p className="text-xs text-muted-foreground/50 italic px-2">None saved yet. Bookmark any affirmation to save it here.</p>
         ) : (
-          savedList.map((item) => (
-            <AffirmationRow
-              key={item._id}
-              item={item}
-              isSaved
-              onRemove={() => removeAffirmation({ id: item._id })}
-              onUpdateText={(t) => updateText({ id: item._id, text: t })}
-              onMoveToPool={() => updateSource({ id: item._id, source: "manual" })}
-            />
-          ))
+          <AnimatePresence mode="popLayout">
+            {savedList.map((item) => (
+              <motion.div
+                key={item._id}
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -16, transition: { duration: 0.18 } }}
+                layout
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <AffirmationRow
+                  item={item}
+                  isSaved
+                  onRemove={() => removeAffirmation({ id: item._id })}
+                  onUpdateText={(t) => updateText({ id: item._id, text: t })}
+                  onMoveToPool={() => updateSource({ id: item._id, source: "manual" })}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         )}
 
         <AddRow
@@ -593,14 +622,25 @@ export default function AffirmationsPage() {
           icon={Bookmark}
           iconClass="text-sky-400"
         />
-      </div>
+      </motion.div>
 
       {/* ── Today's practice ── */}
-      <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+      <motion.div {...fadeUp(0.12)} className="rounded-2xl border border-border bg-card p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              {goalMet && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+              <AnimatePresence mode="wait">
+                {goalMet && (
+                  <motion.div
+                    key="check"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", damping: 14, stiffness: 200 }}
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
               <span className="text-sm font-semibold">
                 {goalMet ? "Daily goal complete" : "Today's progress"}
               </span>
@@ -614,22 +654,23 @@ export default function AffirmationsPage() {
         </div>
 
         {practiceList.length > 0 ? (
-          <button
+          <motion.button
+            whileTap={{ scale: 0.98 }}
             onClick={() => goalMet ? setShowRecap(true) : setInRound(true)}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-900 font-semibold text-sm transition-colors"
           >
             <Flame className="w-4 h-4" />
             {rounds === 0 ? "Start first round" : goalMet ? "View recap" : `Start round ${rounds + 1}`}
-          </button>
+          </motion.button>
         ) : (
           <p className="text-sm text-muted-foreground text-center py-2">
             Add affirmations to your practice pool below to begin.
           </p>
         )}
-      </div>
+      </motion.div>
 
       {/* ── Practice pool ── */}
-      <div className="rounded-2xl border border-border bg-card p-4 space-y-1">
+      <motion.div {...fadeUp(0.18)} className="rounded-2xl border border-border bg-card p-4 space-y-1">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-2 mb-1">
           Practice pool
         </p>
@@ -649,16 +690,26 @@ export default function AffirmationsPage() {
           </div>
         )}
 
-        {practiceList.map((item) => (
-          <AffirmationRow
-            key={item._id}
-            item={item}
-            isSaved={false}
-            onRemove={() => removeAffirmation({ id: item._id })}
-            onUpdateText={(t) => updateText({ id: item._id, text: t })}
-            onMoveToSaved={() => updateSource({ id: item._id, source: "saved" })}
-          />
-        ))}
+        <AnimatePresence mode="popLayout">
+          {practiceList.map((item) => (
+            <motion.div
+              key={item._id}
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: -16, transition: { duration: 0.18 } }}
+              layout
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <AffirmationRow
+                item={item}
+                isSaved={false}
+                onRemove={() => removeAffirmation({ id: item._id })}
+                onUpdateText={(t) => updateText({ id: item._id, text: t })}
+                onMoveToSaved={() => updateSource({ id: item._id, source: "saved" })}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
 
         <AddRow
           placeholder="I am… / I have… / I can…"
@@ -666,10 +717,10 @@ export default function AffirmationsPage() {
           icon={Flame}
           iconClass="text-amber-400"
         />
-      </div>
+      </motion.div>
 
       {/* AI generate */}
-      <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+      <motion.div {...fadeUp(0.24)} className="rounded-2xl border border-border bg-card p-4 space-y-3">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium flex items-center gap-1.5">
@@ -680,14 +731,15 @@ export default function AffirmationsPage() {
               Craft 5 affirmations from your dreams — added to your practice pool.
             </p>
           </div>
-          <button
+          <motion.button
+            whileTap={{ scale: 0.95 }}
             onClick={handleGenerate}
             disabled={generating}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-border hover:bg-accent transition-colors disabled:opacity-50 shrink-0"
           >
             {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
             {generating ? "Generating…" : "Generate"}
-          </button>
+          </motion.button>
         </div>
         <div className="flex items-center justify-between border-t border-border/40 pt-2.5">
           <span className="text-xs text-muted-foreground/50">
@@ -699,7 +751,7 @@ export default function AffirmationsPage() {
             Personalize →
           </Link>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

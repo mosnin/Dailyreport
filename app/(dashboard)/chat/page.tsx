@@ -8,6 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { MessageSquare, Send, Bot, User } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { fadeUp } from "@/lib/motion";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -85,6 +87,8 @@ const SUGGESTED = [
   "How consistent have I been with my daily goals?",
 ];
 
+const ease = [0.16, 1, 0.3, 1] as const;
+
 export default function ChatPage() {
   const { convexUserId, isLoading } = useConvexUser();
   const chat = useAction(api.ai.chat);
@@ -145,12 +149,12 @@ export default function ChatPage() {
   return (
     <div className="max-w-2xl flex flex-col h-[calc(100vh-8rem)]">
       {/* Header */}
-      <div className="shrink-0 pb-4">
+      <motion.div {...fadeUp(0)} className="shrink-0 pb-4">
         <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Chat</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Ask anything about your history — the AI searches your past reports to answer.
         </p>
-      </div>
+      </motion.div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto min-h-0 py-4 space-y-4">
@@ -179,9 +183,18 @@ export default function ChatPage() {
           </div>
         )}
 
-        {messages.map((m, i) => (
-          <MessageBubble key={i} msg={m} />
-        ))}
+        <AnimatePresence initial={false}>
+          {messages.map((m, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, ease }}
+            >
+              <MessageBubble msg={m} />
+            </motion.div>
+          ))}
+        </AnimatePresence>
         {thinking && <ThinkingBubble />}
         <div ref={bottomRef} />
       </div>
@@ -204,13 +217,14 @@ export default function ChatPage() {
               el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
             }}
           />
-          <button
+          <motion.button
             onClick={() => send(input)}
             disabled={!input.trim() || thinking}
+            whileTap={{ scale: 0.93 }}
             className="shrink-0 w-8 h-8 rounded-xl bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 hover:bg-primary/90 transition-colors"
           >
             <Send className="w-3.5 h-3.5" />
-          </button>
+          </motion.button>
         </div>
         <p className="text-[11px] text-muted-foreground/50 text-center mt-2">
           Enter to send · Shift+Enter for new line
