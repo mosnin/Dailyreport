@@ -6,10 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { useTodayStatus } from "@/hooks/useTodayStatus";
 import { usePushSubscription } from "@/hooks/usePushSubscription";
-import { StatsBar } from "@/components/dashboard/StatsBar";
-import { CalendarGrid } from "@/components/dashboard/CalendarGrid";
 import { TimezoneModal } from "@/components/dashboard/TimezoneModal";
-import { ScoreChart } from "@/components/dashboard/ScoreChart";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { todayString } from "@/lib/utils";
@@ -128,10 +125,10 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-5xl">
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 lg:gap-10 items-start">
+      <div>
 
-        {/* ── Left column: dynamic daily content ── */}
-        <div className="space-y-8">
+        {/* ── Main content ── */}
+        <div className="max-w-xl space-y-8">
 
           {/* Date + greeting */}
           <motion.div {...fadeUp(0)}>
@@ -274,20 +271,10 @@ export default function DashboardPage() {
                     </motion.div>
                   )}
 
-                {/* Mobile-only: stats + chart below ritual (hidden on lg where right panel shows them) */}
-                <div className="lg:hidden space-y-6">
-                  <motion.div {...fadeUp(0.3)}><StatsBar userId={convexUserId} /></motion.div>
-                  <motion.div {...fadeUp(0.4)}><ScoreChart userId={convexUserId} /></motion.div>
-                </div>
+
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
-
-        {/* ── Right column: persistent context panel (desktop only) ── */}
-        <div className="hidden lg:flex flex-col gap-5 sticky top-6">
-          <motion.div {...fadeUp(0.1)}><StatsBar userId={convexUserId} compact /></motion.div>
-          {reportDone && <motion.div {...fadeUp(0.18)}><ScoreChart userId={convexUserId} /></motion.div>}
         </div>
 
       </div>
