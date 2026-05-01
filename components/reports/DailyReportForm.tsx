@@ -440,20 +440,12 @@ export function DailyReportForm({
     <form onSubmit={handleSubmit} className="space-y-0">
 
       {/* Progress bar */}
-      <div className="mb-8 space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40">
-            {filledCount === 5 ? "Ready to close" : `${filledCount} of 5`}
+      <div className="mb-8 space-y-1.5">
+        <div className="flex items-center justify-between text-[11px] text-muted-foreground/50">
+          <span className="font-medium">
+            {filledCount === 5 ? "Ready to close" : `${filledCount} of 7 sections`}
           </span>
-          {filledCount === 5 && (
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-[11px] font-medium text-emerald-500"
-            >
-              Complete ✓
-            </motion.span>
-          )}
+          <span>{Math.round((filledCount / 5) * 100)}%</span>
         </div>
         <div className="h-0.5 w-full rounded-full bg-muted overflow-hidden">
           <motion.div

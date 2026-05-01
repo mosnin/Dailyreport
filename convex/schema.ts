@@ -185,4 +185,11 @@ export default defineSchema({
     drainFactors: v.array(v.object({ factor: v.string(), count: v.number() })),
     rechargeFactors: v.array(v.object({ factor: v.string(), count: v.number() })),
   }).index("by_user", ["userId"]),
+
+  weekDrafts: defineTable({
+    userId: v.id("users"),
+    weekStartDate: v.string(), // Monday yyyy-MM-dd
+    bullets: v.array(v.string()), // 3-5 short bullet strings
+    generatedAt: v.number(),
+  }).index("by_user_week", ["userId", "weekStartDate"]),
 });

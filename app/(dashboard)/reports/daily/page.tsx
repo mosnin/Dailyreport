@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useQuery } from "convex/react";
+import { useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { useTodayStatus } from "@/hooks/useTodayStatus";
@@ -29,10 +29,12 @@ function CompletionOverlay({
   streak,
   onDismiss,
   isPastDate,
+  callback,
 }: {
   streak: number;
   onDismiss: () => void;
   isPastDate: boolean;
+  callback?: string;
 }) {
   const today = new Date();
   return (
@@ -67,6 +69,17 @@ function CompletionOverlay({
           {isPastDate ? "Caught up. Well done." : "The work is done. Rest well."}
         </p>
 
+        {callback && (
+          <motion.p
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="font-heading italic text-sm text-foreground/70 max-w-[260px] mx-auto leading-relaxed"
+          >
+            &ldquo;{callback}&rdquo;
+          </motion.p>
+        )}
+
         <button
           onClick={onDismiss}
           className="pointer-events-auto text-xs text-muted-foreground/40 hover:text-muted-foreground transition-colors"
@@ -100,6 +113,8 @@ function DailyReportContent() {
   const { convexUserId, isLoading } = useConvexUser();
   const { streak } = useTodayStatus(convexUserId);
   const [completed, setCompleted] = useState(false);
+  const [callback, setCallback] = useState<string>("");
+  const generateCallback = useAction(api.ai.generateSubmitCallback);
 
   const today = todayString();
   const dateParam = searchParams.get("date");
@@ -118,6 +133,31 @@ function DailyReportContent() {
     return <LoadingSkeleton />;
   }
 
+  async function handleSuccess() {
+    setCompleted(true);
+    // Fire-and-forget: generate the personalized callback without blocking the overlay
+    try {
+      const text = existing
+        ? [
+            (existing.responses as any)?.dayActivity,
+            (existing.responses as any)?.emotionalDrain,
+            (existing.responses as any)?.tomorrowPlan,
+            ...((existing.responses as any)?.problemsToSolve ?? []).map((p: any) => p.title),
+          ].filter(Boolean).join(" ")
+        : "";
+      if (text.trim() && convexUserId) {
+        const result = await generateCallback({
+          userId: convexUserId,
+          reportText: text,
+          date: targetDate,
+        });
+        setCallback(result);
+      }
+    } catch {
+      // non-critical, ignore
+    }
+  }
+
   const dateObj = new Date(targetDate + "T12:00:00");
 
   return (
@@ -127,6 +167,7 @@ function DailyReportContent() {
           streak={streak}
           onDismiss={() => setCompleted(false)}
           isPastDate={isPastDate}
+          callback={callback}
         />
       )}
 
@@ -192,7 +233,7 @@ function DailyReportContent() {
             userId={convexUserId}
             date={targetDate}
             initialResponses={existing?.responses as Record<string, unknown> | undefined}
-            onSuccess={() => setCompleted(true)}
+            onSuccess={handleSuccess}
           />
         </motion.div>
 

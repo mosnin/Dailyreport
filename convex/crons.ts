@@ -15,6 +15,9 @@ crons.weekly("send-weekly-digest-emails", { dayOfWeek: "monday", hourUTC: 9, min
 // Sunday 6pm UTC — gentle reminder if weekly report not yet submitted
 crons.weekly("send-weekly-reminder-emails", { dayOfWeek: "sunday", hourUTC: 18, minuteUTC: 0 }, internal.email.sendWeeklyRemindersToAll);
 
+// Sunday 7pm UTC — generate AI week draft from the 7 daily reports
+crons.weekly("generate-week-drafts", { dayOfWeek: "sunday", hourUTC: 19, minuteUTC: 0 }, internal.crons.generateWeekDraftsForAllUsers);
+
 export default crons;
 
 export const checkNotifications = internalAction({
@@ -120,6 +123,29 @@ function localDateInTimezone(timezone: string | undefined): string {
     return new Date().toISOString().split("T")[0];
   }
 }
+
+export const generateWeekDraftsForAllUsers = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.runQuery(internal.crons.getAllUsers);
+    // Sunday: Monday of the current week is Sunday - 6 days
+    const sunday = new Date();
+    const monday = new Date(sunday);
+    monday.setUTCDate(sunday.getUTCDate() - 6);
+    const weekStartDate = monday.toISOString().split("T")[0];
+
+    for (const user of users) {
+      try {
+        await ctx.runAction(internal.ai.generateSundayWeekDraft, {
+          userId: user._id,
+          weekStartDate,
+        });
+      } catch (err) {
+        console.error(`generateWeekDraftsForAllUsers failed for ${user._id}:`, err);
+      }
+    }
+  },
+});
 
 export const generateVisualizationsForAllUsers = internalAction({
   args: {},

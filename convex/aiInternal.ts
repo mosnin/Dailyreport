@@ -549,3 +549,58 @@ export const saveInspiration = internalMutation({
     }
   },
 });
+
+export const getWeekDraftInternal = internalQuery({
+  args: { userId: v.id("users"), weekStartDate: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("weekDrafts")
+      .withIndex("by_user_week", (q) =>
+        q.eq("userId", args.userId).eq("weekStartDate", args.weekStartDate)
+      )
+      .unique();
+  },
+});
+
+export const saveWeekDraft = internalMutation({
+  args: {
+    userId: v.id("users"),
+    weekStartDate: v.string(),
+    bullets: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("weekDrafts")
+      .withIndex("by_user_week", (q) =>
+        q.eq("userId", args.userId).eq("weekStartDate", args.weekStartDate)
+      )
+      .unique();
+    if (existing) {
+      await ctx.db.patch(existing._id, { bullets: args.bullets, generatedAt: Date.now() });
+    } else {
+      await ctx.db.insert("weekDrafts", {
+        userId: args.userId,
+        weekStartDate: args.weekStartDate,
+        bullets: args.bullets,
+        generatedAt: Date.now(),
+      });
+    }
+  },
+});
+
+// Public query for the weekly report page to read the draft
+export const getWeekDraftPublic = query({
+  args: { userId: v.id("users"), weekStartDate: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return null;
+    return await ctx.db
+      .query("weekDrafts")
+      .withIndex("by_user_week", (q) =>
+        q.eq("userId", args.userId).eq("weekStartDate", args.weekStartDate)
+      )
+      .unique();
+  },
+});

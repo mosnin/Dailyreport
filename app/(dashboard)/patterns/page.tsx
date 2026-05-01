@@ -289,18 +289,16 @@ function EnergyTab({ userId }: { userId: Id<"users"> }) {
             </motion.p>
           </motion.div>
         ) : (
-          <motion.div
-            key="empty"
-            {...fadeUp(0.1)}
-            className="rounded-2xl border border-dashed border-border/60 bg-muted/10 p-10 text-center space-y-3"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto">
-              <Zap className="w-5 h-5 text-amber-500" />
+          <motion.div key="empty" {...fadeUp(0.1)}>
+            <div className="py-16 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-muted/50 mx-auto flex items-center justify-center">
+                <Zap className="w-5 h-5 text-muted-foreground/30" />
+              </div>
+              <p className="font-heading text-lg text-muted-foreground/50 italic">No energy data yet.</p>
+              <p className="text-sm text-muted-foreground/40 max-w-xs mx-auto leading-relaxed">
+                Fill in the emotional check-in on your daily report and patterns will emerge here.
+              </p>
             </div>
-            <p className="text-sm font-medium">No energy data yet</p>
-            <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-              Fill in the emotional drain field in your daily reports to unlock energy pattern tracking.
-            </p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -472,12 +470,15 @@ function PeopleTab({ userId }: { userId: Id<"users"> }) {
           )}
 
           {data.allPeople.length === 0 && (
-            <PeopleEmptyState
-              icon={Users}
-              headline="Your network starts with your first report"
-              body="People you mention in daily reports appear here. Complete a few reports to see your connection patterns."
-              cta={{ label: "Write today's report", href: "/reports/daily" }}
-            />
+            <div className="py-16 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-muted/50 mx-auto flex items-center justify-center">
+                <Users className="w-5 h-5 text-muted-foreground/30" />
+              </div>
+              <p className="font-heading text-lg text-muted-foreground/50 italic">No connections tracked yet.</p>
+              <p className="text-sm text-muted-foreground/40 max-w-xs mx-auto leading-relaxed">
+                Track who you talk to in the daily report and your network map grows here.
+              </p>
+            </div>
           )}
         </>
       )}
@@ -750,11 +751,15 @@ function ProblemsTab({ userId }: { userId: Id<"users"> }) {
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full" />)}
         </div>
       ) : problems.length === 0 ? (
-        <ProblemsEmptyState
-          icon={CheckCircle2}
-          headline="Nothing unsolved"
-          body="Problems you log in your daily reports appear here. Right now, you're clear."
-        />
+        <div className="py-16 text-center space-y-3">
+          <div className="w-12 h-12 rounded-full bg-muted/50 mx-auto flex items-center justify-center">
+            <AlertCircle className="w-5 h-5 text-muted-foreground/30" />
+          </div>
+          <p className="font-heading text-lg text-muted-foreground/50 italic">No problems logged.</p>
+          <p className="text-sm text-muted-foreground/40 max-w-xs mx-auto leading-relaxed">
+            Write down what&apos;s blocking you in the daily form. Seeing them named is the first step.
+          </p>
+        </div>
       ) : (
         <div className="space-y-4">
           {/* Open problems */}
@@ -1217,11 +1222,15 @@ function GivingTab({ userId }: { userId: Id<"users"> }) {
       )}
 
       {pastDates.length === 0 && entries !== undefined && entries.length === 0 && (
-        <GivingEmptyState
-          icon={Heart}
-          headline="Giving starts here"
-          body="Track acts of giving — time, money, help, presence. What you give shapes who you become."
-        />
+        <div className="py-16 text-center space-y-3">
+          <div className="w-12 h-12 rounded-full bg-muted/50 mx-auto flex items-center justify-center">
+            <Heart className="w-5 h-5 text-muted-foreground/30" />
+          </div>
+          <p className="font-heading text-lg text-muted-foreground/50 italic">No giving entries yet.</p>
+          <p className="text-sm text-muted-foreground/40 max-w-xs mx-auto leading-relaxed">
+            Log what you contributed to others. It matters more than you think.
+          </p>
+        </div>
       )}
     </div>
   );

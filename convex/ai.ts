@@ -1183,6 +1183,49 @@ export const chat = action({
   },
 });
 
+export const generateSubmitCallback = action({
+  args: { userId: v.id("users"), reportText: v.string(), date: v.string() },
+  handler: async (ctx, args): Promise<string> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return "";
+
+    const openai = getOpenAI();
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are a wise mentor who just read someone's daily journal entry.
+Write ONE sentence (max 20 words) that makes them feel genuinely seen — a specific observation, not generic praise.
+
+Rules:
+- Reference something CONCRETE from their entry (a person, problem, plan, or feeling)
+- Never start with "You" — vary the opening
+- No life coach language, no "great job", no hollow affirmations
+- Tone: like a trusted friend who actually read it
+- If the entry is sparse, write something honest about beginning the habit
+
+Examples of good responses:
+"The investor meeting has been on your list four days running — tomorrow might be the day."
+"Three problems named, two with solutions. That's not nothing."
+"Starting is harder than continuing. You started today."`,
+          },
+          {
+            role: "user",
+            content: `Today's entry (${args.date}):\n${args.reportText.slice(0, 1500)}`,
+          },
+        ],
+        max_tokens: 50,
+        temperature: 0.7,
+      });
+      return completion.choices[0].message.content?.trim() ?? "";
+    } catch {
+      return "";
+    }
+  },
+});
+
 export const analyzeGoalHealth = action({
   args: { userId: v.id("users"), reportText: v.string() },
   handler: async (ctx, args): Promise<{
@@ -1241,6 +1284,88 @@ Keep dark list to max 2 goals.`;
       };
     } catch {
       return { touched: [], dark: [], encouragement: "" };
+    }
+  },
+});
+
+export const generateSundayWeekDraft = internalAction({
+  args: { userId: v.id("users"), weekStartDate: v.string() },
+  handler: async (ctx, args): Promise<void> => {
+    // Don't re-generate if already done for this week
+    const existing = await ctx.runQuery(internal.aiInternal.getWeekDraftInternal, {
+      userId: args.userId,
+      weekStartDate: args.weekStartDate,
+    });
+    if (existing) return;
+
+    // Fetch the 7 daily reports for this week
+    const weekData = await ctx.runQuery(internal.aiInternal.getWeekReportsForInsight, {
+      userId: args.userId,
+      weekStartDate: args.weekStartDate,
+    });
+
+    const dailyReports = weekData.daily as Array<{ date: string; responses: unknown }>;
+    if (dailyReports.length === 0) return;
+
+    const dailyText = dailyReports
+      .map((r) => {
+        const res = r.responses as Record<string, unknown>;
+        const parts: string[] = [];
+        if (typeof res?.dayActivity === "string" && res.dayActivity.trim())
+          parts.push(res.dayActivity.slice(0, 200));
+        if (typeof res?.tomorrowPlan === "string" && res.tomorrowPlan.trim())
+          parts.push(`plan: ${res.tomorrowPlan.slice(0, 100)}`);
+        if (Array.isArray(res?.problemsToSolve))
+          parts.push(
+            `problems: ${(res.problemsToSolve as Array<{ title?: string }>)
+              .map((p) => p.title)
+              .filter(Boolean)
+              .join(", ")}`
+          );
+        return parts.length ? `[${r.date}] ${parts.join(" | ")}` : null;
+      })
+      .filter(Boolean)
+      .join("\n");
+
+    const openai = getOpenAI();
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content: `You are summarizing a person's week from their daily journal entries.
+Write exactly 3 short bullets (max 12 words each) capturing the most significant things from their week:
+- 1 bullet on what they worked on / accomplished
+- 1 bullet on a challenge or pattern observed
+- 1 bullet on energy or forward momentum
+
+Rules:
+- Be specific — reference actual things from the entries, not generic observations
+- Write in first-person past tense ("Shipped the dashboard feature", "Struggled with the investor meeting")
+- No fluff, no life-coach language
+- If a week is sparse, still write 3 bullets from what's available
+
+Return JSON: { "bullets": ["bullet 1", "bullet 2", "bullet 3"] }`,
+          },
+          { role: "user", content: dailyText },
+        ],
+        max_tokens: 200,
+        temperature: 0.4,
+      });
+
+      const result = JSON.parse(completion.choices[0].message.content ?? "{}");
+      const bullets = (result.bullets ?? []) as string[];
+      if (bullets.length > 0) {
+        await ctx.runMutation(internal.aiInternal.saveWeekDraft, {
+          userId: args.userId,
+          weekStartDate: args.weekStartDate,
+          bullets: bullets.slice(0, 5),
+        });
+      }
+    } catch (err) {
+      console.error("generateSundayWeekDraft failed:", err);
     }
   },
 });

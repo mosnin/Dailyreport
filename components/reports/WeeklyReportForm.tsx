@@ -120,9 +120,11 @@ const DRAFT_KEY_PREFIX = "weeklyreport-draft-";
 export function WeeklyReportForm({
   userId,
   initialResponses,
+  draftBullets,
 }: {
   userId: Id<"users">;
   initialResponses?: Record<string, unknown>;
+  draftBullets?: string[];
 }) {
   const weekStart = currentWeekStartString();
   const draftKey = `${DRAFT_KEY_PREFIX}${weekStart}`;
@@ -147,6 +149,23 @@ export function WeeklyReportForm({
       localStorage.setItem(draftKey, JSON.stringify(r));
     } catch {}
   }, [r, isFreshForm, draftKey]);
+
+  // Append newly clicked draft bullets into Q1 (weekActivity)
+  const [prevBulletsLen, setPrevBulletsLen] = useState(0);
+  useEffect(() => {
+    if (!draftBullets || draftBullets.length === 0) return;
+    if (draftBullets.length > prevBulletsLen) {
+      const newBullet = draftBullets[draftBullets.length - 1];
+      setPrevBulletsLen(draftBullets.length);
+      setR((prev) => ({
+        ...prev,
+        weekActivity: prev.weekActivity
+          ? `${prev.weekActivity}\n• ${newBullet}`
+          : `• ${newBullet}`,
+      }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftBullets]);
 
   function set<K extends keyof WeeklyReportResponses>(key: K, value: WeeklyReportResponses[K]) {
     setR((prev) => ({ ...prev, [key]: value }));

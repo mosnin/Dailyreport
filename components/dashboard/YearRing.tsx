@@ -18,9 +18,11 @@ function Skeleton() {
 export function YearRing({
   userId,
   streak,
+  createdAt,
 }: {
   userId: Id<"users">;
   streak: number;
+  createdAt?: number;
 }) {
   const year = new Date().getFullYear();
   const today = format(new Date(), "yyyy-MM-dd");
@@ -30,15 +32,42 @@ export function YearRing({
   if (submittedDates === undefined) return <Skeleton />;
 
   const yearStart = new Date(`${year}-01-01T12:00:00`);
+  // Start accuracy from account creation if it's within this year — so a new
+  // user sees their actual consistency rate, not a demoralising fraction of 365.
+  const journeyStart =
+    createdAt && createdAt > yearStart.getTime()
+      ? new Date(new Date(createdAt).setHours(12, 0, 0, 0))
+      : yearStart;
+
   const todayDate = new Date(today + "T12:00:00");
-  const dayOfYear = Math.max(
+  // Only count days that have fully passed + today-if-submitted. Exclude future.
+  const daysElapsed = Math.max(
     1,
-    Math.round((todayDate.getTime() - yearStart.getTime()) / (1000 * 60 * 60 * 24))
+    Math.round((todayDate.getTime() - journeyStart.getTime()) / (1000 * 60 * 60 * 24)) + 1
   );
 
   const doneCount = submittedDates.length;
-  const elapsed = dayOfYear + 1;
-  const accuracy = Math.round((doneCount / elapsed) * 100);
+  const accuracy = Math.min(100, Math.round((doneCount / daysElapsed) * 100));
+
+  // Motivational qualifier
+  const qualifier =
+    daysElapsed <= 7 && accuracy === 100
+      ? "Perfect start."
+      : accuracy >= 85
+      ? "Exceptional."
+      : accuracy >= 70
+      ? "On track."
+      : accuracy >= 50
+      ? "Building."
+      : daysElapsed <= 14
+      ? "Just getting started."
+      : "Keep going.";
+
+  // Label: "since April" if joined mid-year, else the year
+  const sinceLabel =
+    createdAt && createdAt > yearStart.getTime()
+      ? `since ${format(new Date(createdAt), "MMM d")}`
+      : String(year);
 
   const R = 58;
   const CX = 70;
@@ -91,27 +120,26 @@ export function YearRing({
             {accuracy}%
           </motion.span>
           <span className="text-[10px] text-muted-foreground/50 mt-1 tracking-wide">
-            {year}
+            {sinceLabel}
           </span>
         </div>
       </div>
 
-      {/* Streak badge — sits below ring */}
-      {streak > 0 ? (
-        <motion.div
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.55 }}
-          className="flex items-center gap-1.5 text-xs font-semibold text-orange-500"
-        >
-          <Flame className="w-3.5 h-3.5" />
-          {streak}d streak
-        </motion.div>
-      ) : (
-        <span className="text-[11px] text-muted-foreground/40">
-          {doneCount}/{elapsed} days
-        </span>
-      )}
+      {/* Qualifier + streak */}
+      <motion.div
+        initial={{ opacity: 0, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.55 }}
+        className="flex flex-col items-center gap-1"
+      >
+        <span className="text-[11px] text-muted-foreground/50 italic">{qualifier}</span>
+        {streak > 0 && (
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-orange-500">
+            <Flame className="w-3.5 h-3.5" />
+            {streak}d streak
+          </div>
+        )}
+      </motion.div>
     </div>
   );
 }

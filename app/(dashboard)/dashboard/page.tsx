@@ -198,7 +198,7 @@ export default function DashboardPage() {
           {/* ── Year ring + consistency panel ── */}
           <motion.div {...fadeUp(0.08)}>
             <div className="flex items-center gap-6 py-2">
-              <YearRing userId={convexUserId} streak={streak} />
+              <YearRing userId={convexUserId} streak={streak} createdAt={convexUser?.createdAt} />
               <div className="flex flex-col gap-1.5">
                 <p className="text-[10px] font-semibold tracking-[0.14em] uppercase text-muted-foreground/40">
                   Daily consistency

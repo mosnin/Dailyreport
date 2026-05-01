@@ -154,8 +154,8 @@ function AffirmationRow({
         />
       ) : (
         <span
-          onDoubleClick={() => setEditing(true)}
-          className="flex-1 text-sm leading-snug cursor-default select-none"
+          onClick={() => setEditing(true)}
+          className="flex-1 text-sm leading-snug cursor-text"
         >
           {item.text}
         </span>
@@ -172,7 +172,7 @@ function AffirmationRow({
           <motion.button
             whileTap={{ scale: 0.85 }}
             onClick={() => setEditing(true)}
-            className="p-1 text-muted-foreground/30 hover:text-foreground transition-colors opacity-0 group-hover:opacity-100"
+            className="p-1 text-muted-foreground/30 hover:text-foreground transition-colors"
             title="Edit"
           >
             <Pencil className="w-3.5 h-3.5" />
