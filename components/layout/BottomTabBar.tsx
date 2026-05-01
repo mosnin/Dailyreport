@@ -17,11 +17,8 @@ import {
   SlidersHorizontal,
   ShieldAlert,
   LogOut,
-  Heart,
   Lightbulb,
-  AlertCircle,
-  Zap,
-  Users,
+  Activity,
   CalendarDays,
 } from "lucide-react";
 import { useClerk, useUser } from "@clerk/nextjs";
@@ -284,16 +281,13 @@ export function BottomTabBar() {
               <DrawerSection label="Build" />
               <div className="space-y-0.5">
                 <DrawerItem href="/goals" label="Goals" icon={Crosshair} active={is("/goals")} onClose={close} />
-                <DrawerItem href="/problems" label="Problems" icon={AlertCircle} active={is("/problems")} onClose={close} />
-                <DrawerItem href="/giving" label="Giving" icon={Heart} active={is("/giving")} onClose={close} />
               </div>
 
               {/* Reflect */}
               <DrawerSection label="Reflect" />
               <div className="space-y-0.5 mb-2">
                 <DrawerItem href="/insights" label="Progress" icon={BrainCircuit} active={is("/insights")} onClose={close} />
-                <DrawerItem href="/energy" label="Energy" icon={Zap} active={is("/energy")} onClose={close} />
-                <DrawerItem href="/people" label="People" icon={Users} active={is("/people")} onClose={close} />
+                <DrawerItem href="/patterns" label="Patterns" icon={Activity} active={is("/patterns")} onClose={close} />
                 <DrawerItem href="/calendar" label="History" icon={CalendarDays} active={is("/calendar")} onClose={close} />
                 <DrawerItem href="/inspiration" label="Inspiration" icon={Lightbulb} active={is("/inspiration")} onClose={close} />
               </div>

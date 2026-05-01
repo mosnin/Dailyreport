@@ -19,11 +19,8 @@ import {
   ShieldAlert,
   LogOut,
   ChevronLeft,
-  Heart,
   Lightbulb,
-  AlertCircle,
-  Users,
-  Zap,
+  Activity,
   CalendarDays,
   Search,
 } from "lucide-react";
@@ -219,17 +216,14 @@ export function Sidebar() {
         {/* Build */}
         <Section label="Build" collapsed={collapsed} />
         <div className="space-y-0.5">
-          <NavItem href="/goals"    label="Goals"    icon={Crosshair}   active={is("/goals")}    collapsed={collapsed} />
-          <NavItem href="/problems" label="Problems" icon={AlertCircle} active={is("/problems")} collapsed={collapsed} />
-          <NavItem href="/giving"   label="Giving"   icon={Heart}       active={is("/giving")}   collapsed={collapsed} />
+          <NavItem href="/goals"    label="Goals"    icon={Crosshair} active={is("/goals")}    collapsed={collapsed} />
         </div>
 
         {/* Reflect */}
         <Section label="Reflect" collapsed={collapsed} />
         <div className="space-y-0.5">
           <NavItem href="/insights"    label="Progress"     icon={BrainCircuit} active={is("/insights")}    collapsed={collapsed} />
-          <NavItem href="/energy"      label="Energy"       icon={Zap}          active={is("/energy")}      collapsed={collapsed} />
-          <NavItem href="/people"      label="People"       icon={Users}        active={is("/people")}      collapsed={collapsed} />
+          <NavItem href="/patterns"    label="Patterns"     icon={Activity}     active={is("/patterns")}    collapsed={collapsed} />
           <NavItem href="/calendar"    label="History"      icon={CalendarDays} active={is("/calendar")}    collapsed={collapsed} />
           <NavItem href="/inspiration" label="Inspiration"  icon={Lightbulb}    active={is("/inspiration")} collapsed={collapsed} />
         </div>
