@@ -25,6 +25,7 @@ import {
   Users,
   Zap,
   CalendarDays,
+  Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
@@ -176,6 +177,27 @@ export function Sidebar() {
           </div>
         </div>
       ) : null}
+
+      {/* Quick search */}
+      <div className={cn("shrink-0", collapsed ? "px-1.5 mt-3" : "px-3 mt-3")}>
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
+          title={collapsed ? "Search (⌘K)" : undefined}
+          className={cn(
+            "w-full flex items-center rounded-xl text-sm transition-colors border border-border bg-background hover:bg-accent hover:border-accent text-muted-foreground hover:text-foreground",
+            collapsed ? "justify-center p-2" : "gap-2 px-3 py-2"
+          )}
+        >
+          <Search className="w-3.5 h-3.5 shrink-0" />
+          {!collapsed && (
+            <>
+              <span className="text-xs">Quick search</span>
+              <kbd className="ml-auto text-[10px] font-mono bg-muted/60 border border-border/60 rounded px-1 py-0.5 leading-none text-muted-foreground/60">⌘K</kbd>
+            </>
+          )}
+        </motion.button>
+      </div>
 
       {/* Nav */}
       <nav className={cn("flex flex-col flex-1 overflow-y-auto min-h-0 py-2", collapsed ? "px-1.5" : "px-2")}>

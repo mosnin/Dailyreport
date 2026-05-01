@@ -87,24 +87,24 @@ export function WelcomeOverlay() {
   useEffect(() => {
     if (!show) return;
 
-    // Sequence:
-    //   0ms  → favicon scales in, typing begins at +300ms
-    //   ~1500ms → typing finished (longest greeting ~25 chars at 55ms/char + delay)
-    //   1850ms → fade typing out, streak springs in (or close immediately if no streak)
-    //   ~3000ms → streak fully settled
-    //   3850ms → exit animation starts (scale 1.04 + fade)
-    //   4350ms → overlay unmounted
+    // Wait for stats before deciding whether to show the streak phase.
+    // If stats hasn't resolved within the typing window, hold the overlay
+    // for a bit longer (capped at 3s) so users on slow connections still
+    // get the streak reveal — but never hang the splash forever.
+    const statsReady = stats !== undefined;
+    const decisionDelay = statsReady ? 1850 : 3000;
+
     const transitionTimer = setTimeout(() => {
-      if (streak > 0) {
+      if (statsReady && streak > 0) {
         setPhase("streak");
         setTimeout(() => setShow(false), 2000);
       } else {
         setShow(false);
       }
-    }, 1850);
+    }, decisionDelay);
 
     return () => clearTimeout(transitionTimer);
-  }, [show, streak]);
+  }, [show, stats, streak]);
 
   if (!isLoaded) return null;
 

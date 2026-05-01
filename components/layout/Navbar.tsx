@@ -2,186 +2,29 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { useClerk, useUser } from "@clerk/nextjs";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { useTodayStatus } from "@/hooks/useTodayStatus";
-import { useState } from "react";
-import {
-  Gauge,
-  NotepadText,
-  BookOpen,
-  Crosshair,
-  Flame,
-  Telescope,
-  BrainCircuit,
-  SlidersHorizontal,
-  ShieldAlert,
-  LogOut,
-  AlignJustify,
-  Heart,
-  Lightbulb,
-  AlertCircle,
-  Zap,
-  Users,
-  CalendarDays,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
-
-function MobileNavItem({
-  href,
-  label,
-  icon: Icon,
-  active,
-  onClose,
-  dot,
-}: {
-  href: string;
-  label: string;
-  icon: React.ElementType;
-  active: boolean;
-  onClose: () => void;
-  dot?: boolean | null;
-}) {
-  return (
-    <Link
-      href={href}
-      onClick={onClose}
-      className={cn(
-        "relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors",
-        active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"
-      )}
-    >
-      <Icon className="w-4 h-4 shrink-0" />
-      <span className="flex-1 leading-none">{label}</span>
-      {dot === true && !active && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />}
-      {dot === false && !active && <span className="w-1.5 h-1.5 rounded-full bg-amber-400/60 shrink-0" />}
-    </Link>
-  );
-}
-
-function MobileSection({ label }: { label: string }) {
-  return (
-    <p className="px-3 pt-4 pb-1 text-[10px] font-semibold tracking-[0.14em] uppercase text-muted-foreground/40 select-none">
-      {label}
-    </p>
-  );
-}
 
 export function Navbar() {
-  const pathname = usePathname();
-  const { signOut } = useClerk();
-  const { user } = useUser();
-  const { convexUserId, convexUser } = useConvexUser();
+  const { convexUserId } = useConvexUser();
   const { totalDone, reportDone, affirmDone, vizDone } = useTodayStatus(convexUserId);
-  const isAdmin = (convexUser as { role?: string } | null | undefined)?.role === "admin";
-  const [open, setOpen] = useState(false);
-  const close = () => setOpen(false);
-  const is = (href: string) => pathname === href;
 
   return (
-    <header className="lg:hidden sticky top-0 z-50 flex items-center justify-between px-4 py-3 border-b border-border bg-card/80 backdrop-blur">
+    <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 border-b border-border bg-card/80 backdrop-blur safe-top">
       <Link href="/dashboard" className="flex items-center">
         <Image src="/logo-light.png" alt="DailyReport" width={1800} height={400} quality={100} className="h-7 w-auto dark:hidden" />
         <Image src="/logo-dark.png" alt="DailyReport" width={1800} height={400} quality={100} className="h-7 w-auto hidden dark:block" />
       </Link>
 
-      <div className="flex items-center gap-2">
-        {convexUserId && (
-          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-muted text-xs font-medium text-muted-foreground">
-            <span className={cn("w-1.5 h-1.5 rounded-full", reportDone ? "bg-emerald-400" : "bg-border")} />
-            <span className={cn("w-1.5 h-1.5 rounded-full", affirmDone ? "bg-amber-400" : "bg-border")} />
-            <span className={cn("w-1.5 h-1.5 rounded-full", vizDone ? "bg-sky-400" : "bg-border")} />
-            <span className="ml-0.5">{totalDone}/3</span>
-          </div>
-        )}
-
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger className="p-2 rounded-lg hover:bg-accent transition-colors" onClick={() => setOpen(true)}>
-            <AlignJustify className="w-5 h-5" />
-          </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-0 flex flex-col">
-            <div className="flex items-center px-5 py-4 border-b border-border shrink-0">
-              <Link href="/dashboard" onClick={close}>
-                <Image src="/logo-light.png" alt="DailyReport" width={1800} height={400} quality={100} className="h-7 w-auto dark:hidden" />
-                <Image src="/logo-dark.png" alt="DailyReport" width={1800} height={400} quality={100} className="h-7 w-auto hidden dark:block" />
-              </Link>
-            </div>
-
-            <ScrollArea className="flex-1 min-h-0">
-              <nav className="flex flex-col p-3">
-
-                {/* Core */}
-                <div className="space-y-0.5">
-                  <MobileNavItem href="/dashboard"     label="Today"        icon={Gauge}       active={is("/dashboard")}     onClose={close} />
-                  <MobileNavItem href="/reports/daily" label="Daily Report" icon={NotepadText} active={is("/reports/daily")} onClose={close} dot={reportDone} />
-                </div>
-
-                {/* Practice */}
-                <MobileSection label="Practice" />
-                <div className="space-y-0.5">
-                  <MobileNavItem href="/affirmations"   label="Affirmations"   icon={Flame}     active={is("/affirmations")}   onClose={close} dot={affirmDone} />
-                  <MobileNavItem href="/dreams"         label="Visualizations"  icon={Telescope} active={is("/dreams")}         onClose={close} dot={vizDone} />
-                  <MobileNavItem href="/reports/weekly" label="Weekly Review"  icon={BookOpen}  active={is("/reports/weekly")} onClose={close} />
-                </div>
-
-                {/* Build */}
-                <MobileSection label="Build" />
-                <div className="space-y-0.5">
-                  <MobileNavItem href="/goals"    label="Goals"    icon={Crosshair}   active={is("/goals")}    onClose={close} />
-                  <MobileNavItem href="/problems" label="Problems" icon={AlertCircle} active={is("/problems")} onClose={close} />
-                  <MobileNavItem href="/giving"   label="Giving"   icon={Heart}       active={is("/giving")}   onClose={close} />
-                </div>
-
-                {/* Reflect */}
-                <MobileSection label="Reflect" />
-                <div className="space-y-0.5 mb-2">
-                  <MobileNavItem href="/insights"    label="Progress"    icon={BrainCircuit} active={is("/insights")}    onClose={close} />
-                  <MobileNavItem href="/energy"      label="Energy"      icon={Zap}          active={is("/energy")}      onClose={close} />
-                  <MobileNavItem href="/people"      label="People"      icon={Users}        active={is("/people")}      onClose={close} />
-                  <MobileNavItem href="/calendar"    label="History"     icon={CalendarDays} active={is("/calendar")}    onClose={close} />
-                  <MobileNavItem href="/inspiration" label="Inspiration" icon={Lightbulb}    active={is("/inspiration")} onClose={close} />
-                </div>
-
-              </nav>
-            </ScrollArea>
-
-            <div className="shrink-0 border-t border-border p-3 space-y-1 bg-card">
-              {user && (
-                <div className="flex items-center gap-3 px-2 py-2 mb-1">
-                  {user.imageUrl ? (
-                    <Image src={user.imageUrl} alt={user.fullName ?? "User"} width={28} height={28} className="rounded-full w-7 h-7 object-cover shrink-0" />
-                  ) : (
-                    <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
-                      {(user.firstName?.[0] ?? user.primaryEmailAddress?.emailAddress?.[0] ?? "U").toUpperCase()}
-                    </div>
-                  )}
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-medium truncate">{user.fullName ?? user.primaryEmailAddress?.emailAddress}</span>
-                    {user.fullName && <span className="text-xs text-muted-foreground truncate">{user.primaryEmailAddress?.emailAddress}</span>}
-                  </div>
-                </div>
-              )}
-              {isAdmin && (
-                <Link href="/admin" onClick={close} className={cn("flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors w-full", is("/admin") ? "bg-rose-500 text-white" : "text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30")}>
-                  <ShieldAlert className="w-4 h-4 shrink-0" />
-                  Admin
-                </Link>
-              )}
-              <Link href="/settings" onClick={close} className={cn("flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors w-full", is("/settings") ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground")}>
-                <SlidersHorizontal className="w-4 h-4 shrink-0" />
-                Settings
-              </Link>
-              <button onClick={() => { close(); setTimeout(() => signOut({ redirectUrl: "/" }), 200); }} className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors w-full">
-                <LogOut className="w-4 h-4 shrink-0" />
-                Sign out
-              </button>
-            </div>
-          </SheetContent>
-        </Sheet>
-      </div>
+      {convexUserId && (
+        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-muted text-xs font-medium text-muted-foreground">
+          <span className={cn("w-1.5 h-1.5 rounded-full", reportDone ? "bg-emerald-400" : "bg-border")} />
+          <span className={cn("w-1.5 h-1.5 rounded-full", affirmDone ? "bg-amber-400" : "bg-border")} />
+          <span className={cn("w-1.5 h-1.5 rounded-full", vizDone ? "bg-sky-400" : "bg-border")} />
+          <span className="ml-0.5">{totalDone}/3</span>
+        </div>
+      )}
     </header>
   );
 }

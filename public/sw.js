@@ -1,4 +1,4 @@
-const CACHE_NAME = "dailyreport-v1";
+const CACHE_NAME = "dailyreport-v3";
 const STATIC_ASSETS = ["/", "/dashboard", "/manifest.json"];
 
 self.addEventListener("install", (event) => {

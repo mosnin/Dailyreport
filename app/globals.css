@@ -170,3 +170,20 @@
     oklch(0.73 0.14 268 / 8%) 1px
   );
 }
+
+/* ── iOS safe-area support ──────────────────────────────────────────────
+   Used by the mobile tab bar and any sticky header so content doesn't sit
+   under the iPhone notch or home indicator on PWA installs.            */
+.safe-top    { padding-top:    env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-x      { padding-left:   env(safe-area-inset-left);
+               padding-right:  env(safe-area-inset-right); }
+
+/* Bottom-tab-aware spacing — pages set this on their root scroll container
+   so content never sits behind the floating tab bar on mobile. */
+@media (max-width: 1023px) {
+  .with-bottom-tabs { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
+}
+
+/* ── No-overscroll for the app body on PWAs ───────────────────────────── */
+html, body { overscroll-behavior-y: none; }
