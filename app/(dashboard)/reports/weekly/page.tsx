@@ -5,10 +5,9 @@ import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { WeeklyReportForm } from "@/components/reports/WeeklyReportForm";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
-import { currentWeekStartString, formatDateLabel, isSunday, nextSundayDate } from "@/lib/utils";
-import { format } from "date-fns";
-import { CalendarClock } from "lucide-react";
+import { currentWeekStartString, isSunday, nextSundayDate } from "@/lib/utils";
+import { format, parseISO } from "date-fns";
+import { CalendarClock, CheckCircle2 } from "lucide-react";
 import { motion } from "motion/react";
 import { fadeUp } from "@/lib/motion";
 
@@ -33,54 +32,47 @@ export default function WeeklyReportPage() {
   if (!isSunday()) {
     const next = nextSundayDate();
     return (
-      <div className="max-w-2xl space-y-6">
-        <motion.div {...fadeUp(0)}>
-          <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Weekly Report</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Reflect on the week that just finished — opens every Sunday.
-          </p>
-        </motion.div>
-        <motion.div {...fadeUp(0.08)}>
-          <Card>
-            <CardContent className="py-10 flex flex-col items-center text-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
-                <CalendarClock className="w-6 h-6" />
-              </div>
-              <h2 className="text-lg font-semibold">Come back Sunday</h2>
-              <p className="text-sm text-muted-foreground max-w-sm">
-                The weekly report covers the full week, so it only opens on Sundays.
-                Your next reflection window is{" "}
-                <span className="font-medium text-foreground">
-                  {format(next, "EEEE, MMMM d")}
-                </span>
-                .
-              </p>
-            </CardContent>
-          </Card>
+      <div className="max-w-2xl">
+        <motion.div {...fadeUp(0.08)} className="py-16 flex flex-col items-center text-center gap-5 max-w-sm mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center">
+            <CalendarClock className="w-6 h-6 text-indigo-500" />
+          </div>
+          <div className="space-y-2">
+            <p className="font-heading text-xl font-semibold">The week isn&apos;t over yet</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              The weekly review opens on Sunday — a moment to close the week with intention.
+              Your next window is{" "}
+              <span className="font-medium text-foreground">{format(next, "EEEE, MMMM d")}</span>.
+            </p>
+          </div>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
-      <motion.div {...fadeUp(0)}>
-        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Weekly Report</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Week of {formatDateLabel(weekStart)}
+    <div className="max-w-2xl">
+      <motion.div {...fadeUp(0)} className="mb-10">
+        <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-muted-foreground/40 mb-1.5">
+          Weekly Review
         </p>
-        {existing && (
-          <p className="text-sm text-green-600 font-medium mt-1">
-            Already submitted — you can update your answers below.
-          </p>
-        )}
+        <h1 className="font-heading text-[2.2rem] font-semibold tracking-tight leading-[1.15]">
+          {format(parseISO(weekStart + "T00:00:00"), "MMMM d")} — {format(new Date(), "MMMM d, yyyy")}
+        </h1>
+        <div className="flex items-center gap-3 mt-2">
+          <p className="text-sm text-muted-foreground">Seven days to account for.</p>
+          {existing && (
+            <span className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Saved
+            </span>
+          )}
+        </div>
       </motion.div>
-      <motion.div {...fadeUp(0.08)}>
-        <WeeklyReportForm
-          userId={convexUserId}
-          initialResponses={existing?.responses as Record<string, unknown> | undefined}
-        />
-      </motion.div>
+      <WeeklyReportForm
+        userId={convexUserId}
+        initialResponses={existing?.responses as Record<string, unknown> | undefined}
+      />
     </div>
   );
 }

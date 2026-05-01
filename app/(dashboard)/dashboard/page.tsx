@@ -1,16 +1,19 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { useTodayStatus } from "@/hooks/useTodayStatus";
 import { usePushSubscription } from "@/hooks/usePushSubscription";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { TimezoneModal } from "@/components/dashboard/TimezoneModal";
+import { StatsBar } from "@/components/dashboard/StatsBar";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { todayString } from "@/lib/utils";
-import { Bell, ArrowRight, Flame, Check, BookOpen, Sparkles, AlertCircle } from "lucide-react";
+import { Bell, ArrowRight, Flame, Check, BookOpen, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
@@ -87,9 +90,16 @@ function RitualStep({
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { convexUserId, convexUser, isLoading } = useConvexUser();
   const { user } = useUser();
   const [showTzModal, setShowTzModal] = useState(false);
+
+  const { pullDistance, refreshing } = usePullToRefresh(async () => {
+    router.refresh();
+    // Brief pause so the spinner is visible — feels intentional
+    await new Promise((r) => setTimeout(r, 700));
+  });
   const { subscribe, subscribed } = usePushSubscription(convexUserId);
   const { reportDone, affirmDone, vizDone, streak } = useTodayStatus(convexUserId);
 
@@ -124,7 +134,36 @@ export default function DashboardPage() {
   ).length;
 
   return (
-    <div className="max-w-5xl">
+    <div
+      className="max-w-5xl"
+      style={{
+        paddingTop: pullDistance > 0 ? `${pullDistance * 0.6}px` : undefined,
+        transition: refreshing ? "none" : "padding-top 0.15s ease-out",
+      }}
+    >
+      {/* Pull-to-refresh indicator — mobile only */}
+      <div
+        className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-end justify-center pointer-events-none"
+        style={{
+          paddingTop: "env(safe-area-inset-top)",
+          height: `calc(env(safe-area-inset-top) + ${Math.max(0, pullDistance)}px + 3.5rem)`,
+          opacity: pullDistance > 10 ? Math.min(pullDistance / 72, 1) : 0,
+          transition: refreshing ? "none" : "opacity 0.1s",
+        }}
+      >
+        <div className="mb-3">
+          <RefreshCw
+            className={cn(
+              "w-5 h-5 text-muted-foreground transition-transform",
+              refreshing && "animate-spin"
+            )}
+            style={{
+              transform: refreshing ? undefined : `rotate(${(pullDistance / 72) * 180}deg)`,
+            }}
+          />
+        </div>
+      </div>
+
       <div>
 
         {/* ── Main content ── */}
@@ -228,6 +267,11 @@ export default function DashboardPage() {
                     )}
                   </div>
                 )}
+
+                {/* Compact stats */}
+                <motion.div {...fadeUp(0.22)}>
+                  <StatsBar userId={convexUserId} compact />
+                </motion.div>
 
                 {/* Ritual completion */}
                 <div className="space-y-2">

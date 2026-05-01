@@ -4,15 +4,11 @@ import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { currentWeekStartString } from "@/lib/utils";
 import { Plus, Trash2, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "motion/react";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -75,21 +71,45 @@ function wordCount(text: string): number {
   return text.trim() === "" ? 0 : text.trim().split(/\s+/).length;
 }
 
-// ── Sub-components ─────────────────────────────────────────────────────────
+// ── Journal section header ─────────────────────────────────────────────────
 
-function QuestionCard({ number, title, children }: { number: number; title: string; children: React.ReactNode }) {
+function JournalSection({ number, title, children }: { number: number; title: string; children: React.ReactNode }) {
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-xs font-bold shrink-0">
-            {number}
-          </span>
+    <motion.div
+      className="space-y-5 py-9 border-t border-border/30 first:border-t-0 first:pt-0"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: number * 0.055 }}
+    >
+      <div>
+        <span className="text-[10px] font-semibold tracking-[0.18em] text-muted-foreground/35 uppercase">
+          {String(number).padStart(2, "0")}
+        </span>
+        <p className="font-heading text-[1.15rem] font-medium leading-snug text-foreground mt-1.5">
           {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
+        </p>
+      </div>
+      {children}
+    </motion.div>
+  );
+}
+
+// ── Notebook textarea ──────────────────────────────────────────────────────
+
+function NoteTextarea({ value, onChange, placeholder, minHeight = 120 }: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  minHeight?: number;
+}) {
+  return (
+    <textarea
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      style={{ minHeight }}
+      className="w-full bg-transparent border-0 border-b border-border/35 focus:border-primary/50 focus:outline-none resize-none text-[15px] leading-[1.9] text-foreground placeholder:text-muted-foreground/30 pb-2 transition-colors duration-200"
+    />
   );
 }
 
@@ -139,14 +159,14 @@ export function WeeklyReportForm({
       return;
     }
     if (!r.nextWeekPlan.trim()) {
-      toast.error("Q7 is required — write your plan for next week.");
+      toast.error("Q8 is required — write your plan for next week.");
       return;
     }
     setSaving(true);
     try {
       await submitWeekly({ userId, weekStartDate: weekStart, responses: r });
       try { localStorage.removeItem(draftKey); } catch {}
-      toast.success("Weekly report submitted.");
+      toast.success("Weekly review saved.");
     } catch {
       toast.error("Failed to save. Please try again.");
     } finally {
@@ -186,7 +206,7 @@ export function WeeklyReportForm({
     set("weeklyGoals", r.weeklyGoals.filter((_, idx) => idx !== i));
   }
 
-  // ── Q4 helpers ────────────────────────────────────────────────────────────
+  // ── Q5 helpers ────────────────────────────────────────────────────────────
 
   function addProblem() {
     set("problemsToSolve", [
@@ -206,7 +226,7 @@ export function WeeklyReportForm({
     set("problemsToSolve", r.problemsToSolve.filter((p) => p.id !== id));
   }
 
-  // ── Q5 helpers ────────────────────────────────────────────────────────────
+  // ── Q6 helpers ────────────────────────────────────────────────────────────
 
   function addSolvedProblem() {
     set("problemsSolvedThisWeek", [...r.problemsSolvedThisWeek, ""]);
@@ -223,264 +243,316 @@ export function WeeklyReportForm({
     set("problemsSolvedThisWeek", r.problemsSolvedThisWeek.filter((_, idx) => idx !== i));
   }
 
+  // ── Progress ───────────────────────────────────────────────────────────────
+
+  const filledCount = [
+    r.weekActivity.trim().length > 0,
+    r.weeklyGoals.length > 0,
+    r.emotionalDrain.trim().length > 0,
+    r.didAffirmations !== null,
+    r.nextWeekPlan.trim().length > 0,
+  ].filter(Boolean).length;
+
+  const pct = (filledCount / 5) * 100;
+
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <AnimatePresence>
+      <form onSubmit={handleSubmit} className="space-y-0">
 
-      {/* Q1 */}
-      <QuestionCard number={1} title="What did you do this week and how did you spend your time?">
-        <div>
-          <Textarea
-            value={r.weekActivity}
-            onChange={(e) => set("weekActivity", e.target.value)}
-            placeholder="Walk through your week..."
-            className="min-h-[120px] resize-none"
-          />
-          <p className="text-xs text-muted-foreground/60 mt-1 text-right">
-            {wordCount(r.weekActivity)} {wordCount(r.weekActivity) === 1 ? "word" : "words"}
-          </p>
-        </div>
-      </QuestionCard>
-
-      {/* Q2 */}
-      <QuestionCard number={2} title="Who did you meet or talk to this week, and did they relate to your goals?">
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* People column */}
-          <div className="space-y-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              People you met this week
-            </p>
-            {r.peopleMetThisWeek.map((person) => (
-              <div key={person.id} className="rounded-lg border border-border p-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  <input
-                    value={person.name}
-                    onChange={(e) => updatePerson(person.id, { name: e.target.value })}
-                    placeholder="Person's name"
-                    className="flex-1 text-sm bg-transparent border-b border-border focus:border-primary focus:outline-none pb-1"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removePerson(person.id)}
-                    className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Goal-related?</span>
-                  <button
-                    type="button"
-                    onClick={() => updatePerson(person.id, { goalRelated: true })}
-                    className={cn(
-                      "text-xs px-2 py-0.5 rounded-full border transition-colors",
-                      person.goalRelated === true
-                        ? "bg-green-500/20 border-green-500/40 text-green-600 dark:text-green-400"
-                        : "border-border text-muted-foreground hover:border-green-400"
-                    )}
-                  >
-                    Yes
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => updatePerson(person.id, { goalRelated: false })}
-                    className={cn(
-                      "text-xs px-2 py-0.5 rounded-full border transition-colors",
-                      person.goalRelated === false
-                        ? "bg-red-500/20 border-red-500/40 text-red-500 dark:text-red-400"
-                        : "border-border text-muted-foreground hover:border-red-400"
-                    )}
-                  >
-                    No
-                  </button>
-                </div>
-                <input
-                  value={person.notes}
-                  onChange={(e) => updatePerson(person.id, { notes: e.target.value })}
-                  placeholder="Notes (optional)"
-                  className="w-full text-xs bg-transparent border-b border-border focus:border-primary focus:outline-none pb-1 text-muted-foreground"
-                />
-              </div>
-            ))}
-            <Button type="button" variant="outline" size="sm" onClick={addPerson} className="w-full">
-              <Plus className="w-3.5 h-3.5 mr-1.5" />
-              Add person
-            </Button>
+        {/* Progress bar */}
+        <div className="mb-8 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40">
+              {filledCount === 5 ? "Ready to close" : `${filledCount} of 5`}
+            </span>
+            {filledCount === 5 && (
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-[11px] font-medium text-emerald-500"
+              >
+                Complete ✓
+              </motion.span>
+            )}
           </div>
+          <div className="h-0.5 w-full rounded-full bg-muted overflow-hidden">
+            <motion.div
+              className="h-full rounded-full bg-primary"
+              initial={{ width: 0 }}
+              animate={{ width: `${pct}%` }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            />
+          </div>
+        </div>
 
-          {/* Goals column */}
-          <div className="space-y-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Your goals (for comparison)
-            </p>
+        {/* Q1 — This week in brief */}
+        <JournalSection number={1} title="This week in brief">
+          <div>
+            <NoteTextarea
+              value={r.weekActivity}
+              onChange={(v) => set("weekActivity", v)}
+              placeholder="What defined this week? What did you actually spend your time on?"
+            />
+            {wordCount(r.weekActivity) > 0 && (
+              <p className="text-[11px] text-muted-foreground/40 mt-1.5 text-right tabular-nums">
+                {wordCount(r.weekActivity)} words
+              </p>
+            )}
+          </div>
+        </JournalSection>
+
+        {/* Q2 — Who you connected with */}
+        <JournalSection number={2} title="Who you connected with">
+          <div className="space-y-6">
+            {/* People */}
+            <div className="space-y-3">
+              {r.peopleMetThisWeek.length > 0 && (
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+                  People
+                </p>
+              )}
+              {r.peopleMetThisWeek.map((person) => (
+                <div key={person.id} className="space-y-2 pb-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      value={person.name}
+                      onChange={(e) => updatePerson(person.id, { name: e.target.value })}
+                      placeholder="Name"
+                      className="flex-1 text-sm bg-transparent border-0 border-b border-border/40 focus:border-foreground/50 focus:outline-none pb-1 transition-colors"
+                    />
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => updatePerson(person.id, { goalRelated: true })}
+                        className={cn(
+                          "text-[11px] px-2 py-0.5 rounded-full border transition-colors",
+                          person.goalRelated === true
+                            ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                            : "border-border/50 text-muted-foreground/50 hover:border-emerald-400/50"
+                        )}
+                      >
+                        goal
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removePerson(person.id)}
+                        className="text-muted-foreground/30 hover:text-muted-foreground transition-colors p-0.5"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                  <input
+                    value={person.notes}
+                    onChange={(e) => updatePerson(person.id, { notes: e.target.value })}
+                    placeholder="Notes (optional)"
+                    className="w-full text-xs bg-transparent border-0 border-b border-border/30 focus:border-foreground/40 focus:outline-none pb-1 text-muted-foreground placeholder:text-muted-foreground/30 transition-colors"
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addPerson}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Add person
+              </button>
+            </div>
+
+            {/* Alignment summary */}
+            {r.peopleMetThisWeek.length > 0 && (
+              <div className="pt-1">
+                <p className="text-[11px] text-muted-foreground/40 tabular-nums">
+                  {r.peopleMetThisWeek.filter((p) => p.goalRelated).length} of {r.peopleMetThisWeek.length} goal-aligned
+                </p>
+              </div>
+            )}
+          </div>
+        </JournalSection>
+
+        {/* Q3 — What you set out to accomplish */}
+        <JournalSection number={3} title="What you set out to accomplish">
+          <div className="space-y-2">
             {r.weeklyGoals.map((goal, i) => (
               <div key={i} className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground shrink-0">{i + 1}.</span>
+                <span className="text-muted-foreground/30 text-xs tabular-nums shrink-0">{i + 1}.</span>
                 <input
                   value={goal}
                   onChange={(e) => updateGoal(i, e.target.value)}
                   placeholder={`Goal ${i + 1}`}
-                  className="flex-1 text-sm bg-transparent border-b border-border focus:border-primary focus:outline-none pb-1"
+                  className="flex-1 text-sm bg-transparent border-0 border-b border-border/40 focus:border-foreground/50 focus:outline-none pb-1 transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => removeGoal(i)}
-                  className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                  className="text-muted-foreground/30 hover:text-muted-foreground transition-colors p-0.5 shrink-0"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-3 h-3" />
                 </button>
               </div>
             ))}
-            <Button type="button" variant="outline" size="sm" onClick={addGoal} className="w-full">
-              <Plus className="w-3.5 h-3.5 mr-1.5" />
+            <button
+              type="button"
+              onClick={addGoal}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
               Add goal
-            </Button>
-
-            {/* Alignment summary */}
-            {r.peopleMetThisWeek.length > 0 && r.weeklyGoals.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-border">
-                <p className="text-xs text-muted-foreground mb-1">Goal-aligned meetings this week</p>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-green-600">
-                    {r.peopleMetThisWeek.filter((p) => p.goalRelated).length}
-                  </span>
-                  <span className="text-xs text-muted-foreground">of</span>
-                  <span className="text-sm font-semibold">{r.peopleMetThisWeek.length}</span>
-                  <span className="text-xs text-muted-foreground">people met</span>
-                </div>
-              </div>
-            )}
+            </button>
           </div>
-        </div>
-      </QuestionCard>
+        </JournalSection>
 
-      {/* Q3 */}
-      <QuestionCard number={3} title="Emotional bank account — how drained did you feel this week?">
-        <Textarea
-          value={r.emotionalDrain}
-          onChange={(e) => set("emotionalDrain", e.target.value)}
-          placeholder="How did you feel emotionally across the week? What drained or energised you?"
-          className="min-h-[100px] resize-none"
-        />
-      </QuestionCard>
+        {/* Q4 — What drained you */}
+        <JournalSection number={4} title="What drained you">
+          <NoteTextarea
+            value={r.emotionalDrain}
+            onChange={(v) => set("emotionalDrain", v)}
+            placeholder="What cost you more energy than it gave back this week?"
+            minHeight={100}
+          />
+        </JournalSection>
 
-      {/* Q4 */}
-      <QuestionCard number={4} title="What problems need to be solved, and how might you solve them?">
-        <div className="space-y-3">
-          {r.problemsToSolve.map((problem, i) => (
-            <div key={problem.id} className="rounded-lg border border-border p-3 space-y-2">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="shrink-0 text-xs">Problem {i + 1}</Badge>
+        {/* Q5 — Problems you're still carrying */}
+        <JournalSection number={5} title="Problems you're still carrying">
+          <div className="space-y-4">
+            {r.problemsToSolve.map((problem, i) => (
+              <div key={problem.id} className="space-y-2 pb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground/30 text-xs tabular-nums shrink-0">{i + 1}.</span>
+                  <input
+                    value={problem.title}
+                    onChange={(e) => updateProblem(problem.id, { title: e.target.value })}
+                    placeholder="Problem"
+                    className="flex-1 text-sm font-medium bg-transparent border-0 border-b border-border/40 focus:border-foreground/50 focus:outline-none pb-1 transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeProblem(problem.id)}
+                    className="text-muted-foreground/30 hover:text-muted-foreground transition-colors p-0.5 shrink-0"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+                <NoteTextarea
+                  value={problem.solutions}
+                  onChange={(v) => updateProblem(problem.id, { solutions: v })}
+                  placeholder="How might you solve this…"
+                  minHeight={72}
+                />
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addProblem}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add problem
+            </button>
+          </div>
+        </JournalSection>
+
+        {/* Q6 — What you resolved */}
+        <JournalSection number={6} title="What you resolved">
+          <div className="space-y-2">
+            {r.problemsSolvedThisWeek.map((item, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-500/60 shrink-0" />
                 <input
-                  value={problem.title}
-                  onChange={(e) => updateProblem(problem.id, { title: e.target.value })}
-                  placeholder="Problem title"
-                  className="flex-1 text-sm font-medium bg-transparent focus:outline-none border-b border-border focus:border-primary pb-1"
+                  value={item}
+                  onChange={(e) => updateSolvedProblem(i, e.target.value)}
+                  placeholder="Problem solved"
+                  className="flex-1 text-sm bg-transparent border-0 border-b border-border/40 focus:border-foreground/50 focus:outline-none pb-1 transition-colors"
                 />
                 <button
                   type="button"
-                  onClick={() => removeProblem(problem.id)}
-                  className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                  onClick={() => removeSolvedProblem(i)}
+                  className="text-muted-foreground/30 hover:text-muted-foreground transition-colors p-0.5 shrink-0"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-3 h-3" />
                 </button>
               </div>
-              <Textarea
-                value={problem.solutions}
-                onChange={(e) => updateProblem(problem.id, { solutions: e.target.value })}
-                placeholder="Ways to solve this problem..."
-                className="min-h-[80px] resize-none text-sm"
-              />
-            </div>
-          ))}
-          <Button type="button" variant="outline" size="sm" onClick={addProblem} className="w-full">
-            <Plus className="w-3.5 h-3.5 mr-1.5" />
-            Add problem
-          </Button>
-        </div>
-      </QuestionCard>
+            ))}
+            <button
+              type="button"
+              onClick={addSolvedProblem}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors mt-1"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add solved problem
+            </button>
+          </div>
+        </JournalSection>
 
-      {/* Q5 */}
-      <QuestionCard number={5} title="What problems did you solve this week that stand between you and your goal?">
-        <div className="space-y-2">
-          {r.problemsSolvedThisWeek.map((item, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
-              <input
-                value={item}
-                onChange={(e) => updateSolvedProblem(i, e.target.value)}
-                placeholder={`Problem solved ${i + 1}`}
-                className="flex-1 text-sm bg-transparent border-b border-border focus:border-primary focus:outline-none pb-1"
-              />
-              <button
-                type="button"
-                onClick={() => removeSolvedProblem(i)}
-                className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
-          <Button type="button" variant="outline" size="sm" onClick={addSolvedProblem} className="w-full mt-1">
-            <Plus className="w-3.5 h-3.5 mr-1.5" />
-            Add solved problem
-          </Button>
-        </div>
-      </QuestionCard>
+        {/* Q7 — Your practice this week */}
+        <JournalSection number={7} title="Your practice this week">
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => set("didAffirmations", true)}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border text-sm font-medium transition-all",
+                r.didAffirmations === true
+                  ? "border-emerald-500/50 bg-emerald-500/8 text-emerald-600 dark:text-emerald-400"
+                  : "border-border/50 text-muted-foreground/60 hover:border-emerald-400/40 hover:text-emerald-600"
+              )}
+            >
+              <CheckCircle className="w-4 h-4" />
+              Yes
+            </button>
+            <button
+              type="button"
+              onClick={() => set("didAffirmations", false)}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border text-sm font-medium transition-all",
+                r.didAffirmations === false
+                  ? "border-rose-500/50 bg-rose-500/8 text-rose-600 dark:text-rose-400"
+                  : "border-border/50 text-muted-foreground/60 hover:border-rose-400/40 hover:text-rose-500"
+              )}
+            >
+              <XCircle className="w-4 h-4" />
+              No
+            </button>
+          </div>
+        </JournalSection>
 
-      {/* Q6 */}
-      <QuestionCard number={6} title="Did you do your affirmations and visualize this week?">
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => set("didAffirmations", true)}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 text-sm font-semibold transition-all",
-              r.didAffirmations === true
-                ? "border-green-500 bg-green-500/10 text-green-600 dark:text-green-400"
-                : "border-border text-muted-foreground hover:border-green-400 hover:text-green-600"
+        {/* Q8 — Into next week */}
+        <JournalSection number={8} title="Into next week">
+          <div>
+            <NoteTextarea
+              value={r.nextWeekPlan}
+              onChange={(v) => set("nextWeekPlan", v)}
+              placeholder="What does next week need to look like? What's the one thing that matters most?"
+            />
+            {wordCount(r.nextWeekPlan) > 0 && (
+              <p className="text-[11px] text-muted-foreground/40 mt-1.5 text-right tabular-nums">
+                {wordCount(r.nextWeekPlan)} words
+              </p>
             )}
+          </div>
+        </JournalSection>
+
+        {/* Submit */}
+        <motion.div
+          className="pt-10 pb-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+        >
+          <motion.button
+            type="submit"
+            disabled={saving}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full py-4 rounded-2xl bg-foreground text-background font-heading text-[15px] font-medium hover:bg-foreground/90 transition-colors disabled:opacity-40"
           >
-            <CheckCircle className="w-4 h-4" />
-            Yes
-          </button>
-          <button
-            type="button"
-            onClick={() => set("didAffirmations", false)}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 text-sm font-semibold transition-all",
-              r.didAffirmations === false
-                ? "border-red-500 bg-red-500/10 text-red-600 dark:text-red-400"
-                : "border-border text-muted-foreground hover:border-red-400 hover:text-red-500"
-            )}
-          >
-            <XCircle className="w-4 h-4" />
-            No
-          </button>
-        </div>
-      </QuestionCard>
-
-      {/* Q7 */}
-      <QuestionCard number={7} title="What do you plan on doing next week? Problems / challenges?">
-        <div>
-          <Textarea
-            value={r.nextWeekPlan}
-            onChange={(e) => set("nextWeekPlan", e.target.value)}
-            placeholder="Next week's plan, anticipated problems and challenges..."
-            className="min-h-[120px] resize-none"
-          />
-          <p className="text-xs text-muted-foreground/60 mt-1 text-right">
-            {wordCount(r.nextWeekPlan)} {wordCount(r.nextWeekPlan) === 1 ? "word" : "words"}
-          </p>
-        </div>
-      </QuestionCard>
-
-      <Separator />
-
-      <Button type="submit" disabled={saving} className="w-full" size="lg">
-        {saving ? "Saving..." : "Submit weekly report"}
-      </Button>
-    </form>
+            {saving ? "Saving…" : initialResponses ? "Update review" : "Close this week"}
+          </motion.button>
+        </motion.div>
+      </form>
+    </AnimatePresence>
   );
 }
