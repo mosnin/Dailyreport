@@ -19,7 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <Sidebar />
         <div className="flex flex-col flex-1 min-w-0 min-h-screen">
           <Navbar />
-          <main className="flex-1 p-4 md:p-6 with-bottom-tabs">
+          <main className="flex-1 p-4 md:p-6 with-bottom-tabs ambient-bg">
             <PageTransition>{children}</PageTransition>
           </main>
         </div>

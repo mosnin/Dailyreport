@@ -10,10 +10,11 @@ import { usePushSubscription } from "@/hooks/usePushSubscription";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { TimezoneModal } from "@/components/dashboard/TimezoneModal";
 import { StatsBar } from "@/components/dashboard/StatsBar";
+import { YearRing } from "@/components/dashboard/YearRing";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { todayString } from "@/lib/utils";
-import { Bell, ArrowRight, Flame, Check, BookOpen, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
+import { Bell, ArrowRight, Check, BookOpen, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
@@ -194,6 +195,29 @@ export default function DashboardPage() {
             )}
           </AnimatePresence>
 
+          {/* ── Year ring + consistency panel ── */}
+          <motion.div {...fadeUp(0.08)}>
+            <div className="flex items-center gap-6 py-2">
+              <YearRing userId={convexUserId} streak={streak} />
+              <div className="flex flex-col gap-1.5">
+                <p className="text-[10px] font-semibold tracking-[0.14em] uppercase text-muted-foreground/40">
+                  Daily consistency
+                </p>
+                <p className="text-sm text-muted-foreground/50 leading-snug">
+                  {new Date().getFullYear()}
+                </p>
+                <p className="text-sm text-muted-foreground/60 leading-snug">
+                  Keep going.
+                </p>
+                {streak > 0 && (
+                  <p className="text-sm font-semibold text-orange-500 mt-1">
+                    {streak} day{streak === 1 ? "" : "s"} in a row
+                  </p>
+                )}
+              </div>
+            </div>
+          </motion.div>
+
           {/* ── BEFORE: entry not done ── */}
           <AnimatePresence mode="wait">
             {!reportDone ? (
@@ -217,14 +241,6 @@ export default function DashboardPage() {
                   </Link>
                 </motion.div>
 
-                {/* Streak */}
-                {streak > 0 && (
-                  <motion.div {...fadeUp(0.18)} className="flex items-center gap-2 text-sm text-orange-500 font-medium">
-                    <Flame className="w-4 h-4" />
-                    <span>{streak} day streak — keep it going.</span>
-                  </motion.div>
-                )}
-
                 {/* Practice ritual */}
                 <div className="space-y-2">
                   <motion.p {...fadeUp(0.22)} className="text-[10px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40">
@@ -238,35 +254,6 @@ export default function DashboardPage() {
             ) : (
               /* ── AFTER: entry done ── */
               <motion.div key="after" className="space-y-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
-
-                {/* Streak hero */}
-                {streak > 0 && (
-                  <div className="text-center py-8">
-                    <motion.div
-                      initial={{ scale: 0.5, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ type: "spring", damping: 14, stiffness: 100, delay: 0.05 }}
-                    >
-                      <Flame className="w-9 h-9 text-orange-500 mx-auto mb-3" />
-                    </motion.div>
-                    <motion.p
-                      className="font-heading text-[80px] font-bold tabular-nums leading-none text-orange-500"
-                      initial={{ scale: 0.6, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ type: "spring", damping: 12, stiffness: 90, delay: 0.1 }}
-                    >
-                      {streak}
-                    </motion.p>
-                    <motion.p {...fadeUp(0.25)} className="text-base text-muted-foreground mt-2">
-                      day{streak === 1 ? "" : "s"} in a row
-                    </motion.p>
-                    {allDone && (
-                      <motion.p {...fadeUp(0.35)} className="font-heading italic text-sm text-muted-foreground/50 mt-3">
-                        The work is done. Rest well.
-                      </motion.p>
-                    )}
-                  </div>
-                )}
 
                 {/* Compact stats */}
                 <motion.div {...fadeUp(0.22)}>

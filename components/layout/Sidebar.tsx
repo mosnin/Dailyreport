@@ -52,16 +52,23 @@ function NavItem({
         "group relative flex items-center rounded-xl text-sm font-medium transition-colors",
         collapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2",
         active
-          ? "text-primary-foreground"
+          ? "text-primary font-semibold"
           : "text-muted-foreground hover:bg-accent hover:text-foreground"
       )}
     >
       {active && (
-        <motion.span
-          layoutId="nav-active"
-          className="absolute inset-0 rounded-xl bg-primary"
-          transition={{ type: "spring", damping: 28, stiffness: 280 }}
-        />
+        <>
+          <motion.span
+            layoutId="nav-active-bg"
+            className="absolute inset-0 rounded-xl bg-primary/[0.08]"
+            transition={{ type: "spring", damping: 28, stiffness: 280 }}
+          />
+          <motion.span
+            layoutId="nav-active-line"
+            className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full bg-primary"
+            transition={{ type: "spring", damping: 28, stiffness: 280 }}
+          />
+        </>
       )}
       <Icon className="w-4 h-4 shrink-0 relative z-10" />
       {!collapsed && <span className="flex-1 leading-none relative z-10">{label}</span>}

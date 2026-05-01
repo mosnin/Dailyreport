@@ -262,3 +262,25 @@ export const getPeopleInsights = query({
     };
   },
 });
+
+export const getYearSubmissions = query({
+  args: { userId: v.id("users"), year: v.number() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return [];
+
+    const startStr = `${args.year}-01-01`;
+    const endStr = `${args.year}-12-31`;
+
+    const reports = await ctx.db
+      .query("dailyReports")
+      .withIndex("by_user_date", (q) =>
+        q.eq("userId", args.userId).gte("date", startStr).lte("date", endStr)
+      )
+      .collect();
+
+    return reports.map((r) => r.date);
+  },
+});

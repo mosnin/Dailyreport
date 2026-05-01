@@ -84,7 +84,7 @@ function JournalSection({
 }) {
   return (
     <motion.div
-      className="space-y-5 py-9 border-t border-border/30 first:border-t-0 first:pt-0"
+      className="space-y-5 py-8 border-t border-border/30 first:border-t-0 first:pt-0"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: number * 0.055 }}
@@ -116,13 +116,15 @@ function NoteTextarea({
   minHeight?: number;
 }) {
   return (
-    <textarea
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      style={{ minHeight }}
-      className="w-full bg-transparent border-0 border-b border-border/35 focus:border-primary/50 focus:outline-none resize-none text-[15px] leading-[1.9] text-foreground placeholder:text-muted-foreground/30 pb-2 transition-colors duration-200"
-    />
+    <div className="relative writing-lines rounded-sm overflow-hidden">
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        style={{ minHeight }}
+        className="w-full bg-transparent border-0 border-b border-border/35 focus:border-primary/50 focus:outline-none resize-none text-[15px] leading-[1.9] text-foreground placeholder:text-muted-foreground/30 pb-2 transition-colors duration-200 relative z-10"
+      />
+    </div>
   );
 }
 

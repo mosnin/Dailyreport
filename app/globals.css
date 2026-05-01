@@ -179,6 +179,38 @@
   );
 }
 
+/* ── Ambient background glow ────────────────────────────────────────────── */
+.ambient-bg {
+  background-image: radial-gradient(
+    ellipse 80% 50% at 20% -10%,
+    oklch(0.36 0.13 268 / 6%) 0%,
+    transparent 70%
+  );
+}
+.dark .ambient-bg {
+  background-image: radial-gradient(
+    ellipse 80% 50% at 20% -10%,
+    oklch(0.73 0.14 268 / 8%) 0%,
+    transparent 70%
+  );
+}
+
+/* ── Writing paper lines (for form textareas) ─────────────────────────── */
+.writing-lines {
+  background-image: linear-gradient(
+    transparent calc(100% - 1px),
+    oklch(0.60 0.08 268 / 10%) 1px
+  );
+  background-size: 100% 1.78rem;
+}
+.dark .writing-lines {
+  background-image: linear-gradient(
+    transparent calc(100% - 1px),
+    oklch(0.73 0.14 268 / 7%) 1px
+  );
+  background-size: 100% 1.78rem;
+}
+
 /* ── iOS safe-area support ──────────────────────────────────────────────
    Used by the mobile tab bar and any sticky header so content doesn't sit
    under the iPhone notch or home indicator on PWA installs.            */
