@@ -58,7 +58,7 @@ export function PWAInstallBanner() {
       }
       setDeferredPrompt(null);
     } else if (platform === "ios") {
-      toast("Tap the share button below, then tap "Add to Home Screen".", {
+      toast('Tap the share button below, then tap "Add to Home Screen".', {
         icon: <Share className="h-4 w-4 shrink-0" />,
         duration: 6000,
       });
