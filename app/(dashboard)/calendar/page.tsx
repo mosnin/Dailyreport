@@ -9,8 +9,9 @@ import { DailyReportForm } from "@/components/reports/DailyReportForm";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "motion/react";
 import { fadeUp } from "@/lib/motion";
-import { format, parseISO, startOfWeek, endOfWeek, subDays } from "date-fns";
+import { format, parseISO, startOfWeek, endOfWeek, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 import { CheckCircle2, XCircle, Minus, NotepadText, BookOpen, Users, Target, AlertTriangle, CheckSquare, CalendarDays, Pencil, X } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 
@@ -65,12 +66,28 @@ function DailyReportView({ userId, date }: { userId: Id<"users">; date: string }
   }
 
   if (!report) {
+    const today = format(new Date(), "yyyy-MM-dd");
+    const daysDiff = differenceInDays(
+      new Date(today + "T12:00:00"),
+      new Date(date + "T12:00:00")
+    );
+    const canCatchUp = daysDiff > 0 && daysDiff <= 7;
+
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
         <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
           <NotepadText className="w-5 h-5 text-muted-foreground/40" />
         </div>
         <p className="text-sm text-muted-foreground">No daily report for this day.</p>
+        {canCatchUp && (
+          <Link
+            href={`/reports/daily?date=${date}`}
+            className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+          >
+            <Pencil className="w-3 h-3" />
+            Write report for this day
+          </Link>
+        )}
       </div>
     );
   }
@@ -439,7 +456,7 @@ function ReportPanel({ userId, date, isEditable }: { userId: Id<"users">; date: 
 export default function CalendarPage() {
   const { convexUserId, isLoading } = useConvexUser();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const yesterdayStr = format(subDays(new Date(), 1), "yyyy-MM-dd");
+  const todayStr = format(new Date(), "yyyy-MM-dd");
 
   if (isLoading || !convexUserId) {
     return (
@@ -477,7 +494,18 @@ export default function CalendarPage() {
         <motion.div {...fadeUp(0.14)} className="min-h-[300px]">
           <AnimatePresence mode="wait">
             {selectedDate ? (
-              <ReportPanel key={selectedDate} userId={convexUserId} date={selectedDate} isEditable={selectedDate === yesterdayStr} />
+              <ReportPanel
+                key={selectedDate}
+                userId={convexUserId}
+                date={selectedDate}
+                isEditable={
+                  selectedDate < todayStr &&
+                  differenceInDays(
+                    new Date(todayStr + "T12:00:00"),
+                    new Date(selectedDate + "T12:00:00")
+                  ) <= 7
+                }
+              />
             ) : (
               <motion.div
                 key="empty"
