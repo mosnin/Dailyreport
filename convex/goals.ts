@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
 type GoalCategory = "yearly" | "quarterly" | "monthly" | "weekly";
@@ -146,5 +146,24 @@ export const remove = mutation({
     if (!goal) return;
     await assertOwner(ctx, goal.userId);
     await ctx.db.delete(args.goalId);
+  },
+});
+
+export const addInternal = internalMutation({
+  args: {
+    userId: v.id("users"),
+    category: CATEGORY,
+    title: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const pk = periodKeyFor(args.category);
+    return ctx.db.insert("goals", {
+      userId: args.userId,
+      category: args.category,
+      periodKey: pk,
+      title: args.title,
+      completed: false,
+      createdAt: Date.now(),
+    });
   },
 });

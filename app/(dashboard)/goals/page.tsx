@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery } from "convex/react";
+import { useState, useRef } from "react";
+import { useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { GoalSection } from "@/components/goals/GoalSection";
@@ -10,6 +10,7 @@ import { type GoalCategory, periodLabel } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
 import { fadeUp } from "@/lib/motion";
+import { Sparkles, ArrowRight, Loader2 } from "lucide-react";
 
 const TABS: { key: GoalCategory; label: string }[] = [
   { key: "weekly",    label: "Week" },
@@ -35,6 +36,27 @@ export default function GoalsPage() {
     api.goals.getCurrentSummary,
     convexUserId ? { userId: convexUserId } : "skip"
   );
+
+  const parseGoals = useAction(api.ai.parseGoalsFromText);
+  const [aiInput, setAiInput] = useState("");
+  const [aiParsing, setAiParsing] = useState(false);
+  const [aiResult, setAiResult] = useState<{ title: string; category: string }[] | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  async function handleParseGoals(e: React.FormEvent) {
+    e.preventDefault();
+    const text = aiInput.trim();
+    if (!text || !convexUserId) return;
+    setAiParsing(true);
+    setAiResult(null);
+    try {
+      const parsed = await parseGoals({ userId: convexUserId, text });
+      setAiResult(parsed);
+      setAiInput("");
+    } finally {
+      setAiParsing(false);
+    }
+  }
 
   if (isLoading || !convexUserId) {
     return (
@@ -121,8 +143,67 @@ export default function GoalsPage() {
         })}
       </motion.div>
 
+      {/* AI goal parser */}
+      <motion.div {...fadeUp(2)}>
+        <form onSubmit={handleParseGoals} className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+          <div className="flex items-start gap-3 px-4 pt-4 pb-3">
+            <Sparkles className="w-4 h-4 text-muted-foreground/50 mt-0.5 shrink-0" />
+            <textarea
+              ref={textareaRef}
+              value={aiInput}
+              onChange={(e) => setAiInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleParseGoals(e as unknown as React.FormEvent);
+                }
+              }}
+              placeholder="Describe your goals in plain English — I'll sort them into the right buckets."
+              rows={2}
+              className="flex-1 text-sm bg-transparent resize-none focus:outline-none placeholder:text-muted-foreground/40 leading-relaxed"
+            />
+          </div>
+          <div className="flex items-center justify-between px-4 pb-3">
+            <span className="text-[11px] text-muted-foreground/40">
+              e.g. &ldquo;Lose 10 lbs this year, launch the landing page this week, read a book this month&rdquo;
+            </span>
+            <button
+              type="submit"
+              disabled={!aiInput.trim() || aiParsing}
+              className="flex items-center gap-1.5 text-xs font-semibold text-primary disabled:opacity-30 hover:opacity-80 transition-opacity"
+            >
+              {aiParsing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowRight className="w-3.5 h-3.5" />}
+              {aiParsing ? "Parsing…" : "Add goals"}
+            </button>
+          </div>
+        </form>
+
+        <AnimatePresence>
+          {aiResult && aiResult.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mt-2 flex flex-wrap gap-1.5"
+            >
+              {aiResult.map((g, i) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium px-2.5 py-1"
+                >
+                  <span className="opacity-60 capitalize">{g.category}</span>
+                  <span>·</span>
+                  {g.title}
+                </span>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
       {/* Tab bar */}
-      <motion.div {...fadeUp(2)} className="flex gap-1 p-1 rounded-xl bg-muted/60">
+      <motion.div {...fadeUp(3)} className="flex gap-1 p-1 rounded-xl bg-muted/60">
         {TABS.map((tab) => (
           <button
             key={tab.key}

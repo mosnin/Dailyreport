@@ -1450,3 +1450,99 @@ Rules:
     return { ok: true };
   },
 });
+
+// ── Parse natural-language goals ──────────────────────────────────────────────
+
+export const parseGoalsFromText = action({
+  args: { userId: v.id("users"), text: v.string() },
+  handler: async (ctx, args): Promise<{ title: string; category: "weekly" | "monthly" | "quarterly" | "yearly" }[]> => {
+    const openai = getOpenAI();
+    const today = new Date().toISOString().split("T")[0];
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content: `You extract and categorize goals from natural language. Today is ${today}.
+Return JSON: { "goals": [{ "title": "<concise goal, max 8 words>", "category": "weekly"|"monthly"|"quarterly"|"yearly" }] }
+
+Category rules:
+- weekly: "this week", "by Friday", "by end of week", specific short tasks
+- monthly: "this month", "by end of month", month-scoped objectives
+- quarterly: "this quarter", "Q2", "next 3 months"
+- yearly: "this year", "by end of year", big life/career/financial goals
+
+If ambiguous: small concrete tasks → weekly, medium projects → monthly, big aspirations → yearly.
+Rewrite titles as clean action phrases. No periods. Max 10 goals total.`,
+        },
+        { role: "user", content: args.text },
+      ],
+      max_tokens: 400,
+      temperature: 0.3,
+    });
+
+    const raw = completion.choices[0].message.content ?? "{}";
+    const result = JSON.parse(raw);
+    const goals = (result.goals ?? []) as { title: string; category: string }[];
+    const valid = ["weekly", "monthly", "quarterly", "yearly"];
+    const parsed = goals.filter((g) => valid.includes(g.category)) as {
+      title: string;
+      category: "weekly" | "monthly" | "quarterly" | "yearly";
+    }[];
+
+    for (const g of parsed) {
+      await ctx.runMutation(internal.goals.addInternal, {
+        userId: args.userId,
+        category: g.category,
+        title: g.title,
+      });
+    }
+
+    return parsed;
+  },
+});
+
+// ── Parse vision → affirmations ───────────────────────────────────────────────
+
+export const parseVisionToAffirmations = action({
+  args: { userId: v.id("users"), text: v.string() },
+  handler: async (ctx, args): Promise<string[]> => {
+    const openai = getOpenAI();
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content: `Transform a personal vision into 3-5 powerful affirmations. Return JSON: { "affirmations": ["...", ...] }
+
+Rules:
+- Present tense — written as if already true, not future
+- Specific to their actual vision, never generic
+- Begin each with "I am", "I have", "I attract", "I create", or "I live"
+- Max 15 words each
+- No "I will" — only present ownership`,
+        },
+        { role: "user", content: args.text },
+      ],
+      max_tokens: 250,
+      temperature: 0.6,
+    });
+
+    const raw = completion.choices[0].message.content ?? "{}";
+    const result = JSON.parse(raw);
+    const affirmations = (result.affirmations ?? []) as string[];
+    const limited = affirmations.slice(0, 5);
+
+    for (const text of limited) {
+      await ctx.runMutation(internal.affirmations.internalAdd, {
+        userId: args.userId,
+        text,
+        source: "ai",
+      });
+    }
+
+    return limited;
+  },
+});

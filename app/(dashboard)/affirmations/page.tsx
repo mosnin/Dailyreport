@@ -504,11 +504,30 @@ export default function AffirmationsPage() {
     }
   );
   const generateAffirmations = useAction(api.ai.generateAffirmations);
+  const parseVision = useAction(api.ai.parseVisionToAffirmations);
 
   const [inRound, setInRound] = useState(false);
   const [showRecap, setShowRecap] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [staging, setStaging] = useState<StagingItem[]>([]);
+  const [visionText, setVisionText] = useState("");
+  const [visionParsing, setVisionParsing] = useState(false);
+  const [visionAdded, setVisionAdded] = useState(0);
+
+  async function handleParseVision(e: React.FormEvent) {
+    e.preventDefault();
+    const text = visionText.trim();
+    if (!text || !convexUserId) return;
+    setVisionParsing(true);
+    setVisionAdded(0);
+    try {
+      const result = await parseVision({ userId: convexUserId, text });
+      setVisionAdded(result.length);
+      setVisionText("");
+    } finally {
+      setVisionParsing(false);
+    }
+  }
 
   const rounds = session?.rounds ?? 0;
   const goalMet = rounds >= GOAL_ROUNDS;
@@ -757,6 +776,56 @@ export default function AffirmationsPage() {
           {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
           {generating ? "Generating…" : "Generate with AI"}
         </motion.button>
+      </motion.div>
+
+      {/* From a vision */}
+      <motion.div {...fadeUp(0.24)}>
+        <div className="border-t border-border/40 pt-6">
+          <p className="text-[11px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40 mb-3">
+            From a vision
+          </p>
+          <form onSubmit={handleParseVision} className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+            <div className="px-4 pt-4 pb-3">
+              <textarea
+                value={visionText}
+                onChange={(e) => setVisionText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleParseVision(e as unknown as React.FormEvent);
+                  }
+                }}
+                placeholder="Describe the life you're building — the version of you that already exists on the other side."
+                rows={3}
+                className="w-full text-sm bg-transparent resize-none focus:outline-none placeholder:text-muted-foreground/40 leading-relaxed font-heading italic"
+              />
+            </div>
+            <div className="flex items-center justify-between px-4 pb-3">
+              <AnimatePresence>
+                {visionAdded > 0 && (
+                  <motion.span
+                    initial={{ opacity: 0, x: -4 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="flex items-center gap-1 text-xs text-emerald-500 font-medium"
+                  >
+                    <CheckCircle2 className="w-3 h-3" />
+                    {visionAdded} affirmation{visionAdded === 1 ? "" : "s"} added
+                  </motion.span>
+                )}
+                {visionAdded === 0 && <span />}
+              </AnimatePresence>
+              <button
+                type="submit"
+                disabled={!visionText.trim() || visionParsing}
+                className="flex items-center gap-1.5 text-xs font-semibold text-primary disabled:opacity-30 hover:opacity-80 transition-opacity"
+              >
+                {visionParsing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                {visionParsing ? "Transforming…" : "Transform"}
+              </button>
+            </div>
+          </form>
+        </div>
       </motion.div>
     </div>
 
