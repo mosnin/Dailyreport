@@ -6,7 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, todayString } from "@/lib/utils";
-import { Lightbulb, RefreshCw, BookOpen } from "lucide-react";
+import { Lightbulb, RefreshCw, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
@@ -26,8 +26,10 @@ const PRINCIPLE_COLORS: Record<string, string> = {
   "Growth":      "bg-lime-500/10 text-lime-600 dark:text-lime-400",
 };
 
-function PrincipleBadge({ principle }: { principle: string }) {
-  const cls = PRINCIPLE_COLORS[principle] ?? "bg-muted text-muted-foreground";
+function PrincipleBadge({ principle, inverted }: { principle: string; inverted?: boolean }) {
+  const cls = inverted
+    ? "bg-background/15 text-background"
+    : (PRINCIPLE_COLORS[principle] ?? "bg-muted text-muted-foreground");
   return (
     <span className={cn("text-[11px] font-semibold px-2 py-0.5 rounded-full", cls)}>
       {principle}
@@ -35,7 +37,22 @@ function PrincipleBadge({ principle }: { principle: string }) {
   );
 }
 
-// ── Story card ────────────────────────────────────────────────────────────
+// ── Featured card (index === 0) ───────────────────────────────────────────
+
+function FeaturedCard({ story }: { story: { title: string; principle: string; story: string } }) {
+  return (
+    <motion.div
+      variants={itemVariants}
+      className="rounded-2xl bg-foreground text-background p-7 space-y-4"
+    >
+      <PrincipleBadge principle={story.principle} inverted />
+      <p className="font-heading text-[1.35rem] font-semibold leading-snug">{story.title}</p>
+      <p className="text-sm leading-[1.9] text-background/75 whitespace-pre-line">{story.story}</p>
+    </motion.div>
+  );
+}
+
+// ── Compact story card (index >= 1) ──────────────────────────────────────
 
 function StoryCard({
   story,
@@ -44,33 +61,47 @@ function StoryCard({
   story: { title: string; principle: string; story: string };
   index: number;
 }) {
-  const [expanded, setExpanded] = useState(index === 0);
+  const [expanded, setExpanded] = useState(false);
 
   return (
-    <motion.div variants={itemVariants} className="rounded-2xl border border-border bg-card overflow-hidden">
+    <motion.div variants={itemVariants} className="rounded-xl border border-border bg-card overflow-hidden">
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="w-full text-left px-5 py-4 hover:bg-muted/30 transition-colors"
+        className="w-full text-left px-4 py-3.5 hover:bg-muted/30 transition-colors"
       >
-        <div className="flex items-start gap-3">
-          <span className="text-2xl font-bold text-muted-foreground/20 leading-none tabular-nums mt-0.5 select-none">
-            {String(index + 1).padStart(2, "0")}
-          </span>
+        <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-base leading-snug mb-1.5">{story.title}</p>
-            <PrincipleBadge principle={story.principle} />
+            <div className="flex items-center gap-2 mb-1">
+              <PrincipleBadge principle={story.principle} />
+            </div>
+            <p className="font-medium text-sm leading-snug">{story.title}</p>
           </div>
-          <BookOpen className={cn("w-4 h-4 shrink-0 text-muted-foreground mt-0.5 transition-opacity", expanded ? "opacity-100" : "opacity-40")} />
+          <motion.div
+            animate={{ rotate: expanded ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ChevronDown className="w-4 h-4 text-muted-foreground/50 shrink-0" />
+          </motion.div>
         </div>
       </button>
 
-      {expanded && (
-        <div className="px-5 pb-6 pt-1 border-t border-border/50">
-          <p className="text-sm leading-[1.8] text-foreground/85 whitespace-pre-line">
-            {story.story}
-          </p>
-        </div>
-      )}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4 pt-1 border-t border-border/50">
+              <p className="text-sm leading-[1.8] text-foreground/85 whitespace-pre-line">
+                {story.story}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -78,24 +109,25 @@ function StoryCard({
 // ── Skeleton cards ────────────────────────────────────────────────────────
 
 function StorySkeleton({ index }: { index: number }) {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
-      <div className="flex items-start gap-3">
-        <Skeleton className="w-8 h-7 shrink-0" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-5 w-3/4" />
-          <Skeleton className="h-4 w-1/3 rounded-full" />
-        </div>
-      </div>
-      {index === 0 && (
-        <div className="space-y-2 pt-2">
+  if (index === 0) {
+    return (
+      <div className="rounded-2xl bg-muted/60 min-h-[180px] p-7 space-y-4">
+        <Skeleton className="h-5 w-1/4 rounded-full" />
+        <Skeleton className="h-6 w-3/4" />
+        <div className="space-y-2 pt-1">
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-5/6" />
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-4/5" />
         </div>
-      )}
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-xl border border-border bg-card px-4 py-3.5 space-y-2">
+      <Skeleton className="h-4 w-1/4 rounded-full" />
+      <Skeleton className="h-4 w-2/3" />
     </div>
   );
 }
@@ -177,9 +209,9 @@ export default function InspirationPage() {
       {/* Header */}
       <motion.div {...fadeUp(0)} className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Daily Inspiration</h1>
+          <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Today's Coaching</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Honest coaching from your own patterns and goals.
+            Drawn from your reports, written for where you are right now.
           </p>
         </div>
 
@@ -211,9 +243,20 @@ export default function InspirationPage() {
           initial="hidden"
           animate="visible"
         >
-          {displayStories.map((s, i) => (
-            <StoryCard key={i} story={s} index={i} />
-          ))}
+          {/* Featured first card */}
+          {displayStories.length > 0 && (
+            <FeaturedCard story={displayStories[0]} />
+          )}
+
+          {/* Rest as compact list */}
+          {displayStories.length > 1 && (
+            <div className="space-y-2">
+              {displayStories.slice(1).map((story, i) => (
+                <StoryCard key={i} story={story} index={i + 1} />
+              ))}
+            </div>
+          )}
+
           <p className="text-[11px] text-muted-foreground/50 text-center pt-2">
             Refreshes daily based on your reports, goals, and recent patterns.
           </p>

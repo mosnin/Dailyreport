@@ -8,9 +8,32 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Search } from "lucide-react";
+import { Search, SearchX } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { fadeUp } from "@/lib/motion";
+
+function EmptyState({ icon: Icon, headline, body }: {
+  icon: React.ElementType;
+  headline: string;
+  body: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="py-16 flex flex-col items-center text-center gap-4"
+    >
+      <div className="w-14 h-14 rounded-2xl bg-muted/60 flex items-center justify-center">
+        <Icon className="w-6 h-6 text-muted-foreground/50" />
+      </div>
+      <div className="space-y-1.5 max-w-xs">
+        <p className="font-semibold text-foreground">{headline}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
+      </div>
+    </motion.div>
+  );
+}
 
 type SearchResult = {
   _id: string;
@@ -79,6 +102,14 @@ export default function SearchPage() {
         <motion.p {...fadeUp(0)} className="text-sm text-destructive">{searchError}</motion.p>
       )}
 
+      {results === null && !searching && (
+        <EmptyState
+          icon={Search}
+          headline="Search your entire history"
+          body="Ask anything — what happened on a specific day, how you felt, who you met. Every report is searchable."
+        />
+      )}
+
       <AnimatePresence mode="wait">
         {results !== null && (
           <motion.div
@@ -90,7 +121,11 @@ export default function SearchPage() {
             className="space-y-3"
           >
             {results.length === 0 ? (
-              <motion.p {...fadeUp(0)} className="text-sm text-muted-foreground">No matching reports found.</motion.p>
+              <EmptyState
+                icon={SearchX}
+                headline="Nothing found"
+                body="Try different words — your reports might use different phrasing."
+              />
             ) : (
               results.map((r, index) => (
                 <motion.div

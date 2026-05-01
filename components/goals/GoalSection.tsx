@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Trash2, CheckCircle2, Circle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Trash2, CheckCircle2, Circle, ChevronLeft, ChevronRight, Target } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { itemExitVariants } from "@/lib/motion";
 
@@ -189,17 +189,20 @@ export function GoalSection({
             {[0, 1, 2].map((i) => <Skeleton key={i} className="h-9 w-full" />)}
           </div>
         ) : goals.length === 0 && !adding ? (
-          <p className="text-sm text-muted-foreground py-2">
-            No goals for this period.{" "}
-            {isCurrentPeriod && (
-              <button
-                onClick={() => setAdding(true)}
-                className="text-primary underline-offset-2 hover:underline"
-              >
-                Add your first one.
-              </button>
-            )}
-          </p>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="py-8 flex flex-col items-center text-center gap-3"
+          >
+            <div className="w-10 h-10 rounded-xl bg-muted/60 flex items-center justify-center">
+              <Target className="w-5 h-5 text-muted-foreground/50" />
+            </div>
+            <div className="space-y-1 max-w-[200px]">
+              <p className="text-sm font-semibold text-foreground">No goals for this period</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">Add a goal you&apos;re working toward. One specific, measurable target.</p>
+            </div>
+          </motion.div>
         ) : (
           <AnimatePresence mode="popLayout">
             {goals.map((goal) => (

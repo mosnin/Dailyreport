@@ -12,6 +12,31 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
 
+// ── Empty state ───────────────────────────────────────────────────────────
+
+function EmptyState({ icon: Icon, headline, body }: {
+  icon: React.ElementType;
+  headline: string;
+  body: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="py-16 flex flex-col items-center text-center gap-4"
+    >
+      <div className="w-14 h-14 rounded-2xl bg-muted/60 flex items-center justify-center">
+        <Icon className="w-6 h-6 text-muted-foreground/50" />
+      </div>
+      <div className="space-y-1.5 max-w-xs">
+        <p className="font-semibold text-foreground">{headline}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
+      </div>
+    </motion.div>
+  );
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────
 
 type Entry = {
@@ -398,15 +423,11 @@ export default function GivingPage() {
       )}
 
       {pastDates.length === 0 && entries !== undefined && entries.length === 0 && (
-        <motion.div {...fadeUp(0.18)} className="text-center py-12 space-y-3">
-          <div className="w-14 h-14 rounded-2xl bg-rose-400/10 flex items-center justify-center mx-auto">
-            <Heart className="w-7 h-7 text-rose-400" />
-          </div>
-          <p className="font-semibold">Start tracking your giving</p>
-          <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-            Each day, record the moments where you created value — for others, your work, or yourself.
-          </p>
-        </motion.div>
+        <EmptyState
+          icon={Heart}
+          headline="Giving starts here"
+          body="Track acts of giving — time, money, help, presence. What you give shapes who you become."
+        />
       )}
     </div>
   );

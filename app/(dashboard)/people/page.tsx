@@ -9,6 +9,36 @@ import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
 import { Users, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
+import Link from "next/link";
+
+function EmptyState({ icon: Icon, headline, body, cta }: {
+  icon: React.ElementType;
+  headline: string;
+  body: string;
+  cta?: { label: string; href?: string };
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="py-16 flex flex-col items-center text-center gap-4"
+    >
+      <div className="w-14 h-14 rounded-2xl bg-muted/60 flex items-center justify-center">
+        <Icon className="w-6 h-6 text-muted-foreground/50" />
+      </div>
+      <div className="space-y-1.5 max-w-xs">
+        <p className="font-semibold text-foreground">{headline}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
+      </div>
+      {cta?.href && (
+        <Link href={cta.href} className="text-sm font-medium text-primary hover:text-primary/80 transition-colors mt-1">
+          {cta.label} →
+        </Link>
+      )}
+    </motion.div>
+  );
+}
 
 function AlignmentBar({ pct }: { pct: number }) {
   const fill = pct > 60 ? "bg-emerald-500" : pct >= 30 ? "bg-amber-400" : "bg-muted-foreground/25";
@@ -152,18 +182,12 @@ export default function PeoplePage() {
           )}
 
           {data.allPeople.length === 0 && (
-            <motion.div
-              {...fadeUp(0.1)}
-              className="rounded-2xl border border-dashed border-border/60 bg-muted/10 py-16 px-6 text-center space-y-3"
-            >
-              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
-                <Users className="w-5 h-5 text-primary/60" />
-              </div>
-              <p className="text-sm font-medium">No connections logged yet</p>
-              <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-                Fill in the "People met today" field in your daily reports to see your connection patterns here.
-              </p>
-            </motion.div>
+            <EmptyState
+              icon={Users}
+              headline="Your network starts with your first report"
+              body="People you mention in daily reports appear here. Complete a few reports to see your connection patterns."
+              cta={{ label: "Write today's report", href: "/reports/daily" }}
+            />
           )}
         </>
       )}

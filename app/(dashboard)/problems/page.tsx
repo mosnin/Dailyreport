@@ -16,13 +16,35 @@ import {
   ChevronUp,
   ChevronRight,
   Sparkles,
-  AlertOctagon,
   RotateCcw,
   BrainCircuit,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
 import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
+
+function EmptyState({ icon: Icon, headline, body }: {
+  icon: React.ElementType;
+  headline: string;
+  body: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="py-16 flex flex-col items-center text-center gap-4"
+    >
+      <div className="w-14 h-14 rounded-2xl bg-muted/60 flex items-center justify-center">
+        <Icon className="w-6 h-6 text-muted-foreground/50" />
+      </div>
+      <div className="space-y-1.5 max-w-xs">
+        <p className="font-semibold text-foreground">{headline}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
+      </div>
+    </motion.div>
+  );
+}
 
 type Problem = {
   title: string;
@@ -282,17 +304,11 @@ export default function ProblemsPage() {
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full" />)}
         </div>
       ) : problems.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 flex flex-col items-center text-center gap-3">
-            <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
-              <AlertOctagon className="w-7 h-7 text-muted-foreground" />
-            </div>
-            <h2 className="text-base font-semibold">No problems logged yet</h2>
-            <p className="text-sm text-muted-foreground max-w-xs">
-              Problems you log in your daily reports will appear here so you can track them over time.
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={CheckCircle2}
+          headline="Nothing unsolved"
+          body="Problems you log in your daily reports appear here. Right now, you're clear."
+        />
       ) : (
         <div className="space-y-4">
           {/* Open problems */}
@@ -316,10 +332,11 @@ export default function ProblemsPage() {
           )}
 
           {openProblems.length === 0 && resolvedProblems.length > 0 && (
-            <div className="text-center py-6">
-              <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-              <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">All problems resolved!</p>
-            </div>
+            <EmptyState
+              icon={CheckCircle2}
+              headline="Nothing unsolved"
+              body="Every logged problem has been resolved. Your resolved history is below."
+            />
           )}
 
           {/* Resolved section (collapsible) */}

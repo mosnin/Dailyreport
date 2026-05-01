@@ -422,8 +422,46 @@ export function DailyReportForm({
     );
   }
 
+  // ── Progress ───────────────────────────────────────────────────────────────
+
+  const filledCount = [
+    r.dayActivity.trim().length > 0,
+    r.dailyGoals.length > 0,
+    r.emotionalDrain.trim().length > 0,
+    r.didAffirmations !== null,
+    r.tomorrowPlan.trim().length > 0,
+  ].filter(Boolean).length;
+
+  const pct = (filledCount / 5) * 100;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-0">
+
+      {/* Progress bar */}
+      <div className="mb-8 space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40">
+            {filledCount === 5 ? "Ready to close" : `${filledCount} of 5`}
+          </span>
+          {filledCount === 5 && (
+            <motion.span
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-[11px] font-medium text-emerald-500"
+            >
+              Complete ✓
+            </motion.span>
+          )}
+        </div>
+        <div className="h-0.5 w-full rounded-full bg-muted overflow-hidden">
+          <motion.div
+            className="h-full rounded-full bg-primary"
+            initial={{ width: 0 }}
+            animate={{ width: `${pct}%` }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          />
+        </div>
+      </div>
 
       {/* Q1 */}
       <JournalSection number={1} title="What did you do today and how did you spend your time?">
@@ -647,10 +685,11 @@ export function DailyReportForm({
         <motion.button
           type="submit"
           disabled={saving}
+          whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
           className="w-full py-4 rounded-2xl bg-foreground text-background font-heading text-[15px] font-medium hover:bg-foreground/90 transition-colors disabled:opacity-40"
         >
-          {saving ? "Saving…" : "Close today's entry"}
+          {saving ? "Saving…" : initialResponses ? "Update entry" : "Close today's chapter"}
         </motion.button>
       </motion.div>
     </form>

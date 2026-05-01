@@ -159,17 +159,22 @@ export default function ChatPage() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto min-h-0 py-4 space-y-4">
         {empty && (
-          <div className="flex flex-col items-center justify-center h-full text-center space-y-6 py-8">
-            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <MessageSquare className="w-7 h-7 text-primary" />
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col items-center justify-center h-full text-center gap-4 py-8"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-muted/60 flex items-center justify-center">
+              <MessageSquare className="w-6 h-6 text-muted-foreground/50" />
             </div>
-            <div className="space-y-1.5">
-              <p className="font-semibold text-lg">Ask about your history</p>
-              <p className="text-sm text-muted-foreground max-w-xs">
-                Your past reports are searched semantically to give you grounded answers.
+            <div className="space-y-1.5 max-w-xs">
+              <p className="font-semibold text-foreground">Ask anything about your journey</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Your reports are your data. Ask about patterns, progress, moods, goals — anything you&apos;ve written about.
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-md">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-md mt-2">
               {SUGGESTED.map((s) => (
                 <button
                   key={s}
@@ -180,7 +185,7 @@ export default function ChatPage() {
                 </button>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
 
         <AnimatePresence initial={false}>
