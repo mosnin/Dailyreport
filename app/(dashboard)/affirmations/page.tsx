@@ -445,6 +445,10 @@ export default function AffirmationsPage() {
     api.affirmations.getTodaySession,
     convexUserId ? { userId: convexUserId, date: todayStr } : "skip"
   );
+  const generatedToday = useQuery(
+    api.affirmations.wasGeneratedToday,
+    convexUserId ? { userId: convexUserId } : "skip"
+  );
 
   const addAffirmation = useMutation(api.affirmations.add).withOptimisticUpdate(
     (localStore, args) => {
@@ -569,6 +573,19 @@ export default function AffirmationsPage() {
   function handleDismiss(id: string) {
     setStaging((prev) => prev.map((s) => s.id === id ? { ...s, status: "dismissed" } : s));
   }
+
+  // Auto-stage 5 fresh AI suggestions on the first daily visit. Fires once
+  // when generatedToday resolves to false; subsequent visits skip until a new
+  // day rolls over (rateLimitUsage row keys by date).
+  const autoStaged = useRef(false);
+  useEffect(() => {
+    if (autoStaged.current) return;
+    if (!convexUserId || generatedToday !== false) return;
+    if (generating || staging.length > 0) return;
+    autoStaged.current = true;
+    handleGenerate();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [convexUserId, generatedToday]);
 
   if (isLoading || !convexUserId) {
     return (

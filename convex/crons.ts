@@ -107,17 +107,33 @@ export const generateInsightsForAllUsers = internalAction({
   },
 });
 
+function localDateInTimezone(timezone: string | undefined): string {
+  if (!timezone) return new Date().toISOString().split("T")[0];
+  try {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
+  } catch {
+    return new Date().toISOString().split("T")[0];
+  }
+}
+
 export const generateVisualizationsForAllUsers = internalAction({
   args: {},
   handler: async (ctx) => {
     const users = await ctx.runQuery(internal.crons.getAllUsers);
-    const today = new Date().toISOString().split("T")[0];
     for (const user of users) {
       if (!user.onboardingComplete) continue;
       try {
+        // Use the user's local date so we generate the right "today" for them,
+        // not UTC. Without this, users west of UTC see the wrong day's content.
+        const localDate = localDateInTimezone(user.timezone);
         await ctx.runAction(internal.ai.generateVisualizationsInternal, {
           userId: user._id,
-          date: today,
+          date: localDate,
         });
       } catch (err) {
         console.error(`generateVisualizationsForAllUsers failed for ${user._id}:`, err);

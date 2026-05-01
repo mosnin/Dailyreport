@@ -130,3 +130,22 @@ export const updateSource = mutation({
     await ctx.db.patch(args.id, { source: args.source });
   },
 });
+
+export const wasGeneratedToday = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return false;
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return false;
+
+    const today = new Date().toISOString().split("T")[0];
+    const usage = await ctx.db
+      .query("rateLimitUsage")
+      .withIndex("by_user_action_date", (q) =>
+        q.eq("userId", args.userId).eq("action", "affirmations").eq("date", today)
+      )
+      .unique();
+    return (usage?.count ?? 0) > 0;
+  },
+});

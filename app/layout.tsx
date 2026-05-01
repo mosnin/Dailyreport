@@ -6,6 +6,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { ConvexWithClerkProvider } from "@/components/ConvexWithClerkProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { WelcomeOverlay } from "@/components/WelcomeOverlay";
 
 const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const lora = Lora({
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ThemeProvider>
             <ConvexWithClerkProvider>
               {children}
+              <WelcomeOverlay />
               <Toaster />
             </ConvexWithClerkProvider>
           </ThemeProvider>

@@ -127,7 +127,7 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
   useEffect(() => {
     if (viz === null && !generating) {
       setGenerating(true);
-      generateVisualizations({ userId, force: false })
+      generateVisualizations({ userId, date: todayStr, force: false })
         .catch((err) => setGenError(err instanceof Error ? err.message : "Generation failed"))
         .finally(() => setGenerating(false));
     }
@@ -184,7 +184,7 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
     setGenerating(true);
     setGenError(null);
     try {
-      await generateVisualizations({ userId, force: true });
+      await generateVisualizations({ userId, date: todayStr, force: true });
     } catch (err) {
       setGenError(err instanceof Error ? err.message : "Regeneration failed");
     } finally {

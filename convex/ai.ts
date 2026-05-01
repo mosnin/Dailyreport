@@ -251,7 +251,12 @@ export const analyzeProgress = action({
     const alreadyScored = new Set(
       (existingInsights as ExistingInsight[]).filter((i) => i.scores).map((i) => i.weekStartDate)
     );
-    const weeksToScore = Object.keys(byWeek).filter((w) => !alreadyScored.has(w)).sort();
+    // Always re-score the current (in-progress) week so it tracks daily report
+    // submissions through the week. Past weeks are scored once and frozen.
+    const currentMonday = getMondayForDate(new Date().toISOString().split("T")[0]);
+    const weeksToScore = Object.keys(byWeek)
+      .filter((w) => w === currentMonday || !alreadyScored.has(w))
+      .sort();
     if (weeksToScore.length === 0) return;
 
     const weekContexts = weeksToScore.map((week) => {
@@ -877,10 +882,10 @@ export const regenerateWeeklyInsight = action({
 });
 
 export const generateVisualizations = action({
-  args: { userId: v.id("users"), force: v.optional(v.boolean()) },
+  args: { userId: v.id("users"), date: v.optional(v.string()), force: v.optional(v.boolean()) },
   handler: async (ctx, args) => {
     await ctx.runMutation(internal.rateLimits.checkAndConsume, { userId: args.userId, action: "generateVisualizations" });
-    const today = new Date().toISOString().split("T")[0];
+    const today = args.date ?? new Date().toISOString().split("T")[0];
     await doGenerateVisualizations(ctx, args.userId, today, args.force ?? false);
   },
 });
