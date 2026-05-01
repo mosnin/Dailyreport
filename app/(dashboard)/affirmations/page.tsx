@@ -248,7 +248,7 @@ function RoundSession({
   const isLast = index === affirmations.length - 1;
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-8rem)]">
+    <div className="flex flex-col flex-1">
       <div className="flex items-center justify-between mb-6">
         <motion.button
           whileTap={{ scale: 0.97 }}
@@ -346,7 +346,7 @@ function RoundSession({
 
 function RecapScreen({ onContinue }: { onContinue: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] text-center gap-6 max-w-sm mx-auto">
+    <div className="flex flex-col items-center justify-center text-center gap-6 max-w-sm mx-auto">
       <motion.div
         initial={{ scale: 0.6, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -596,28 +596,8 @@ export default function AffirmationsPage() {
     );
   }
 
-  if (inRound && sorted.length > 0) {
-    return (
-      <div className="max-w-lg mx-auto">
-        <RoundSession
-          affirmations={sorted}
-          roundNumber={rounds + 1}
-          onComplete={handleCompleteRound}
-          onCancel={() => setInRound(false)}
-        />
-      </div>
-    );
-  }
-
-  if (showRecap) {
-    return (
-      <div className="max-w-lg mx-auto">
-        <RecapScreen onContinue={() => setShowRecap(false)} />
-      </div>
-    );
-  }
-
   return (
+    <>
     <div className="max-w-lg space-y-6">
       {/* Header */}
       <motion.div {...fadeUp(0)}>
@@ -779,5 +759,57 @@ export default function AffirmationsPage() {
         </motion.button>
       </motion.div>
     </div>
+
+    <AnimatePresence>
+      {inRound && sorted.length > 0 && (
+        <motion.div
+          key="round-overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          className="fixed inset-0 z-[150] bg-background flex flex-col"
+          style={{
+            paddingTop: "env(safe-area-inset-top)",
+            paddingBottom: "env(safe-area-inset-bottom)",
+            paddingLeft: "env(safe-area-inset-left)",
+            paddingRight: "env(safe-area-inset-right)",
+          }}
+        >
+          <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-6">
+            <div className="max-w-lg mx-auto">
+              <RoundSession
+                affirmations={sorted}
+                roundNumber={rounds + 1}
+                onComplete={handleCompleteRound}
+                onCancel={() => setInRound(false)}
+              />
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+
+    <AnimatePresence>
+      {showRecap && (
+        <motion.div
+          key="recap-overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          className="fixed inset-0 z-[150] bg-background flex items-center justify-center"
+          style={{
+            paddingTop: "env(safe-area-inset-top)",
+            paddingBottom: "env(safe-area-inset-bottom)",
+          }}
+        >
+          <div className="w-full max-w-lg px-4">
+            <RecapScreen onContinue={() => setShowRecap(false)} />
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   );
 }

@@ -26,11 +26,14 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/favicon.png" }],
   },
-  appleWebApp: { capable: true, statusBarStyle: "default", title: "Daily Report" },
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Daily Report" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f172a",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#faf9f7" },
+    { media: "(prefers-color-scheme: dark)", color: "#1c1917" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

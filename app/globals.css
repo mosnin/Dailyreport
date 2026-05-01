@@ -124,7 +124,15 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
+  }
+  :focus-visible {
+    outline: 2px solid oklch(0.36 0.13 268 / 70%);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  .dark :focus-visible {
+    outline-color: oklch(0.73 0.14 268 / 70%);
   }
   body {
     @apply bg-background text-foreground;
@@ -187,3 +195,20 @@
 
 /* ── No-overscroll for the app body on PWAs ───────────────────────────── */
 html, body { overscroll-behavior-y: none; }
+
+/* ── Custom scrollbar ─────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: oklch(0.75 0.006 80 / 60%); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: oklch(0.65 0.008 80 / 80%); }
+.dark ::-webkit-scrollbar-thumb { background: oklch(1 0 0 / 18%); }
+.dark ::-webkit-scrollbar-thumb:hover { background: oklch(1 0 0 / 28%); }
+* { scrollbar-width: thin; scrollbar-color: oklch(0.75 0.006 80 / 60%) transparent; }
+.dark * { scrollbar-color: oklch(1 0 0 / 18%) transparent; }
+
+/* ── Scroll container — prevents rubber-band on inner scrollers ──────── */
+.scroll-area-contain {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
