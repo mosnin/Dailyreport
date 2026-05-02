@@ -21,7 +21,7 @@ agent_secrets = modal.Secret.from_name("dailyreport-agent")
     image=image,
     secrets=[agent_secrets],
     min_containers=0,       # No warm instances — user pays only on invocation
-    scaledown_window=0,     # Scale down immediately after use
+    scaledown_window=2,     # Scale down ~immediately after use (min allowed by Modal)
     timeout=300,
     retries=0,
 )
@@ -36,7 +36,7 @@ def run_agent_job(request_dict: dict) -> None:
     image=image,
     secrets=[agent_secrets],
     min_containers=0,
-    scaledown_window=0,
+    scaledown_window=2,
     timeout=30,
 )
 @modal.asgi_app(label="dailyreport-agent")

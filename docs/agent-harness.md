@@ -1,7 +1,7 @@
 # Agent Harness
 
 **Last updated:** May 3, 2026
-**Version:** 1.2
+**Version:** 1.3
 
 ---
 
@@ -114,7 +114,7 @@ agent_secrets = modal.Secret.from_name("dailyreport-agent")
 
 **Key settings:**
 - `min_containers=0` — no warm instances; cold start accepted to save cost
-- `scaledown_window=0` — container shuts down immediately after use
+- `scaledown_window=2` — container shuts down ~immediately after use (Modal v1.0 requires > 0)
 - `timeout=300` — 5-minute max per job (adequate for multi-step briefings with slow Composio calls)
 - `retries=0` — no automatic Modal retries; failure is surfaced immediately to the user
 
