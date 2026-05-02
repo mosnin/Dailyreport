@@ -98,7 +98,7 @@ export default function AgentPage() {
       setActiveJobId(jobId);
       const savedIntent = intent.trim();
       setIntent("");
-      await fetch("/api/agent/trigger", {
+      const triggerRes = await fetch("/api/agent/trigger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -110,6 +110,12 @@ export default function AgentPage() {
           userTimezone: (convexUser as any)?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
         }),
       });
+      if (!triggerRes.ok) {
+        const errorText = await triggerRes.text().catch(() => "");
+        throw new Error(errorText || `Trigger failed with HTTP ${triggerRes.status}`);
+      }
+    } catch (err) {
+      console.error("[agent-page/trigger]", err);
     } finally {
       setSubmitting(false);
     }
