@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
@@ -22,12 +22,21 @@ const PLATFORMS = [
 
 async function handleConnect(platform: string) {
   const res = await fetch(`/api/integrations/connect?platform=${platform}`);
-  const { redirectUrl } = await res.json();
-  if (redirectUrl) window.location.href = redirectUrl;
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error ?? "Failed to start connection");
+
+  const redirectUrl = data?.redirectUrl as string | undefined;
+  if (!redirectUrl) throw new Error("Missing redirect URL");
+
+  const popup = window.open(redirectUrl, "composio-oauth", "popup=yes,width=560,height=740");
+  if (!popup) {
+    window.location.href = redirectUrl;
+  }
 }
 
 function IntegrationsContent() {
   const { convexUserId, isLoading } = useConvexUser();
+  const [connectError, setConnectError] = useState<string>("");
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -135,7 +144,12 @@ function IntegrationsContent() {
                 </div>
               ) : (
                 <button
-                  onClick={() => handleConnect(platform.id)}
+                  onClick={() => {
+                    setConnectError("");
+                    handleConnect(platform.id).catch((err) => {
+                      setConnectError(err instanceof Error ? err.message : "Connection failed");
+                    });
+                  }}
                   className="w-full rounded-xl bg-primary text-primary-foreground text-sm font-semibold py-2 hover:opacity-90 transition-opacity"
                 >
                   Connect
@@ -145,6 +159,10 @@ function IntegrationsContent() {
           );
         })}
       </motion.div>
+
+      {connectError && (
+        <p className="text-sm text-destructive">{connectError}</p>
+      )}
     </div>
   );
 }

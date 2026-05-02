@@ -14,7 +14,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Composio not configured" }, { status: 503 });
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const envAppUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const url = new URL(req.url);
+  const fallbackOrigin = `${url.protocol}//${url.host}`;
+  const appUrl = envAppUrl || fallbackOrigin;
   const redirectUri = `${appUrl}/integrations`;
 
   try {
@@ -37,7 +40,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Composio connection failed" }, { status: 502 });
     }
     const data = await res.json();
-    return NextResponse.json({ redirectUrl: data.redirectUrl ?? data.redirect_url ?? null });
+    const redirectUrl = data.redirectUrl ?? data.redirect_url ?? null;
+    if (!redirectUrl) {
+      return NextResponse.json({ error: "Composio returned no redirect URL", raw: data }, { status: 502 });
+    }
+    return NextResponse.json({ redirectUrl });
   } catch {
     return NextResponse.json({ error: "Failed to initiate connection" }, { status: 502 });
   }

@@ -1,7 +1,7 @@
 # Platform Integrations
 
 **Last updated:** May 2, 2026
-**Version:** 1.0
+**Version:** 1.1
 
 ---
 
@@ -54,8 +54,11 @@ integrations: {
 // app/(dashboard)/integrations/page.tsx
 async function handleConnect(platform: string) {
   const res = await fetch(`/api/integrations/connect?platform=${platform}`);
-  const { redirectUrl } = await res.json();
-  if (redirectUrl) window.location.href = redirectUrl;
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error ?? "Failed to start connection");
+
+  const popup = window.open(data.redirectUrl, "composio-oauth", "popup=yes,width=560,height=740");
+  if (!popup) window.location.href = data.redirectUrl; // fallback
 }
 ```
 
