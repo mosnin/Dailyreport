@@ -201,7 +201,8 @@ export default defineSchema({
       v.literal("notion"),
       v.literal("clickup"),
       v.literal("trello"),
-      v.literal("asana")
+      v.literal("asana"),
+      v.literal("googlecalendar")
     ),
     composioConnectionId: v.string(),
     connected: v.boolean(),

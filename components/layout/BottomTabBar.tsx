@@ -23,6 +23,7 @@ import {
   Mic,
   Bot,
   Plug,
+  Sun,
 } from "lucide-react";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
@@ -142,7 +143,7 @@ export function BottomTabBar() {
     icon: React.ElementType;
     showDot?: boolean;
   }[] = [
-    { key: "today", href: "/dashboard", label: "Today", icon: Gauge },
+    { key: "today", href: "/today", label: "Today", icon: Sun },
     {
       key: "daily",
       href: "/reports/daily",
@@ -279,7 +280,8 @@ export function BottomTabBar() {
             <nav className="flex flex-col p-3">
               {/* Core */}
               <div className="space-y-0.5">
-                <DrawerItem href="/dashboard" label="Today" icon={Gauge} active={is("/dashboard")} onClose={close} />
+                <DrawerItem href="/today"         label="Today"        icon={Sun}         active={is("/today")}         onClose={close} />
+                <DrawerItem href="/dashboard"     label="Dashboard"    icon={Gauge}       active={is("/dashboard")}     onClose={close} />
                 <DrawerItem href="/reports/daily" label="Daily Report" icon={NotepadText} active={is("/reports/daily")} onClose={close} dot={reportDone} />
               </div>
 

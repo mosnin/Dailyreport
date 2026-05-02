@@ -26,6 +26,7 @@ import {
   Mic,
   Bot,
   Plug,
+  Sun,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
@@ -227,7 +228,8 @@ export function Sidebar() {
 
         {/* Core */}
         <div className="space-y-0.5">
-          <NavItem href="/dashboard"     label="Today"        icon={Gauge}       active={is("/dashboard")}     collapsed={collapsed} />
+          <NavItem href="/today"         label="Today"        icon={Sun}         active={is("/today")}         collapsed={collapsed} />
+          <NavItem href="/dashboard"     label="Dashboard"    icon={Gauge}       active={is("/dashboard")}     collapsed={collapsed} />
           <NavItem href="/reports/daily" label="Daily Report" icon={NotepadText} active={is("/reports/daily")} collapsed={collapsed} dot={reportDone} />
         </div>
 

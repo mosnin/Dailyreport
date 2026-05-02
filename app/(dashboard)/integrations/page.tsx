@@ -12,11 +12,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Info } from "lucide-react";
 
 const PLATFORMS = [
-  { id: "slack",   name: "Slack",   description: "Read messages, reply, and take action.",   color: "bg-[#4A154B]" },
-  { id: "notion",  name: "Notion",  description: "Sync pages, databases, and tasks.",          color: "bg-gray-800" },
-  { id: "asana",   name: "Asana",   description: "Pull tasks and update project status.",      color: "bg-[#FC636B]" },
-  { id: "clickup", name: "ClickUp", description: "Sync tasks, lists, and priorities.",         color: "bg-[#7B68EE]" },
-  { id: "trello",  name: "Trello",  description: "Manage boards, cards, and deadlines.",       color: "bg-[#0052CC]" },
+  { id: "googlecalendar", name: "Google Calendar", description: "See today's events, create meetings, and block focus time.", color: "bg-[#1A73E8]" },
+  { id: "slack",          name: "Slack",           description: "Read messages, reply, and take action.",                     color: "bg-[#4A154B]" },
+  { id: "notion",         name: "Notion",          description: "Sync pages, databases, and tasks.",                          color: "bg-gray-800" },
+  { id: "asana",          name: "Asana",           description: "Pull tasks and update project status.",                      color: "bg-[#FC636B]" },
+  { id: "clickup",        name: "ClickUp",         description: "Sync tasks, lists, and priorities.",                         color: "bg-[#7B68EE]" },
+  { id: "trello",         name: "Trello",          description: "Manage boards, cards, and deadlines.",                       color: "bg-[#0052CC]" },
 ] as const;
 
 async function handleConnect(platform: string) {

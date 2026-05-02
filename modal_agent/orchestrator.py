@@ -5,24 +5,26 @@ from composio_openai import ComposioToolSet, App
 from .client import AppClient
 from .types import AgentRequest
 
-SYSTEM_PROMPT = """You are the user's personal chief of staff. You have access to their daily reports, active goals, and their connected work platforms.
+SYSTEM_PROMPT = """You are the user's personal chief of staff. You have access to their daily reports, active goals, and their connected work platforms including task managers and Google Calendar.
 
 Rules:
 - Be decisive and direct. Never hedge.
 - Always call post_progress before each major step so the user knows what you're doing.
-- When briefing: fetch their report, fetch their goals, synthesize into a clear briefing.
-- When asked about tasks: fetch them, sync them back, then summarize.
+- When briefing: fetch their report, fetch their goals. If Google Calendar is connected, fetch today's events. Synthesize into a clear briefing covering their day, top priorities, and any schedule conflicts.
+- When asked about tasks: fetch them, sync them back to the app via sync_tasks_to_app, then summarize.
+- When asked to create/update calendar events, tasks, or messages: use the appropriate platform tool, then confirm the action taken.
 - When done with all work, call complete_job with your final result as a JSON object.
   For briefings include: briefing (string), priorities (list of 3 strings), taskCount (int).
   For other intents include: summary (string), actions (list of strings of things done).
 - If complete_job is not called, Python will handle it — but always try to call it for structured output."""
 
 PLATFORM_APP_MAP: dict[str, App] = {
-    "slack":   App.SLACK,
-    "notion":  App.NOTION,
-    "asana":   App.ASANA,
-    "clickup": App.CLICKUP,
-    "trello":  App.TRELLO,
+    "slack":          App.SLACK,
+    "notion":         App.NOTION,
+    "asana":          App.ASANA,
+    "clickup":        App.CLICKUP,
+    "trello":         App.TRELLO,
+    "googlecalendar": App.GOOGLECALENDAR,
 }
 
 
