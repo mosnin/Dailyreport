@@ -7,7 +7,7 @@
 
 ## Overview
 
-Chippi has two categories of tools:
+The agent has two categories of tools:
 
 1. **Built-in callback tools** — defined in `modal_agent/orchestrator.py`, call back into the Next.js app via `AppClient`
 2. **Composio platform tools** — loaded dynamically at runtime from `composio_openai.ComposioToolSet` based on which platforms the user has connected

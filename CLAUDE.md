@@ -51,7 +51,7 @@ The `docs/` directory contains detailed documentation for this codebase. **These
 | File | What it covers |
 |---|---|
 | `docs/ui.md` | Frontend architecture, all routes, components, data flow, animation system |
-| `docs/chippi.md` | Chippi the AI agent — system prompt, behaviors, tool call order, output format |
+| `docs/agent.md` | The AI agent — system prompt, behaviors, tool call order, output format |
 | `docs/tools.md` | All agent tools — specs, when to call them, Composio platform map |
 | `docs/integrations.md` | Platform integrations — OAuth flow, data model, connect/disconnect, adding new platforms |
 | `docs/agent-harness.md` | Modal deployment, job lifecycle, API routes, security model, cron flow |
@@ -63,7 +63,7 @@ The `docs/` directory contains detailed documentation for this codebase. **These
 | Type of change | Update |
 |---|---|
 | New route, page, nav item, or component | `docs/ui.md` |
-| Agent system prompt, tool, or behavior | `docs/chippi.md` and/or `docs/tools.md` |
+| Agent system prompt, tool, or behavior | `docs/agent.md` and/or `docs/tools.md` |
 | New integration platform or OAuth flow change | `docs/integrations.md` |
 | Modal, job lifecycle, API route, or cron change | `docs/agent-harness.md` |
 | Schema table added/changed | `docs/agent-harness.md` + this file's schema table |
@@ -76,7 +76,7 @@ When updating a doc file:
 
 ## What This Is
 
-A Next.js 14 App Router accountability app. Users fill in daily and weekly reports, receive PWA push notifications at their local 8pm (per-user IANA timezone), and explore their history via a dashboard, calendar, semantic search, AI chat, AI insights with charts, goals tracker, and affirmations flashcards. An AI agent named **Chippi** runs on Modal and acts as the user's personal chief of staff — auto-briefing at 8am and executing commands against connected platforms (Slack, Notion, Asana, ClickUp, Trello, Google Calendar).
+A Next.js 14 App Router accountability app. Users fill in daily and weekly reports, receive PWA push notifications at their local 8pm (per-user IANA timezone), and explore their history via a dashboard, calendar, semantic search, AI chat, AI insights with charts, goals tracker, and affirmations flashcards. An AI agent runs on Modal and acts as the user's personal chief of staff — auto-briefing at 8am and executing commands against connected platforms (Slack, Notion, Asana, ClickUp, Trello, Google Calendar).
 
 ## Commands
 
@@ -129,7 +129,7 @@ Modal (Python agent sandbox)
 
 OpenAI
   ├── text-embedding-3-small (1536 dims) — embedded into report records on submit
-  └── gpt-4o — insightsChat, generateAffirmations, chat, weeklyInsight, Chippi agent
+  └── gpt-4o — insightsChat, generateAffirmations, chat, weeklyInsight, agent
 ```
 
 ## Convex File-Split Rule

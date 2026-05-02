@@ -7,7 +7,7 @@
 
 ## Overview
 
-The agent harness is the infrastructure layer that runs Chippi jobs. It consists of:
+The agent harness is the infrastructure layer that runs agent jobs. It consists of:
 
 - **Modal** — Python sandbox execution environment (cold-start, pay-per-use)
 - **`modal_agent/`** — Python package: orchestrator, client, types, app

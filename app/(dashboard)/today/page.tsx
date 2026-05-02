@@ -485,7 +485,7 @@ export default function TodayPage() {
                   void handleSubmit(e as unknown as React.FormEvent);
                 }
               }}
-              placeholder='Pull my Trello tasks. Add a meeting tomorrow at 2pm. What\'s overdue?'
+              placeholder="Pull my Trello tasks. Add a meeting tomorrow at 2pm. What's overdue?"
               rows={2}
               disabled={submitting}
               className="flex-1 text-sm bg-transparent resize-none focus:outline-none placeholder:text-muted-foreground/35 leading-relaxed disabled:opacity-50"

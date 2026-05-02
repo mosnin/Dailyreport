@@ -7,13 +7,13 @@
 
 ## Overview
 
-Integrations connect Chippi to the user's external work tools. All OAuth connections are managed through **Composio** — the app never handles OAuth tokens directly. When connected, Chippi can read and write to these platforms during agent jobs.
+Integrations connect the agent to the user's external work tools. All OAuth connections are managed through **Composio** — the app never handles OAuth tokens directly. When connected, the agent can read and write to these platforms during agent jobs.
 
 ---
 
 ## Supported Platforms
 
-| Platform | ID | Composio App | What Chippi can do |
+| Platform | ID | Composio App | What the agent can do |
 |---|---|---|---|
 | Google Calendar | `googlecalendar` | `App.GOOGLECALENDAR` | View today's events, create events, block focus time |
 | Slack | `slack` | `App.SLACK` | Read messages, reply, send messages |

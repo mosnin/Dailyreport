@@ -1,19 +1,19 @@
-# Chippi — The AI Agent
+# The AI Agent
 
 **Last updated:** May 2, 2026
 **Version:** 1.0
 
 ---
 
-## What Chippi Is
+## What the Agent Is
 
-Chippi is the user's personal AI chief of staff. It runs on Modal (Python sandboxes), is orchestrated by the OpenAI Agents SDK, and has access to the user's reports, goals, and connected external platforms (Slack, Notion, Asana, ClickUp, Trello, Google Calendar via Composio).
+The agent is the user's personal AI chief of staff. It runs on Modal (Python sandboxes), is orchestrated by the OpenAI Agents SDK, and has access to the user's reports, goals, and connected external platforms (Slack, Notion, Asana, ClickUp, Trello, Google Calendar via Composio).
 
-Chippi is not a chatbot wrapper. It is a multi-step agentic loop: it receives an intent, plans a sequence of tool calls, executes them, and delivers a structured result. The user sees live progress updates while it runs.
+The agent is not a chatbot wrapper. It is a multi-step agentic loop: it receives an intent, plans a sequence of tool calls, executes them, and delivers a structured result. The user sees live progress updates while it runs.
 
 ---
 
-## How Chippi Is Invoked
+## How the Agent Is Invoked
 
 Two paths:
 
