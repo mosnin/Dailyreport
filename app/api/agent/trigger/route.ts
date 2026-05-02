@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 
@@ -61,9 +61,9 @@ export async function POST(req: Request) {
     }).format(new Date()),
   };
 
-  // Fire-and-forget — job status is tracked via Convex real-time.
-  // Do NOT await: Modal cold start can exceed Vercel's 30s route timeout.
-  void (async () => {
+  // Schedule the Modal trigger after sending the HTTP response.
+  // Using `after()` avoids dropped fire-and-forget fetches in serverless runtimes.
+  after(async () => {
     try {
       const response = await fetch(`${modalUrl}/run`, {
         method: "POST",
@@ -79,10 +79,9 @@ export async function POST(req: Request) {
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Agent service unreachable";
-      // If Modal is unreachable or rejects the call, fail the job so UI doesn't poll forever.
       await failJobSafely(jobId, convexUserId, message);
     }
-  })();
+  });
 
   return NextResponse.json({ ok: true });
 }

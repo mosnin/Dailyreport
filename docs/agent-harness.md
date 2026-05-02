@@ -1,7 +1,7 @@
 # Agent Harness
 
 **Last updated:** May 2, 2026
-**Version:** 1.3.3
+**Version:** 1.3.4
 
 ---
 
@@ -181,7 +181,7 @@ Accepts from client:
 }
 ```
 
-Computes `today` string server-side (using `userTimezone`), then starts an async fire-and-forget call to Modal's `/run` endpoint and returns `{ ok: true }` immediately.
+Computes `today` string server-side (using `userTimezone`), then schedules the Modal `/run` call via Next.js `after()` and returns `{ ok: true }` immediately. This avoids dropped background calls in serverless runtimes where plain un-awaited promises can be terminated when the request finishes.
 
 Inside that async task, any non-2xx response (e.g. `401`, `500`) **or** transport failure marks the job as failed via `api.agentJobs.failJob`, preventing jobs from staying queued indefinitely when Modal rejects the request.
 
