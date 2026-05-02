@@ -243,8 +243,7 @@ export default function TodayPage() {
       // @ts-ignore
       const jobId = await createJob({ userId: convexUserId, intent: text });
       setActiveJobId(jobId as string);
-      // fire-and-forget
-      void fetch("/api/agent/trigger", {
+      const triggerRes = await fetch("/api/agent/trigger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -256,6 +255,12 @@ export default function TodayPage() {
           userTimezone: (convexUser as any)?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
         }),
       });
+      if (!triggerRes.ok) {
+        const errorText = await triggerRes.text().catch(() => "");
+        throw new Error(errorText || `Trigger failed with HTTP ${triggerRes.status}`);
+      }
+    } catch (err) {
+      console.error("[today/agent-trigger]", err);
     } finally {
       setSubmitting(false);
       textareaRef.current?.focus();
