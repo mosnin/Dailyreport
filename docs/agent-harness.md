@@ -1,7 +1,7 @@
 # Agent Harness
 
-**Last updated:** May 3, 2026
-**Version:** 1.3
+**Last updated:** May 2, 2026
+**Version:** 2.0.1
 
 ---
 
@@ -162,6 +162,66 @@ All requests authenticated with `Authorization: Bearer {MODAL_AGENT_SECRET}`.
 
 ---
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Phase 6 Rollout Guardrails
+
+- Modal runtime dispatch now routes through `modal_agent/runtime_router.py`.
+- `AGENT_RUNTIME_VERSION` supports `v1`, `v2`, or `canary`.
+- Canary mode uses deterministic user bucketing via `AGENT_V2_CANARY_PERCENT` (0-100) so rollout percentages are stable per user.
+- Router emits rollout logs with selected runtime + trace ID for auditability.
+
+### Phase 5 Correlation and Traceability
+
+- Trigger route now generates and returns `traceId`, and forwards it to Modal in the job payload.
+- Modal runner logs `traceId` with `job_id`/`user_id` on startup for cross-system correlation.
+- Modal callback payloads (`progress`, `complete`, `fail`) now include `traceId` so route logs and job events can be stitched end-to-end.
+
+### Phase 4 Integration Preflight
+
+- Composio adapter now normalizes connected platform IDs and filters to a supported set before tool loading.
+- Preflight warnings are emitted as progress updates (unsupported platforms, no supported integrations) to guide users toward reconnecting valid apps.
+- Tool loading now only requests supported platform apps, reducing bad upstream calls.
+
+### Phase 3 Integration Adapter Split
+
+- External platform tool loading moved into `modal_agent/integrations/composio_adapter.py`.
+- Composio imports are now lazy and isolated inside the adapter, so runner startup is decoupled from optional integration dependencies.
+- Adapter exposes explicit availability reason strings used in progress logs when integrations are unavailable.
+
+### Phase 2 Callback Auth Consolidation
+
+- All Modal callback routes now use shared auth verification (`app/api/agent/_auth.ts`) instead of duplicated per-route checks.
+- Unauthorized callbacks return a `requestId` and emit structured logs with header-presence diagnostics for faster incident triage.
+
+### Phase 1 Runtime Stabilization
+
+- The Modal runner now uses a single `finalize_success()` path to prevent duplicate completion writes.
+- External app tools are gated behind `AGENT_ENABLE_COMPOSIO=true`; default is disabled so the core loop can stabilize with built-in tools first.
+- When external tools are disabled but platforms are connected, the agent posts a progress note so users understand why cross-app actions are unavailable.
+
+### Phase 0 Contract Lock
+
+`modal_agent/contracts.py` is now the canonical schema for Modal job inputs/outputs.
+
+- Request model: `AgentJobRequest`
+- Contract version: `2026-05-02.v1` (sent by `/api/agent/trigger` as `contractVersion`)
+- Result models: `AgentBriefingResult`, `AgentTaskResult`
+
+This contract is intentionally versioned so later runtime rewrites can ship behind schema compatibility gates.
+
 ## Next.js API Routes
 
 All agent routes live under `app/api/agent/`.
@@ -181,9 +241,9 @@ Accepts from client:
 }
 ```
 
-Computes `today` string server-side (using `userTimezone`), then calls Modal's `/run` endpoint **fire-and-forget** (does not `await`). Returns `{ ok: true }` immediately.
+Computes `today` string server-side (using `userTimezone`), then calls Modal `/run` directly with a 15-second timeout before responding. If Modal returns non-2xx, times out, or network fails, the route marks the job as failed and returns an error response.
 
-The `.catch()` handler on the fire-and-forget fetch calls `api.agentJobs.failJob` if Modal is unreachable.
+The trigger route also validates `jobId`, `convexUserId`, and `intent` up front. If payload is invalid, or `MODAL_AGENT_URL`/`MODAL_AGENT_SECRET` are missing, it fails the job immediately before returning an error response.
 
 ### `POST /api/agent/progress`
 **Auth:** `Bearer MODAL_AGENT_SECRET`
@@ -211,6 +271,17 @@ Calls `api.externalTasks.syncTasks`. Errors logged, returns 500.
 Accepts `?userId={convexUserId}&type=report|goals`. Returns report or goal data from Convex. Protected only by the Modal secret — no user session required (Modal acts on behalf of the user).
 
 ---
+
+
+
+### Additional reliability notes
+
+- If `composio_openai_agents` import fails at runtime, orchestrator now degrades gracefully to built-in tools and posts a progress message instead of crashing the job.
+- Modal image must include `composio-openai-agents` because orchestrator imports `from composio_openai_agents import OpenAIAgentsProvider`.
+- `APP_URL` in Modal secret must be the **final canonical host** (no redirect hop, e.g. `https://www.reports.quest` if that is canonical). Redirects can strip `Authorization` and cause 401 on `/api/agent/*` callbacks.
+- `modal_agent/types.py` now uses `Field(default_factory=list)` for `connectedPlatforms` to avoid shared mutable defaults across requests.
+- `sync_tasks_to_app()` in `modal_agent/orchestrator.py` now enforces the documented max of 50 tasks before persisting.
+- `POST /api/agent/sync-tasks` now returns HTTP 500 on Convex write failures so the Modal client can detect failure instead of silently reporting success.
 
 ## Morning Briefing Cron (`convex/agentScheduler.ts`)
 
@@ -241,7 +312,7 @@ export const triggerMorningBriefing = internalAction({
 | Path | Auth mechanism | What it protects |
 |---|---|---|
 | `/api/agent/trigger` | Clerk session | Ensures only authenticated users can dispatch jobs |
-| `/api/agent/progress`, `/complete`, `/fail`, `/sync-tasks`, `/data` | `MODAL_AGENT_SECRET` bearer token | Ensures only the Modal container (acting as the agent) can update job state |
+| `/api/agent/progress`, `/complete`, `/fail`, `/sync-tasks`, `/data` | `MODAL_AGENT_SECRET` via `Authorization` bearer **or** `X-Modal-Secret` header | Ensures only the Modal container (acting as the agent) can update job state |
 | Convex mutations `completeJob`, `failJob`, `appendProgress` | Called via `ConvexHttpClient` (no auth) | Protected upstream by the route-level secret check |
 | Convex `syncTasks` | `userId` arg | No ownership check on upsert — trusted because only Modal (with secret) can reach this endpoint |
 

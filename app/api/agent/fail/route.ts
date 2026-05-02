@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import { authorizeModalRequest } from "../_auth";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export async function POST(req: Request) {
-  const authHeader = req.headers.get("authorization");
-  const secret = process.env.MODAL_AGENT_SECRET ?? "";
-  if (!authHeader || authHeader !== `Bearer ${secret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = authorizeModalRequest(req);
+  if (!auth.ok) return auth.response;
 
   const { jobId, error, userId } = await req.json();
 

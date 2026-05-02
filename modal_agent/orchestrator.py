@@ -1,12 +1,12 @@
 import os
 import json
+import uuid
 from datetime import datetime
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from agents import Agent, Runner, function_tool
-from composio import Composio
-from composio_openai_agents import OpenAIAgentsProvider
 from .client import AppClient
-from .types import AgentRequest
+from .contracts import AgentJobRequest as AgentRequest
+from .integrations.composio_adapter import ComposioAdapter
 
 
 def _local_now(timezone: str) -> str:
@@ -89,21 +89,27 @@ def run_agent(request: AgentRequest) -> None:
     user_id = request.convexUserId
 
     completion_state: dict = {"completed": False, "result": None}
+    trace_id = request.traceId or str(uuid.uuid4())
+    print(f"[agent-run] trace_id={trace_id} job_id={job_id} user_id={user_id}")
+
+    def finalize_success(result: dict) -> None:
+        if completion_state["completed"]:
+            return
+        client.complete_job(job_id, user_id, result, trace_id=trace_id)
+        completion_state["completed"] = True
+        completion_state["result"] = result
 
     try:
         composio_tools: list = []
         if request.connectedPlatforms:
+            adapter = ComposioAdapter()
+            preflight = adapter.preflight(request.connectedPlatforms)
+            for warning in preflight.warnings:
+                client.post_progress(job_id, user_id, warning, trace_id=trace_id)
             try:
-                composio = Composio(
-                    api_key=os.environ["COMPOSIO_API_KEY"],
-                    provider=OpenAIAgentsProvider(),
-                )
-                session = composio.create(user_id=request.userId)
-                composio_tools = session.tools(
-                    apps=[p.lower() for p in request.connectedPlatforms]
-                )
-            except Exception:
-                pass  # Composio unavailable — agent still runs with built-in tools only
+                composio_tools = adapter.load_tools(request.userId, request.connectedPlatforms)
+            except Exception as exc:
+                client.post_progress(job_id, user_id, f"External app tools unavailable: {exc}", trace_id=trace_id)
 
         # ── Internal callback tools ────────────────────────────────────────
 
@@ -129,7 +135,7 @@ def run_agent(request: AgentRequest) -> None:
             Report progress to the user. Call this before each major step so the
             user knows what you're doing in real time.
             """
-            client.post_progress(job_id, user_id, text)
+            client.post_progress(job_id, user_id, text, trace_id=trace_id)
             return "Progress noted."
 
         @function_tool
@@ -180,6 +186,8 @@ def run_agent(request: AgentRequest) -> None:
                 return "Error: tasks_json is not valid JSON"
             if not isinstance(tasks, list):
                 return "Error: tasks_json must be a JSON array"
+            if len(tasks) > 50:
+                tasks = tasks[:50]
             client.sync_tasks(user_id, tasks)
             return f"Synced {len(tasks)} tasks to the app."
 
@@ -201,9 +209,7 @@ def run_agent(request: AgentRequest) -> None:
                 result = json.loads(result_json)
             except json.JSONDecodeError:
                 result = {"summary": result_json}
-            client.complete_job(job_id, user_id, result)
-            completion_state["completed"] = True
-            completion_state["result"] = result
+            finalize_success(result)
             return "Job completed and delivered to the user."
 
         # ── Build and run agent ────────────────────────────────────────────
@@ -224,7 +230,7 @@ def run_agent(request: AgentRequest) -> None:
             model="gpt-4o",
         )
 
-        client.post_progress(job_id, user_id, "Starting…")
+        client.post_progress(job_id, user_id, "Starting…", trace_id=trace_id)
 
         run_result = Runner.run_sync(agent, request.intent, max_turns=20)
 
@@ -241,9 +247,9 @@ def run_agent(request: AgentRequest) -> None:
                 result = output
             else:
                 result = {"summary": str(output) if output else "Agent completed."}
-            client.complete_job(job_id, user_id, result)
+            finalize_success(result)
 
     except Exception as e:
         if not completion_state["completed"]:
-            client.fail_job(job_id, user_id, str(e))
+            client.fail_job(job_id, user_id, str(e), trace_id=trace_id)
         raise
