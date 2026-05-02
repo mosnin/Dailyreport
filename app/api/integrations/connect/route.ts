@@ -1,6 +1,12 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+function getIntegrationUuid(platform: string): string | null {
+  const envKey = `COMPOSIO_INTEGRATION_ID_${platform.toUpperCase()}`;
+  const value = process.env[envKey]?.trim();
+  return value && value.length > 0 ? value : null;
+}
+
 export async function GET(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -13,6 +19,19 @@ export async function GET(req: Request) {
   const composioApiKey = process.env.COMPOSIO_API_KEY;
   if (!composioApiKey) {
     return NextResponse.json({ error: "Composio not configured" }, { status: 503 });
+  }
+
+  const integrationId = getIntegrationUuid(platform);
+  if (!integrationId) {
+    const envKey = `COMPOSIO_INTEGRATION_ID_${platform}`;
+    console.error(`[integrations/connect] Missing integration UUID env: ${envKey}`);
+    return NextResponse.json(
+      {
+        error: "Composio integration is not configured for this platform",
+        details: `Missing ${envKey}`,
+      },
+      { status: 500 }
+    );
   }
 
   const envAppUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
@@ -29,7 +48,7 @@ export async function GET(req: Request) {
         "x-api-key": composioApiKey,
       },
       body: JSON.stringify({
-        integrationId: platform,
+        integrationId,
         redirectUri,
         userUuid: userId,
         data: { redirectParams: `platform=${platform.toLowerCase()}` },
@@ -37,8 +56,8 @@ export async function GET(req: Request) {
     });
     if (!res.ok) {
       const text = await res.text();
-      console.error(`Composio error ${res.status}:`, text);
-      return NextResponse.json({ error: "Composio connection failed" }, { status: 502 });
+      console.error(`[integrations/connect] Composio error ${res.status}:`, text);
+      return NextResponse.json({ error: "Composio connection failed", details: text }, { status: 502 });
     }
     const data = await res.json();
     const redirectUrl = data.redirectUrl ?? data.redirect_url ?? null;
@@ -49,7 +68,8 @@ export async function GET(req: Request) {
       return NextResponse.redirect(redirectUrl);
     }
     return NextResponse.json({ redirectUrl });
-  } catch {
+  } catch (error) {
+    console.error("[integrations/connect] Failed to initiate connection", error);
     return NextResponse.json({ error: "Failed to initiate connection" }, { status: 502 });
   }
 }
