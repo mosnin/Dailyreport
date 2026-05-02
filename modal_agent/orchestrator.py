@@ -180,6 +180,8 @@ def run_agent(request: AgentRequest) -> None:
                 return "Error: tasks_json is not valid JSON"
             if not isinstance(tasks, list):
                 return "Error: tasks_json must be a JSON array"
+            if len(tasks) > 50:
+                tasks = tasks[:50]
             client.sync_tasks(user_id, tasks)
             return f"Synced {len(tasks)} tasks to the app."
 

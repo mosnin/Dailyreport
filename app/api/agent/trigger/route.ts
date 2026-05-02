@@ -65,7 +65,7 @@ export async function POST(req: Request) {
       const message = err instanceof Error ? err.message : "Agent service unreachable";
       // If Modal is unreachable or rejects the call, fail the job so UI doesn't poll forever.
       void convex
-        // @ts-ignore
+        // @ts-expect-error Convex generated types may lag during local dev
         .mutation(api.agentJobs.failJob, {
           jobId,
           userId: convexUserId,

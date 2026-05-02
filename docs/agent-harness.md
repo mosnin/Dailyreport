@@ -1,7 +1,7 @@
 # Agent Harness
 
 **Last updated:** May 2, 2026
-**Version:** 1.3.1
+**Version:** 1.3.2
 
 ---
 
@@ -211,6 +211,14 @@ Calls `api.externalTasks.syncTasks`. Errors logged, returns 500.
 Accepts `?userId={convexUserId}&type=report|goals`. Returns report or goal data from Convex. Protected only by the Modal secret — no user session required (Modal acts on behalf of the user).
 
 ---
+
+
+
+### Additional reliability notes
+
+- `modal_agent/types.py` now uses `Field(default_factory=list)` for `connectedPlatforms` to avoid shared mutable defaults across requests.
+- `sync_tasks_to_app()` in `modal_agent/orchestrator.py` now enforces the documented max of 50 tasks before persisting.
+- `POST /api/agent/sync-tasks` now returns HTTP 500 on Convex write failures so the Modal client can detect failure instead of silently reporting success.
 
 ## Morning Briefing Cron (`convex/agentScheduler.ts`)
 
