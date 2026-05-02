@@ -27,6 +27,9 @@ import type * as scores from "../scores.js";
 import type * as users from "../users.js";
 import type * as visualizations from "../visualizations.js";
 import type * as rateLimits from "../rateLimits.js";
+import type * as integrations from "../integrations.js";
+import type * as agentJobs from "../agentJobs.js";
+import type * as externalTasks from "../externalTasks.js";
 
 import type {
   ApiFromModules,
@@ -54,6 +57,9 @@ declare const fullApi: ApiFromModules<{
   users: typeof users;
   visualizations: typeof visualizations;
   rateLimits: typeof rateLimits;
+  integrations: typeof integrations;
+  agentJobs: typeof agentJobs;
+  externalTasks: typeof externalTasks;
 }>;
 
 /**

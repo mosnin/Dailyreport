@@ -192,4 +192,61 @@ export default defineSchema({
     bullets: v.array(v.string()), // 3-5 short bullet strings
     generatedAt: v.number(),
   }).index("by_user_week", ["userId", "weekStartDate"]),
+
+  integrations: defineTable({
+    userId: v.id("users"),
+    platform: v.union(
+      v.literal("slack"),
+      v.literal("notion"),
+      v.literal("clickup"),
+      v.literal("trello"),
+      v.literal("asana")
+    ),
+    composioConnectionId: v.string(),
+    connected: v.boolean(),
+    connectedAt: v.number(),
+    metadata: v.optional(v.any()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_platform", ["userId", "platform"]),
+
+  agentJobs: defineTable({
+    userId: v.id("users"),
+    status: v.union(
+      v.literal("queued"),
+      v.literal("running"),
+      v.literal("done"),
+      v.literal("failed")
+    ),
+    intent: v.string(),
+    progressLog: v.array(v.object({ ts: v.number(), text: v.string() })),
+    result: v.optional(v.any()),
+    error: v.optional(v.string()),
+    createdAt: v.number(),
+    completedAt: v.optional(v.number()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_status", ["userId", "status"]),
+
+  externalTasks: defineTable({
+    userId: v.id("users"),
+    platform: v.union(
+      v.literal("slack"),
+      v.literal("notion"),
+      v.literal("clickup"),
+      v.literal("trello"),
+      v.literal("asana")
+    ),
+    externalId: v.string(),
+    title: v.string(),
+    status: v.string(),
+    dueDate: v.optional(v.string()),
+    url: v.optional(v.string()),
+    priority: v.optional(v.string()),
+    completed: v.boolean(),
+    lastSynced: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_platform", ["userId", "platform"])
+    .index("by_user_external", ["userId", "externalId"]),
 });
