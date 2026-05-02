@@ -1,7 +1,7 @@
 # Platform Integrations
 
 **Last updated:** May 2, 2026
-**Version:** 1.2
+**Version:** 1.3
 
 ---
 

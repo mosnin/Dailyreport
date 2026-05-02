@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
@@ -20,17 +20,8 @@ const PLATFORMS = [
   { id: "trello",         name: "Trello",          description: "Manage boards, cards, and deadlines.",                       color: "bg-[#0052CC]" },
 ] as const;
 
-function handleConnect(platform: string) {
-  const routeUrl = `/api/integrations/connect?platform=${platform}&mode=redirect`;
-  const popup = window.open(routeUrl, "composio-oauth", "popup=yes,width=560,height=740");
-  if (!popup) {
-    window.location.href = routeUrl;
-  }
-}
-
 function IntegrationsContent() {
   const { convexUserId, isLoading } = useConvexUser();
-  const [connectError, setConnectError] = useState<string>("");
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -137,28 +128,20 @@ function IntegrationsContent() {
                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={() => {
-                    setConnectError("");
-                    try {
-                      handleConnect(platform.id);
-                    } catch (err) {
-                      setConnectError(err instanceof Error ? err.message : "Connection failed");
-                    }
-                  }}
-                  className="w-full rounded-xl bg-primary text-primary-foreground text-sm font-semibold py-2 hover:opacity-90 transition-opacity"
+                <a
+                  href={`/api/integrations/connect?platform=${platform.id}&mode=redirect`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full rounded-xl bg-primary text-primary-foreground text-sm font-semibold py-2 hover:opacity-90 transition-opacity text-center"
                 >
                   Connect
-                </button>
+                </a>
               )}
             </div>
           );
         })}
       </motion.div>
 
-      {connectError && (
-        <p className="text-sm text-destructive">{connectError}</p>
-      )}
     </div>
   );
 }
