@@ -23,6 +23,7 @@ import {
   Activity,
   CalendarDays,
   Search,
+  Mic,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
@@ -200,6 +201,22 @@ export function Sidebar() {
               <kbd className="ml-auto text-[10px] font-mono bg-muted/60 border border-border/60 rounded px-1 py-0.5 leading-none text-muted-foreground/60">⌘K</kbd>
             </>
           )}
+        </motion.button>
+      </div>
+
+      {/* Voice agent summon */}
+      <div className={cn("shrink-0 mt-2", collapsed ? "px-1.5" : "px-3")}>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => window.dispatchEvent(new CustomEvent("open-voice-agent"))}
+          title={collapsed ? "Voice agent" : undefined}
+          className={cn(
+            "w-full flex items-center rounded-xl text-sm font-medium transition-colors bg-primary/8 hover:bg-primary/12 text-primary/70 hover:text-primary border border-primary/15",
+            collapsed ? "justify-center p-2" : "gap-2 px-3 py-2"
+          )}
+        >
+          <Mic className="w-3.5 h-3.5 shrink-0" />
+          {!collapsed && <span className="text-xs">Voice agent</span>}
         </motion.button>
       </div>
 

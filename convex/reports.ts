@@ -284,3 +284,62 @@ export const getYearSubmissions = query({
     return reports.map((r) => r.date);
   },
 });
+
+export const patchToday = mutation({
+  args: {
+    userId: v.id("users"),
+    field: v.union(v.literal("tomorrowPlan"), v.literal("dayActivity")),
+    value: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await assertOwner(ctx, args.userId);
+    const today = new Date().toISOString().split("T")[0];
+    const existing = await ctx.db
+      .query("dailyReports")
+      .withIndex("by_user_date", (q) =>
+        q.eq("userId", args.userId).eq("date", today)
+      )
+      .unique();
+    const responses = { ...((existing?.responses ?? {}) as Record<string, unknown>) };
+    responses[args.field] = args.value;
+    if (existing) {
+      await ctx.db.patch(existing._id, { responses, submittedAt: Date.now() });
+    } else {
+      await ctx.db.insert("dailyReports", {
+        userId: args.userId,
+        date: today,
+        responses,
+        submittedAt: Date.now(),
+      });
+    }
+  },
+});
+
+export const addProblemToToday = mutation({
+  args: { userId: v.id("users"), title: v.string() },
+  handler: async (ctx, args) => {
+    await assertOwner(ctx, args.userId);
+    const today = new Date().toISOString().split("T")[0];
+    const existing = await ctx.db
+      .query("dailyReports")
+      .withIndex("by_user_date", (q) =>
+        q.eq("userId", args.userId).eq("date", today)
+      )
+      .unique();
+    const responses = { ...((existing?.responses ?? {}) as Record<string, unknown>) };
+    const problems = (
+      (responses.problemsToSolve ?? []) as Array<{ id: string; title: string; solutions: string[] }>
+    ).concat([{ id: String(Date.now()), title: args.title, solutions: [] }]);
+    responses.problemsToSolve = problems;
+    if (existing) {
+      await ctx.db.patch(existing._id, { responses, submittedAt: Date.now() });
+    } else {
+      await ctx.db.insert("dailyReports", {
+        userId: args.userId,
+        date: today,
+        responses,
+        submittedAt: Date.now(),
+      });
+    }
+  },
+});

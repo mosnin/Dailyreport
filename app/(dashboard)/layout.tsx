@@ -8,6 +8,7 @@ import { PageTransition } from "@/components/layout/PageTransition";
 import { CommandPalette } from "@/components/CommandPalette";
 import { KeyboardNavMount } from "@/components/layout/KeyboardNavMount";
 import { PWAInstallBanner } from "@/components/PWAInstallBanner";
+import { VoiceModal } from "@/components/voice/VoiceModal";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
@@ -26,6 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </div>
       <BottomTabBar />
       <CommandPalette />
+      <VoiceModal />
       <KeyboardNavMount />
       <PWAInstallBanner />
     </OnboardingGate>
