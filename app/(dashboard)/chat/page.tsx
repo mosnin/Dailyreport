@@ -44,12 +44,21 @@ function AssistantMessage({ content }: { content: string }) {
 function ThinkingIndicator() {
   return (
     <div className="flex justify-start">
-      <div className="border-l-2 border-primary/40 pl-4 py-2">
-        <motion.div
-          className="w-8 h-0.5 bg-primary/40 rounded-full"
-          animate={{ scaleX: [1, 1.5, 1], opacity: [0.4, 0.9, 0.4] }}
-          transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-        />
+      <div className="max-w-[85%] border-l-2 border-primary/40 pl-4 py-2">
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[11px] font-medium text-primary">
+          <motion.span
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+          >
+            Thinking
+          </motion.span>
+          <motion.span
+            animate={{ x: [0, 2, 0], opacity: [0.3, 1, 0.3] }}
+            transition={{ duration: 0.9, repeat: Infinity }}
+          >
+            •••
+          </motion.span>
+        </div>
       </div>
     </div>
   );
@@ -82,6 +91,23 @@ export default function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, thinking]);
 
+
+  async function streamAssistantReply(fullText: string) {
+    const assistantIndex = messages.length + 1;
+    setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+    const chunk = Math.max(1, Math.floor(fullText.length / 42));
+    for (let i = 0; i < fullText.length; i += chunk) {
+      const slice = fullText.slice(0, i + chunk);
+      setMessages((prev) => {
+        const next = [...prev];
+        if (next[assistantIndex]) next[assistantIndex] = { role: "assistant", content: slice };
+        return next;
+      });
+      await new Promise((r) => setTimeout(r, 22));
+    }
+  }
+
   async function send(text: string) {
     if (!convexUserId || !text.trim() || thinking) return;
     const userMsg: Message = { role: "user", content: text.trim() };
@@ -95,7 +121,7 @@ export default function ChatPage() {
         message: userMsg.content,
         history: messages.map((m) => ({ role: m.role, content: m.content })),
       });
-      setMessages([...next, { role: "assistant", content: reply as string }]);
+      await streamAssistantReply(reply as string);
     } catch {
       setMessages([
         ...next,
@@ -130,10 +156,10 @@ export default function ChatPage() {
       {/* Header */}
       <motion.div {...fadeUp(0)} className="shrink-0 pb-6 border-b border-border/30">
         <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-muted-foreground/40 mb-1.5">
-          Private Coach
+Agent OS
         </p>
         <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">
-          Ask anything.
+Chat with your chief of staff.
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
           Every report you&apos;ve written is searchable. Your patterns, your progress, your words.
