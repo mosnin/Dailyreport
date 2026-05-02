@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 
 export const getOrCreate = mutation({
@@ -231,6 +231,16 @@ export const updateTimezone = mutation({
     const user = await ctx.db.get(args.userId);
     if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
     await ctx.db.patch(args.userId, { timezone: args.timezone });
+  },
+});
+
+// Called by server-side actions (no auth context) — returns minimal user fields needed by the agent
+export const getUserForScheduler = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) return null;
+    return { name: user.name, timezone: user.timezone ?? "UTC", clerkId: user.clerkId };
   },
 });
 

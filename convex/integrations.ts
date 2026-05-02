@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 
 const PLATFORM = v.union(
@@ -6,7 +6,8 @@ const PLATFORM = v.union(
   v.literal("notion"),
   v.literal("clickup"),
   v.literal("trello"),
-  v.literal("asana")
+  v.literal("asana"),
+  v.literal("googlecalendar")
 );
 
 export const saveIntegration = mutation({
@@ -77,5 +78,17 @@ export const getUserIntegrations = query({
       .query("integrations")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .collect();
+  },
+});
+
+// Called by server-side actions (e.g. cron scheduler) — no auth context
+export const getConnectedPlatformsInternal = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const rows = await ctx.db
+      .query("integrations")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .collect();
+    return rows.filter((r) => r.connected).map((r) => r.platform);
   },
 });

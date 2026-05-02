@@ -37,7 +37,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function AgentPage() {
-  const { convexUserId, isLoading } = useConvexUser();
+  const { convexUserId, convexUser, isLoading } = useConvexUser();
 
   const [intent, setIntent] = useState("");
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
@@ -101,7 +101,14 @@ export default function AgentPage() {
       await fetch("/api/agent/trigger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobId, intent: savedIntent, convexUserId, connectedPlatforms }),
+        body: JSON.stringify({
+          jobId,
+          intent: savedIntent,
+          convexUserId,
+          connectedPlatforms,
+          userName: (convexUser as any)?.name ?? "",
+          userTimezone: (convexUser as any)?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
+        }),
       });
     } finally {
       setSubmitting(false);

@@ -135,7 +135,7 @@ function AgentBubble({ job }: { job: any }) {
 // ── page ─────────────────────────────────────────────────────────────────
 
 export default function TodayPage() {
-  const { convexUserId, isLoading } = useConvexUser();
+  const { convexUserId, convexUser, isLoading } = useConvexUser();
   const { user } = useUser();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const threadBottomRef = useRef<HTMLDivElement>(null);
@@ -247,7 +247,14 @@ export default function TodayPage() {
       void fetch("/api/agent/trigger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobId, intent: text, convexUserId, connectedPlatforms }),
+        body: JSON.stringify({
+          jobId,
+          intent: text,
+          convexUserId,
+          connectedPlatforms,
+          userName: (convexUser as any)?.name ?? firstName,
+          userTimezone: (convexUser as any)?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
+        }),
       });
     } finally {
       setSubmitting(false);
