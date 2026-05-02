@@ -4,6 +4,11 @@ const isPublicRoute = createRouteMatcher([
   "/",
   "/sign-in(.*)",
   "/sign-up(.*)",
+  "/api/agent/progress",
+  "/api/agent/complete",
+  "/api/agent/fail",
+  "/api/agent/sync-tasks",
+  "/api/agent/data",
 ]);
 
 const isStaticAsset = createRouteMatcher([
