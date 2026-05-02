@@ -329,7 +329,7 @@ export const addProblemToToday = mutation({
     const responses = { ...((existing?.responses ?? {}) as Record<string, unknown>) };
     const problems = (
       (responses.problemsToSolve ?? []) as Array<{ id: string; title: string; solutions: string[] }>
-    ).concat([{ id: String(Date.now()), title: args.title, solutions: [] }]);
+    ).concat([{ id: crypto.randomUUID(), title: args.title, solutions: [] }]);
     responses.problemsToSolve = problems;
     if (existing) {
       await ctx.db.patch(existing._id, { responses, submittedAt: Date.now() });

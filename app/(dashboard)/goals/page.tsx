@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
@@ -42,6 +42,12 @@ export default function GoalsPage() {
   const [aiParsing, setAiParsing] = useState(false);
   const [aiResult, setAiResult] = useState<{ title: string; category: string }[] | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (!aiResult) return;
+    const t = setTimeout(() => setAiResult(null), 4000);
+    return () => clearTimeout(t);
+  }, [aiResult]);
 
   async function handleParseGoals(e: React.FormEvent) {
     e.preventDefault();

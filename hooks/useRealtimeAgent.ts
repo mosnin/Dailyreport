@@ -100,6 +100,13 @@ export function useRealtimeAgent(handlers: ToolHandlers) {
   const [transcript, setTranscript] = useState("");
   const [actionLog, setActionLog] = useState<ActionLogEntry[]>([]);
 
+  // Ref mirror of state so async callbacks always read the current value
+  const stateRef = useRef<AgentState>("idle");
+  function setAgentState(s: AgentState) {
+    stateRef.current = s;
+    setState(s);
+  }
+
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const dcRef = useRef<RTCDataChannel | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -164,8 +171,10 @@ export function useRealtimeAgent(handlers: ToolHandlers) {
   }
 
   const connect = useCallback(async () => {
-    if (state === "connecting" || state === "listening" || state === "speaking") return;
-    setState("connecting");
+    // Use ref to avoid stale closure — state may have changed since callback was created
+    const cur = stateRef.current;
+    if (cur === "connecting" || cur === "listening" || cur === "speaking") return;
+    setAgentState("connecting");
     setActionLog([]);
     setTranscript("");
 
@@ -190,7 +199,7 @@ export function useRealtimeAgent(handlers: ToolHandlers) {
       dcRef.current = dc;
 
       dc.onopen = () => {
-        setState("listening");
+        setAgentState("listening");
         dc.send(JSON.stringify({
           type: "session.update",
           session: {
@@ -215,11 +224,11 @@ export function useRealtimeAgent(handlers: ToolHandlers) {
         switch (event.type) {
           case "input_audio_buffer.speech_started":
             setTranscript("");
-            setState("listening");
+            setAgentState("listening");
             break;
           case "response.created":
           case "response.audio.delta":
-            setState("speaking");
+            setAgentState("speaking");
             break;
           case "response.audio_transcript.delta":
             setTranscript((prev) => prev + ((event.delta as string) ?? ""));
@@ -228,7 +237,7 @@ export function useRealtimeAgent(handlers: ToolHandlers) {
             setTranscript((event.transcript as string) ?? "");
             break;
           case "response.done":
-            setState("listening");
+            setAgentState("listening");
             break;
           case "conversation.item.input_audio_transcription.completed":
             setTranscript((event.transcript as string) ?? "");
@@ -248,12 +257,13 @@ export function useRealtimeAgent(handlers: ToolHandlers) {
           }
           case "error":
             console.error("Realtime API error:", event.error);
-            setState("error");
+            setAgentState("error");
             break;
         }
       };
 
-      dc.onclose = () => { if (state !== "idle") setState("idle"); };
+      // Use ref so this callback always reads current state, not stale closure
+      dc.onclose = () => { if (stateRef.current !== "idle") setAgentState("idle"); };
 
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
@@ -275,14 +285,15 @@ export function useRealtimeAgent(handlers: ToolHandlers) {
     } catch (err) {
       console.error("Voice agent connection failed:", err);
       cleanup();
-      setState("error");
+      setAgentState("error");
     }
+  // stateRef ensures we always read current state — no dependency on `state` needed
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state]);
+  }, []);
 
   const disconnect = useCallback(() => {
     cleanup();
-    setState("idle");
+    setAgentState("idle");
     setTranscript("");
   }, []);
 

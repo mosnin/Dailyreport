@@ -514,6 +514,12 @@ export default function AffirmationsPage() {
   const [visionParsing, setVisionParsing] = useState(false);
   const [visionAdded, setVisionAdded] = useState(0);
 
+  useEffect(() => {
+    if (visionAdded === 0) return;
+    const t = setTimeout(() => setVisionAdded(0), 3000);
+    return () => clearTimeout(t);
+  }, [visionAdded]);
+
   async function handleParseVision(e: React.FormEvent) {
     e.preventDefault();
     const text = visionText.trim();
