@@ -1,4 +1,5 @@
 import httpx
+import time
 import os
 from typing import Any
 
@@ -7,6 +8,21 @@ class AppClient:
     def __init__(self, app_url: str, secret: str):
         self.app_url = app_url.rstrip("/")
         self.headers = {"Authorization": f"Bearer {secret}", "Content-Type": "application/json"}
+
+    def _post_with_retry(self, url: str, json_data: dict, timeout: int = 15, retries: int = 2) -> None:
+        delay = 1.0
+        last_exc: Exception = RuntimeError("no attempts made")
+        for attempt in range(retries + 1):
+            try:
+                resp = httpx.post(url, json=json_data, headers=self.headers, timeout=timeout)
+                resp.raise_for_status()
+                return
+            except Exception as exc:
+                last_exc = exc
+                if attempt < retries:
+                    time.sleep(delay)
+                    delay *= 2
+        raise last_exc
 
     def post_progress(self, job_id: str, user_id: str, text: str) -> None:
         try:
@@ -20,18 +36,16 @@ class AppClient:
             pass  # progress updates are best-effort
 
     def complete_job(self, job_id: str, user_id: str, result: dict) -> None:
-        httpx.post(
+        self._post_with_retry(
             f"{self.app_url}/api/agent/complete",
-            json={"jobId": job_id, "userId": user_id, "result": result},
-            headers=self.headers,
+            {"jobId": job_id, "userId": user_id, "result": result},
             timeout=15,
         )
 
     def fail_job(self, job_id: str, user_id: str, error: str) -> None:
-        httpx.post(
+        self._post_with_retry(
             f"{self.app_url}/api/agent/fail",
-            json={"jobId": job_id, "userId": user_id, "error": error},
-            headers=self.headers,
+            {"jobId": job_id, "userId": user_id, "error": error},
             timeout=10,
         )
 

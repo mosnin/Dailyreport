@@ -16,8 +16,9 @@ export async function POST(req: Request) {
   try {
     // @ts-ignore — agentJobs module added in parallel; run npx convex dev --once to regenerate types
     await convex.mutation(api.agentJobs.failJob, { jobId, error, userId });
-  } catch {
-    // best-effort
+  } catch (err) {
+    console.error("[agent/fail] Convex mutation failed:", err);
+    return NextResponse.json({ error: "Failed to fail job" }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

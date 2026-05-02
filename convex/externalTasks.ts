@@ -26,7 +26,8 @@ export const syncTasks = mutation({
     tasks: v.array(TASK_OBJECT),
   },
   handler: async (ctx, args) => {
-    for (const task of args.tasks) {
+    const tasks = args.tasks.slice(0, 100);
+    for (const task of tasks) {
       const existing = await ctx.db
         .query("externalTasks")
         .withIndex("by_user_external", (q) =>
@@ -82,6 +83,10 @@ export const markTaskComplete = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Unauthenticated");
+
+    const task = await ctx.db.get(args.taskId);
+    if (!task) throw new Error("Task not found");
+    if (task.userId !== args.userId) throw new Error("Forbidden");
 
     await ctx.db.patch(args.taskId, { completed: true });
   },

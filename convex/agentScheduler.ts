@@ -25,7 +25,7 @@ export const triggerMorningBriefing = internalAction({
     if (!modalUrl || !modalSecret) return; // Agent not configured — skip silently
 
     try {
-      await fetch(`${modalUrl}/run`, {
+      const response = await fetch(`${modalUrl}/run`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -39,8 +39,22 @@ export const triggerMorningBriefing = internalAction({
           connectedPlatforms: [], // Morning briefing uses reports + goals; platforms added as integrations are connected
         }),
       });
-    } catch {
-      // Don't throw — a failed Modal call shouldn't block other users in the cron
+      if (!response.ok) {
+        console.error(`Modal /run returned ${response.status} for job ${jobId}`);
+        await ctx.runMutation(
+          // @ts-ignore — failJobInternal added in parallel; run npx convex dev --once
+          (internal as any).agentJobs.failJobInternal,
+          { jobId, userId: args.userId, error: `Modal returned HTTP ${response.status}` }
+        );
+      }
+    } catch (err) {
+      // Network failure — mark the job failed so the UI doesn't poll forever
+      console.error(`Modal fetch failed for job ${jobId}:`, err);
+      await ctx.runMutation(
+        // @ts-ignore
+        (internal as any).agentJobs.failJobInternal,
+        { jobId, userId: args.userId, error: "Agent service unreachable" }
+      ).catch(() => {}); // runMutation failure is non-fatal for the cron
     }
   },
 });

@@ -67,7 +67,8 @@ export default defineSchema({
       v.literal("daily"),
       v.literal("weekly"),
       v.literal("email_digest"),
-      v.literal("email_reminder")
+      v.literal("email_reminder"),
+      v.literal("morning_briefing")
     ),
     date: v.string(),
   }).index("by_user_type_date", ["userId", "type", "date"]),

@@ -54,7 +54,7 @@ function IntegrationsContent() {
         composioConnectionId: connectionId,
       }).then(() => router.replace("/integrations"));
     }
-  }, [searchParams, convexUserId]);
+  }, [searchParams, convexUserId, saveIntegration, router]);
 
   if (isLoading || !convexUserId) {
     return (

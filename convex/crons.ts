@@ -37,15 +37,27 @@ export const checkNotifications = internalAction({
         const localDateStr = localDate.toISOString().split("T")[0];
 
         // Morning briefing at 8am — agent pre-briefs before the user opens the app
-        if (hour === 8) {
-          try {
-            await ctx.runAction(
-              // @ts-ignore — agentScheduler added in parallel; run npx convex dev --once
-              (internal as any).agentScheduler.triggerMorningBriefing,
-              { userId: user._id, clerkId: user.clerkId }
-            );
-          } catch (err) {
-            console.error(`Morning briefing failed for ${user._id}:`, err);
+        if (hour === 8 && user.onboardingComplete) {
+          const briefingSent = await ctx.runQuery(internal.crons.wasNotificationSent, {
+            userId: user._id,
+            type: "morning_briefing",
+            date: localDateStr,
+          });
+          if (!briefingSent) {
+            await ctx.runMutation(internal.crons.markNotificationSent, {
+              userId: user._id,
+              type: "morning_briefing",
+              date: localDateStr,
+            });
+            try {
+              await ctx.runAction(
+                // @ts-ignore — agentScheduler added in parallel; run npx convex dev --once
+                (internal as any).agentScheduler.triggerMorningBriefing,
+                { userId: user._id, clerkId: user.clerkId }
+              );
+            } catch (err) {
+              console.error(`Morning briefing failed for ${user._id}:`, err);
+            }
           }
         }
 
@@ -190,7 +202,7 @@ export const getAllUsers = internalQuery({
 export const wasNotificationSent = internalQuery({
   args: {
     userId: v.id("users"),
-    type: v.union(v.literal("daily"), v.literal("weekly")),
+    type: v.union(v.literal("daily"), v.literal("weekly"), v.literal("morning_briefing")),
     date: v.string(),
   },
   handler: async (ctx, args) => {
@@ -207,7 +219,7 @@ export const wasNotificationSent = internalQuery({
 export const markNotificationSent = internalMutation({
   args: {
     userId: v.id("users"),
-    type: v.union(v.literal("daily"), v.literal("weekly")),
+    type: v.union(v.literal("daily"), v.literal("weekly"), v.literal("morning_briefing")),
     date: v.string(),
   },
   handler: async (ctx, args) => {

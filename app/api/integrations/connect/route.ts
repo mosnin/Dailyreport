@@ -31,6 +31,11 @@ export async function GET(req: Request) {
         data: { redirectParams: `platform=${platform.toLowerCase()}` },
       }),
     });
+    if (!res.ok) {
+      const text = await res.text();
+      console.error(`Composio error ${res.status}:`, text);
+      return NextResponse.json({ error: "Composio connection failed" }, { status: 502 });
+    }
     const data = await res.json();
     return NextResponse.json({ redirectUrl: data.redirectUrl ?? data.redirect_url ?? null });
   } catch {

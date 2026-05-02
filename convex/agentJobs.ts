@@ -10,6 +10,12 @@ export const createJob = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Unauthenticated");
 
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    if (!user || user._id !== args.userId) throw new Error("Forbidden");
+
     return ctx.db.insert("agentJobs", {
       userId: args.userId,
       intent: args.intent,
@@ -86,7 +92,22 @@ export const listRecentJobs = query({
   },
 });
 
-// Called by server-side cron (no user auth context)
+// Called by server-side actions (no user auth context)
+export const failJobInternal = internalMutation({
+  args: {
+    jobId: v.id("agentJobs"),
+    error: v.string(),
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.jobId, {
+      status: "failed",
+      error: args.error,
+      completedAt: Date.now(),
+    });
+  },
+});
+
 export const createJobInternal = internalMutation({
   args: {
     userId: v.id("users"),
