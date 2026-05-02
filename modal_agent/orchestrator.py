@@ -4,7 +4,10 @@ from datetime import datetime
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from agents import Agent, Runner, function_tool
 from composio import Composio
-from composio_openai_agents import OpenAIAgentsProvider
+try:
+    from composio_openai_agents import OpenAIAgentsProvider
+except Exception:
+    OpenAIAgentsProvider = None
 from .client import AppClient
 from .types import AgentRequest
 
@@ -94,6 +97,8 @@ def run_agent(request: AgentRequest) -> None:
         composio_tools: list = []
         if request.connectedPlatforms:
             try:
+                if OpenAIAgentsProvider is None:
+                    raise RuntimeError("composio_openai_agents package is not available in this image")
                 composio = Composio(
                     api_key=os.environ["COMPOSIO_API_KEY"],
                     provider=OpenAIAgentsProvider(),
@@ -102,8 +107,9 @@ def run_agent(request: AgentRequest) -> None:
                 composio_tools = session.tools(
                     apps=[p.lower() for p in request.connectedPlatforms]
                 )
-            except Exception:
-                pass  # Composio unavailable — agent still runs with built-in tools only
+            except Exception as exc:
+                client.post_progress(job_id, user_id, f"Composio tools unavailable: {exc}")
+                # Agent still runs with built-in tools only
 
         # ── Internal callback tools ────────────────────────────────────────
 

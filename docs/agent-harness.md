@@ -1,7 +1,7 @@
 # Agent Harness
 
 **Last updated:** May 2, 2026
-**Version:** 1.3.8
+**Version:** 1.3.9
 
 ---
 
@@ -218,6 +218,7 @@ Accepts `?userId={convexUserId}&type=report|goals`. Returns report or goal data 
 
 ### Additional reliability notes
 
+- If `composio_openai_agents` import fails at runtime, orchestrator now degrades gracefully to built-in tools and posts a progress message instead of crashing the job.
 - Modal image must include `composio-openai-agents` because orchestrator imports `from composio_openai_agents import OpenAIAgentsProvider`.
 - `APP_URL` in Modal secret must be the **final canonical host** (no redirect hop, e.g. `https://www.reports.quest` if that is canonical). Redirects can strip `Authorization` and cause 401 on `/api/agent/*` callbacks.
 - `modal_agent/types.py` now uses `Field(default_factory=list)` for `connectedPlatforms` to avoid shared mutable defaults across requests.
