@@ -24,7 +24,7 @@ export function useTodayStatus(userId: Id<"users"> | null) {
   );
   const stats = useQuery(
     api.users.getStats,
-    userId ? { userId } : "skip"
+    userId ? { userId, clientDate: todayStr } : "skip"
   );
 
   const rounds = session?.rounds ?? 0;

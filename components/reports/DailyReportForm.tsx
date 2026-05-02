@@ -428,13 +428,15 @@ export function DailyReportForm({
 
   const filledCount = [
     r.dayActivity.trim().length > 0,
+    r.peopleMetToday.length > 0,
     r.dailyGoals.length > 0,
     r.emotionalDrain.trim().length > 0,
+    r.problemsToSolve.length > 0,
     r.didAffirmations !== null,
     r.tomorrowPlan.trim().length > 0,
   ].filter(Boolean).length;
 
-  const pct = (filledCount / 5) * 100;
+  const pct = Math.round((filledCount / 7) * 100);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-0">
@@ -443,9 +445,9 @@ export function DailyReportForm({
       <div className="mb-8 space-y-1.5">
         <div className="flex items-center justify-between text-[11px] text-muted-foreground/50">
           <span className="font-medium">
-            {filledCount === 5 ? "Ready to close" : `${filledCount} of 7 sections`}
+            {filledCount >= 5 ? "Ready to close" : `${filledCount} of 7 sections`}
           </span>
-          <span>{Math.round((filledCount / 5) * 100)}%</span>
+          <span>{pct}%</span>
         </div>
         <div className="h-0.5 w-full rounded-full bg-muted overflow-hidden">
           <motion.div

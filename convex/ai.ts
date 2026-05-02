@@ -1483,7 +1483,8 @@ Rewrite titles as clean action phrases. No periods. Max 10 goals total.`,
     });
 
     const raw = completion.choices[0].message.content ?? "{}";
-    const result = JSON.parse(raw);
+    let result: { goals?: unknown[] } = {};
+    try { result = JSON.parse(raw); } catch { result = {}; }
     const goals = (result.goals ?? []) as { title: string; category: string }[];
     const valid = ["weekly", "monthly", "quarterly", "yearly"];
     const parsed = goals.filter((g) => valid.includes(g.category)) as {
@@ -1531,7 +1532,8 @@ Rules:
     });
 
     const raw = completion.choices[0].message.content ?? "{}";
-    const result = JSON.parse(raw);
+    let result: { affirmations?: unknown[] } = {};
+    try { result = JSON.parse(raw); } catch { result = {}; }
     const affirmations = (result.affirmations ?? []) as string[];
     const limited = affirmations.slice(0, 5);
 

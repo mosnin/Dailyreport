@@ -85,7 +85,7 @@ export default function GoalsPage() {
       </motion.div>
 
       {/* Overview strip — compact scoreboard */}
-      <motion.div {...fadeUp(1)} className="grid grid-cols-4 gap-2">
+      <motion.div {...fadeUp(1)} className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {CATEGORIES.map((cat) => {
           const meta = CATEGORY_META[cat];
           const data = summary?.[cat];

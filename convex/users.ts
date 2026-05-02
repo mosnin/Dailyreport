@@ -235,7 +235,7 @@ export const updateTimezone = mutation({
 });
 
 export const getStats = query({
-  args: { userId: v.id("users") },
+  args: { userId: v.id("users"), clientDate: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
@@ -271,11 +271,12 @@ export const getStats = query({
 
     const submittedDates = new Set(dailyReports.map((r) => r.date));
     let streak = 0;
-    const today = new Date();
+    // Use client-provided date to avoid UTC vs local timezone mismatch on streak calculation
+    const todayStr = args.clientDate ?? new Date().toISOString().split("T")[0];
     for (let i = 0; i <= 365; i++) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split("T")[0];
+      const [y, mo, d] = todayStr.split("-").map(Number);
+      const date = new Date(y, mo - 1, d - i);
+      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
       if (submittedDates.has(dateStr)) {
         streak++;
       } else if (i > 0) {

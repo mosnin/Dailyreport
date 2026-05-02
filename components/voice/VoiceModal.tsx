@@ -8,7 +8,7 @@ import { useRealtimeAgent } from "@/hooks/useRealtimeAgent";
 import { VoiceOrb } from "./VoiceOrb";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { currentPeriodKey } from "@/lib/utils";
+import { currentPeriodKey, todayString } from "@/lib/utils";
 
 const STATE_LABEL: Record<string, string> = {
   idle:       "Ready",
@@ -39,7 +39,7 @@ export function VoiceModal() {
     },
     addProblem: async (title) => {
       if (!convexUserId) return;
-      await addProblemMutation({ userId: convexUserId, title });
+      await addProblemMutation({ userId: convexUserId, title, date: todayString() });
     },
     addAffirmation: async (text) => {
       if (!convexUserId) return;
@@ -47,7 +47,7 @@ export function VoiceModal() {
     },
     patchReport: async (field, value) => {
       if (!convexUserId) return;
-      await patchTodayMutation({ userId: convexUserId, field, value });
+      await patchTodayMutation({ userId: convexUserId, field, value, date: todayString() });
     },
   });
 

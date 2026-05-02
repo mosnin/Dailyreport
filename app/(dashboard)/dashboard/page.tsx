@@ -11,6 +11,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { TimezoneModal } from "@/components/dashboard/TimezoneModal";
 import { StatsBar } from "@/components/dashboard/StatsBar";
 import { YearRing } from "@/components/dashboard/YearRing";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { todayString } from "@/lib/utils";
@@ -126,7 +127,28 @@ export default function DashboardPage() {
     generateBrief({ userId: convexUserId }).catch(() => {});
   }, [brief, convexUserId, generateBrief]);
 
-  if (isLoading || !convexUserId) return null;
+  if (isLoading || !convexUserId) {
+    return (
+      <div className="max-w-xl space-y-8 py-4">
+        <div className="space-y-2">
+          <Skeleton className="h-3 w-32" />
+          <Skeleton className="h-9 w-52" />
+        </div>
+        <div className="flex items-center gap-6">
+          <Skeleton className="w-[140px] h-[140px] rounded-full shrink-0" />
+          <div className="space-y-2 flex-1">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-4 w-16" />
+          </div>
+        </div>
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <div className="space-y-2">
+          <Skeleton className="h-14 w-full rounded-xl" />
+          <Skeleton className="h-14 w-full rounded-xl" />
+        </div>
+      </div>
+    );
+  }
 
   const firstName = user?.firstName ?? null;
   const allDone = reportDone && affirmDone && vizDone;

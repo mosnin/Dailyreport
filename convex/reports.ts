@@ -290,10 +290,12 @@ export const patchToday = mutation({
     userId: v.id("users"),
     field: v.union(v.literal("tomorrowPlan"), v.literal("dayActivity")),
     value: v.string(),
+    date: v.optional(v.string()), // client passes YYYY-MM-DD in user's local timezone
   },
   handler: async (ctx, args) => {
     await assertOwner(ctx, args.userId);
-    const today = new Date().toISOString().split("T")[0];
+    // Prefer client-provided date to avoid UTC vs local timezone mismatch
+    const today = args.date ?? new Date().toISOString().split("T")[0];
     const existing = await ctx.db
       .query("dailyReports")
       .withIndex("by_user_date", (q) =>
@@ -303,7 +305,11 @@ export const patchToday = mutation({
     const responses = { ...((existing?.responses ?? {}) as Record<string, unknown>) };
     responses[args.field] = args.value;
     if (existing) {
-      await ctx.db.patch(existing._id, { responses, submittedAt: Date.now() });
+      await ctx.db.patch(existing._id, {
+        responses,
+        submittedAt: Date.now(),
+        embedding: undefined, // reset so search re-embeds updated content
+      });
     } else {
       await ctx.db.insert("dailyReports", {
         userId: args.userId,
@@ -316,10 +322,14 @@ export const patchToday = mutation({
 });
 
 export const addProblemToToday = mutation({
-  args: { userId: v.id("users"), title: v.string() },
+  args: {
+    userId: v.id("users"),
+    title: v.string(),
+    date: v.optional(v.string()), // client passes YYYY-MM-DD in user's local timezone
+  },
   handler: async (ctx, args) => {
     await assertOwner(ctx, args.userId);
-    const today = new Date().toISOString().split("T")[0];
+    const today = args.date ?? new Date().toISOString().split("T")[0];
     const existing = await ctx.db
       .query("dailyReports")
       .withIndex("by_user_date", (q) =>
@@ -332,7 +342,11 @@ export const addProblemToToday = mutation({
     ).concat([{ id: crypto.randomUUID(), title: args.title, solutions: [] }]);
     responses.problemsToSolve = problems;
     if (existing) {
-      await ctx.db.patch(existing._id, { responses, submittedAt: Date.now() });
+      await ctx.db.patch(existing._id, {
+        responses,
+        submittedAt: Date.now(),
+        embedding: undefined,
+      });
     } else {
       await ctx.db.insert("dailyReports", {
         userId: args.userId,
