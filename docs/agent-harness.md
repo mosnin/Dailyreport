@@ -1,7 +1,7 @@
 # Agent Harness
 
-**Last updated:** May 2, 2026
-**Version:** 1.0
+**Last updated:** May 3, 2026
+**Version:** 1.1
 
 ---
 
@@ -248,20 +248,29 @@ export const triggerMorningBriefing = internalAction({
 
 ## Deployment
 
-```bash
-# Deploy the agent to Modal
-cd modal_agent
-modal deploy app.py
+### Automatic (CI)
 
-# Set Modal secrets (one-time)
+`.github/workflows/deploy-modal.yml` runs on every push to `main` that touches `modal_agent/**`. It runs `modal deploy modal_agent/app.py` using the `MODAL_TOKEN_ID` + `MODAL_TOKEN_SECRET` GitHub repo secrets. Manual runs available via the workflow_dispatch trigger.
+
+### One-time setup
+
+```bash
+# 1. CI auth — generate a Modal API token, then add as GitHub repo secrets
+#    (MODAL_TOKEN_ID, MODAL_TOKEN_SECRET)
+modal token new --source github
+
+# 2. Runtime secrets — create the Modal Secret the agent reads at runtime
 modal secret create dailyreport-agent \
   OPENAI_API_KEY=sk-... \
   COMPOSIO_API_KEY=... \
   MODAL_AGENT_SECRET=your-random-secret \
   APP_URL=https://your-app.vercel.app
 
-# Test the health endpoint
+# 3. Manual deploy (only needed for the very first deploy or to test locally)
+modal deploy modal_agent/app.py
+
+# 4. Test the health endpoint
 curl https://your-modal-app-url/health
 ```
 
-After deploying, set `MODAL_AGENT_URL` and `MODAL_AGENT_SECRET` in Vercel and Convex environment variables.
+After the first deploy, set `MODAL_AGENT_URL` and `MODAL_AGENT_SECRET` in Vercel and Convex environment variables. `MODAL_AGENT_SECRET` must match the value in the Modal `dailyreport-agent` secret.
