@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { after, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 
@@ -61,27 +61,26 @@ export async function POST(req: Request) {
     }).format(new Date()),
   };
 
-  // Schedule the Modal trigger after sending the HTTP response.
-  // Using `after()` avoids dropped fire-and-forget fetches in serverless runtimes.
-  after(async () => {
-    try {
-      const response = await fetch(`${modalUrl}/run`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${secret}`,
-        },
-        body: JSON.stringify(payload),
-      });
+  try {
+    const response = await fetch(`${modalUrl}/run`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${secret}`,
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(15000),
+    });
 
-      if (!response.ok) {
-        throw new Error(`Modal /run returned HTTP ${response.status}`);
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Agent service unreachable";
-      await failJobSafely(jobId, convexUserId, message);
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      throw new Error(`Modal /run returned HTTP ${response.status}${errorText ? `: ${errorText}` : ""}`);
     }
-  });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Agent service unreachable";
+    await failJobSafely(jobId, convexUserId, message);
+    return NextResponse.json({ ok: false, error: message }, { status: 502 });
+  }
 
   return NextResponse.json({ ok: true });
 }

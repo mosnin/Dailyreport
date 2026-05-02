@@ -1,7 +1,7 @@
 # Agent Harness
 
 **Last updated:** May 2, 2026
-**Version:** 1.3.4
+**Version:** 1.3.5
 
 ---
 
@@ -181,7 +181,7 @@ Accepts from client:
 }
 ```
 
-Computes `today` string server-side (using `userTimezone`), then schedules the Modal `/run` call via Next.js `after()` and returns `{ ok: true }` immediately. This avoids dropped background calls in serverless runtimes where plain un-awaited promises can be terminated when the request finishes.
+Computes `today` string server-side (using `userTimezone`), then calls Modal `/run` directly with a 15-second timeout before responding. If Modal returns non-2xx, times out, or network fails, the route marks the job as failed and returns an error response.
 
 Inside that async task, any non-2xx response (e.g. `401`, `500`) **or** transport failure marks the job as failed via `api.agentJobs.failJob`, preventing jobs from staying queued indefinitely when Modal rejects the request.
 
