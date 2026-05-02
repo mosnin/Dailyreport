@@ -6,8 +6,7 @@ image = (
     modal.Image.debian_slim(python_version="3.12")
     .pip_install(
         "openai-agents>=0.0.14",
-        "composio",
-        "composio-openai-agents",
+        "composio-openai>=0.5.0",
         "httpx>=0.27.0",
         "pydantic>=2.7.0",
         "fastapi>=0.111.0",

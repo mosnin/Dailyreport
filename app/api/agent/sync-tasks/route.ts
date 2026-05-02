@@ -14,10 +14,11 @@ export async function POST(req: Request) {
   const { userId, tasks } = await req.json();
 
   try {
-    // @ts-ignore — externalTasks module added in parallel; run npx convex dev --once to regenerate types
+    // @ts-expect-error Convex generated types may lag during local dev — externalTasks module added in parallel; run npx convex dev --once to regenerate types
     await convex.mutation(api.externalTasks.syncTasks, { userId, tasks });
-  } catch {
-    // best-effort
+  } catch (err) {
+    console.error("[agent/sync-tasks] Convex mutation failed:", err);
+    return NextResponse.json({ error: "Failed to sync tasks" }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });
