@@ -9,7 +9,7 @@ try:
 except Exception:
     OpenAIAgentsProvider = None
 from .client import AppClient
-from .types import AgentRequest
+from .contracts import AgentJobRequest as AgentRequest
 
 
 def _local_now(timezone: str) -> str:

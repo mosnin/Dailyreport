@@ -1,7 +1,7 @@
 # Agent Harness
 
 **Last updated:** May 2, 2026
-**Version:** 1.3.9
+**Version:** 1.4.0
 
 ---
 
@@ -161,6 +161,18 @@ All requests authenticated with `Authorization: Bearer {MODAL_AGENT_SECRET}`.
 **`post_progress` is fire-and-forget** — exceptions are swallowed. A failed progress update is acceptable; a failed completion/failure update is not.
 
 ---
+
+
+
+### Phase 0 Contract Lock
+
+`modal_agent/contracts.py` is now the canonical schema for Modal job inputs/outputs.
+
+- Request model: `AgentJobRequest`
+- Contract version: `2026-05-02.v1` (sent by `/api/agent/trigger` as `contractVersion`)
+- Result models: `AgentBriefingResult`, `AgentTaskResult`
+
+This contract is intentionally versioned so later runtime rewrites can ship behind schema compatibility gates.
 
 ## Next.js API Routes
 

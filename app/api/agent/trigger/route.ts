@@ -45,6 +45,7 @@ export async function POST(req: Request) {
   }
 
   const payload = {
+    contractVersion: "2026-05-02.v1",
     userId,
     convexUserId,
     intent,

@@ -28,8 +28,8 @@ agent_secrets = modal.Secret.from_name("dailyreport-agent")
 )
 def run_agent_job(request_dict: dict) -> None:
     from modal_agent.orchestrator import run_agent
-    from modal_agent.types import AgentRequest
-    request = AgentRequest(**request_dict)
+    from modal_agent.contracts import AgentJobRequest
+    request = AgentJobRequest(**request_dict)
     run_agent(request)
 
 
