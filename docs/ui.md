@@ -1,7 +1,7 @@
 # UI Architecture
 
 **Last updated:** May 2, 2026
-**Version:** 1.0
+**Version:** 1.1
 
 ---
 
@@ -169,3 +169,14 @@ The sidebar today-progress strip and mobile tab dots come from `useTodayStatus(c
 - Green dot = complete
 - Amber dot = not complete
 - No dot = not applicable
+
+
+## Recent UX Updates (May 2, 2026)
+
+### `/dashboard` auto-sync on app open
+- On dashboard load, when a user has connected integrations, the client now auto-creates an agent job and triggers `/api/agent/trigger` to pull latest external updates/tasks.
+- The dashboard renders a lightweight "Live from connected apps" snapshot showing open synced task count once data arrives.
+
+### `/chat` agentic experience
+- Chat now uses a richer "Thinking" animation chip instead of a minimal line pulse.
+- Assistant replies are rendered with progressive streaming-style reveal for a more real-time agent feel on both web and PWA surfaces.
