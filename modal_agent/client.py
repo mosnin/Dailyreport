@@ -7,7 +7,7 @@ from typing import Any
 class AppClient:
     def __init__(self, app_url: str, secret: str):
         self.app_url = app_url.rstrip("/")
-        self.headers = {"Authorization": f"Bearer {secret}", "Content-Type": "application/json"}
+        self.headers = {"Authorization": f"Bearer {secret}", "X-Modal-Secret": secret, "Content-Type": "application/json"}
         if not secret:
             raise RuntimeError("MODAL_AGENT_SECRET is missing in Modal secret; cannot authenticate callbacks.")
 

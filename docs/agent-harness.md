@@ -1,7 +1,7 @@
 # Agent Harness
 
 **Last updated:** May 2, 2026
-**Version:** 1.3.6
+**Version:** 1.3.7
 
 ---
 
@@ -252,7 +252,7 @@ export const triggerMorningBriefing = internalAction({
 | Path | Auth mechanism | What it protects |
 |---|---|---|
 | `/api/agent/trigger` | Clerk session | Ensures only authenticated users can dispatch jobs |
-| `/api/agent/progress`, `/complete`, `/fail`, `/sync-tasks`, `/data` | `MODAL_AGENT_SECRET` bearer token | Ensures only the Modal container (acting as the agent) can update job state |
+| `/api/agent/progress`, `/complete`, `/fail`, `/sync-tasks`, `/data` | `MODAL_AGENT_SECRET` via `Authorization` bearer **or** `X-Modal-Secret` header | Ensures only the Modal container (acting as the agent) can update job state |
 | Convex mutations `completeJob`, `failJob`, `appendProgress` | Called via `ConvexHttpClient` (no auth) | Protected upstream by the route-level secret check |
 | Convex `syncTasks` | `userId` arg | No ownership check on upsert — trusted because only Modal (with secret) can reach this endpoint |
 
