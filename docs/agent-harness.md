@@ -1,7 +1,7 @@
 # Agent Harness
 
-**Last updated:** May 3, 2026
-**Version:** 1.3
+**Last updated:** May 2, 2026
+**Version:** 1.3.8
 
 ---
 
@@ -181,9 +181,11 @@ Accepts from client:
 }
 ```
 
-Computes `today` string server-side (using `userTimezone`), then calls Modal's `/run` endpoint **fire-and-forget** (does not `await`). Returns `{ ok: true }` immediately.
+Computes `today` string server-side (using `userTimezone`), then calls Modal `/run` directly with a 15-second timeout before responding. If Modal returns non-2xx, times out, or network fails, the route marks the job as failed and returns an error response.
 
-The `.catch()` handler on the fire-and-forget fetch calls `api.agentJobs.failJob` if Modal is unreachable.
+Inside that async task, any non-2xx response (e.g. `401`, `500`) **or** transport failure marks the job as failed via `api.agentJobs.failJob`, preventing jobs from staying queued indefinitely when Modal rejects the request.
+
+The trigger route also validates `jobId`, `convexUserId`, and `intent` up front. If payload is invalid, or `MODAL_AGENT_URL`/`MODAL_AGENT_SECRET` are missing, it fails the job immediately before returning an error response.
 
 ### `POST /api/agent/progress`
 **Auth:** `Bearer MODAL_AGENT_SECRET`
@@ -211,6 +213,16 @@ Calls `api.externalTasks.syncTasks`. Errors logged, returns 500.
 Accepts `?userId={convexUserId}&type=report|goals`. Returns report or goal data from Convex. Protected only by the Modal secret — no user session required (Modal acts on behalf of the user).
 
 ---
+
+
+
+### Additional reliability notes
+
+- Modal image must include `composio-openai-agents` because orchestrator imports `from composio_openai_agents import OpenAIAgentsProvider`.
+- `APP_URL` in Modal secret must be the **final canonical host** (no redirect hop, e.g. `https://www.reports.quest` if that is canonical). Redirects can strip `Authorization` and cause 401 on `/api/agent/*` callbacks.
+- `modal_agent/types.py` now uses `Field(default_factory=list)` for `connectedPlatforms` to avoid shared mutable defaults across requests.
+- `sync_tasks_to_app()` in `modal_agent/orchestrator.py` now enforces the documented max of 50 tasks before persisting.
+- `POST /api/agent/sync-tasks` now returns HTTP 500 on Convex write failures so the Modal client can detect failure instead of silently reporting success.
 
 ## Morning Briefing Cron (`convex/agentScheduler.ts`)
 
@@ -241,7 +253,7 @@ export const triggerMorningBriefing = internalAction({
 | Path | Auth mechanism | What it protects |
 |---|---|---|
 | `/api/agent/trigger` | Clerk session | Ensures only authenticated users can dispatch jobs |
-| `/api/agent/progress`, `/complete`, `/fail`, `/sync-tasks`, `/data` | `MODAL_AGENT_SECRET` bearer token | Ensures only the Modal container (acting as the agent) can update job state |
+| `/api/agent/progress`, `/complete`, `/fail`, `/sync-tasks`, `/data` | `MODAL_AGENT_SECRET` via `Authorization` bearer **or** `X-Modal-Secret` header | Ensures only the Modal container (acting as the agent) can update job state |
 | Convex mutations `completeJob`, `failJob`, `appendProgress` | Called via `ConvexHttpClient` (no auth) | Protected upstream by the route-level secret check |
 | Convex `syncTasks` | `userId` arg | No ownership check on upsert — trusted because only Modal (with secret) can reach this endpoint |
 
