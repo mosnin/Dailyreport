@@ -5,6 +5,17 @@ import { api } from "@/convex/_generated/api";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
+async function failJobSafely(jobId: string | undefined, convexUserId: string | undefined, error: string) {
+  if (!jobId || !convexUserId) return;
+  try {
+    await convex.mutation(api.agentJobs.failJob, {
+      jobId: jobId as any,
+      userId: convexUserId as any,
+      error,
+    });
+  } catch {}
+}
+
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -18,15 +29,20 @@ export async function POST(req: Request) {
     userTimezone = "",
   } = await req.json();
 
+  if (!jobId || !convexUserId || !intent) {
+    await failJobSafely(jobId, convexUserId, "Invalid agent trigger payload.");
+    return NextResponse.json({ ok: false, error: "Invalid payload" }, { status: 400 });
+  }
+
   const modalUrl = process.env.MODAL_AGENT_URL;
-  if (!modalUrl) {
+  const secret = process.env.MODAL_AGENT_SECRET;
+  if (!modalUrl || !secret) {
+    await failJobSafely(jobId, convexUserId, "Agent not configured. Set MODAL_AGENT_URL and MODAL_AGENT_SECRET.");
     return NextResponse.json(
-      { ok: false, error: "Agent not configured. Set MODAL_AGENT_URL." },
+      { ok: false, error: "Agent not configured. Set MODAL_AGENT_URL and MODAL_AGENT_SECRET." },
       { status: 503 }
     );
   }
-
-  const secret = process.env.MODAL_AGENT_SECRET ?? "";
 
   const payload = {
     userId,
@@ -64,13 +80,7 @@ export async function POST(req: Request) {
     } catch (err) {
       const message = err instanceof Error ? err.message : "Agent service unreachable";
       // If Modal is unreachable or rejects the call, fail the job so UI doesn't poll forever.
-      void convex
-        .mutation(api.agentJobs.failJob, {
-          jobId,
-          userId: convexUserId,
-          error: message,
-        })
-        .catch(() => {});
+      await failJobSafely(jobId, convexUserId, message);
     }
   })();
 

@@ -1,7 +1,7 @@
 # Agent Harness
 
 **Last updated:** May 2, 2026
-**Version:** 1.3.2
+**Version:** 1.3.3
 
 ---
 
@@ -184,6 +184,8 @@ Accepts from client:
 Computes `today` string server-side (using `userTimezone`), then starts an async fire-and-forget call to Modal's `/run` endpoint and returns `{ ok: true }` immediately.
 
 Inside that async task, any non-2xx response (e.g. `401`, `500`) **or** transport failure marks the job as failed via `api.agentJobs.failJob`, preventing jobs from staying queued indefinitely when Modal rejects the request.
+
+The trigger route also validates `jobId`, `convexUserId`, and `intent` up front. If payload is invalid, or `MODAL_AGENT_URL`/`MODAL_AGENT_SECRET` are missing, it fails the job immediately before returning an error response.
 
 ### `POST /api/agent/progress`
 **Auth:** `Bearer MODAL_AGENT_SECRET`
