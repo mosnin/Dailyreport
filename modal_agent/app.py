@@ -6,8 +6,8 @@ image = (
     modal.Image.debian_slim(python_version="3.12")
     .pip_install(
         "openai-agents>=0.0.14",
-        "composio",
-        "composio-openai-agents",
+        "composio-openai>=0.5.0",
+        "composio-openai-agents>=0.5.0",
         "httpx>=0.27.0",
         "pydantic>=2.7.0",
         "fastapi>=0.111.0",
@@ -28,8 +28,8 @@ agent_secrets = modal.Secret.from_name("dailyreport-agent")
 )
 def run_agent_job(request_dict: dict) -> None:
     from modal_agent.orchestrator import run_agent
-    from modal_agent.types import AgentRequest
-    request = AgentRequest(**request_dict)
+    from modal_agent.contracts import AgentJobRequest
+    request = AgentJobRequest(**request_dict)
     run_agent(request)
 
 
