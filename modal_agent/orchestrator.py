@@ -3,18 +3,9 @@ import json
 from datetime import datetime
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from agents import Agent, Runner, function_tool
-from composio_openai import ComposioToolSet, App
+from composio_openai_agents import Composio
 from .client import AppClient
 from .types import AgentRequest
-
-PLATFORM_APP_MAP: dict[str, App] = {
-    "slack":          App.SLACK,
-    "notion":         App.NOTION,
-    "asana":          App.ASANA,
-    "clickup":        App.CLICKUP,
-    "trello":         App.TRELLO,
-    "googlecalendar": App.GOOGLECALENDAR,
-}
 
 
 def _local_now(timezone: str) -> str:
@@ -99,21 +90,16 @@ def run_agent(request: AgentRequest) -> None:
     completion_state: dict = {"completed": False, "result": None}
 
     try:
-        toolset = ComposioToolSet(
-            api_key=os.environ["COMPOSIO_API_KEY"],
-            entity_id=request.userId,
-        )
-
         composio_tools: list = []
-        for platform_id in request.connectedPlatforms:
-            composio_app = PLATFORM_APP_MAP.get(platform_id.lower())
-            if not composio_app:
-                continue
+        if request.connectedPlatforms:
             try:
-                tools = toolset.get_tools(apps=[composio_app])
-                composio_tools.extend(tools)
+                composio = Composio(api_key=os.environ["COMPOSIO_API_KEY"])
+                session = composio.create(user_id=request.userId)
+                composio_tools = session.tools(
+                    apps=[p.lower() for p in request.connectedPlatforms]
+                )
             except Exception:
-                pass  # Platform not authorized or unavailable — skip silently
+                pass  # Composio unavailable — agent still runs with built-in tools only
 
         # ── Internal callback tools ────────────────────────────────────────
 

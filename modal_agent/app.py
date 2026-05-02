@@ -6,7 +6,7 @@ image = (
     modal.Image.debian_slim(python_version="3.12")
     .pip_install(
         "openai-agents>=0.0.14",
-        "composio-openai>=0.5.0,<0.9.0",
+        "composio-openai-agents",
         "httpx>=0.27.0",
         "pydantic>=2.7.0",
         "fastapi>=0.111.0",
@@ -53,7 +53,7 @@ def fastapi_app():
             raise HTTPException(status_code=401, detail="Unauthorized")
 
         body = await request.json()
-        run_agent_job.spawn(body)
+        await run_agent_job.spawn.aio(body)
 
         return {"status": "started", "jobId": body.get("jobId")}
 
