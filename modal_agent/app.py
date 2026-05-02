@@ -15,23 +15,33 @@ image = (
 
 agent_secrets = modal.Secret.from_name("dailyreport-agent")
 
+# Mount the local modal_agent package into the container
+agent_mount = modal.Mount.from_local_python_packages("modal_agent")
+
 
 @app.function(
     image=image,
     secrets=[agent_secrets],
+    mounts=[agent_mount],
+    min_containers=0,       # No warm instances — user pays only on invocation
+    scaledown_window=0,     # Scale down immediately after use
     timeout=300,
     retries=0,
 )
 def run_agent_job(request_dict: dict) -> None:
-    import sys
-    sys.path.insert(0, "/root")
     from modal_agent.orchestrator import run_agent
     from modal_agent.types import AgentRequest
     request = AgentRequest(**request_dict)
     run_agent(request)
 
 
-@app.function(image=image, secrets=[agent_secrets])
+@app.function(
+    image=image,
+    secrets=[agent_secrets],
+    min_containers=0,
+    scaledown_window=0,
+    timeout=30,
+)
 @modal.asgi_app(label="dailyreport-agent")
 def fastapi_app():
     import os

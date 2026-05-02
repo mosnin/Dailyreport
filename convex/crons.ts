@@ -34,9 +34,23 @@ export const checkNotifications = internalAction({
           new Date(nowUtc).toLocaleString("en-US", { timeZone: user.timezone })
         );
         const hour = localDate.getHours();
-        if (hour !== 20) continue;
-
         const localDateStr = localDate.toISOString().split("T")[0];
+
+        // Morning briefing at 8am — agent pre-briefs before the user opens the app
+        if (hour === 8) {
+          try {
+            await ctx.runAction(
+              // @ts-ignore — agentScheduler added in parallel; run npx convex dev --once
+              (internal as any).agentScheduler.triggerMorningBriefing,
+              { userId: user._id, clerkId: user.clerkId }
+            );
+          } catch (err) {
+            console.error(`Morning briefing failed for ${user._id}:`, err);
+          }
+        }
+
+        // Evening notifications at 8pm
+        if (hour !== 20) continue;
 
         // Daily notification (every day)
         const dailySent = await ctx.runQuery(internal.crons.wasNotificationSent, {

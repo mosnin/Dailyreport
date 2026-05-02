@@ -49,6 +49,14 @@ export default function AgentPage() {
   // @ts-ignore
   const markTaskComplete = useMutation(api.externalTasks.markTaskComplete);
 
+  // @ts-ignore
+  const integrations = useQuery(
+    // @ts-ignore
+    api.integrations.getUserIntegrations,
+    convexUserId ? { userId: convexUserId } : "skip"
+  ) ?? [];
+  const connectedPlatforms = (integrations as any[]).map((i: any) => i.platform);
+
   // @ts-ignore — agentJobs not yet in generated types; run npx convex dev --once
   const activeJob = useQuery(
     // @ts-ignore
@@ -93,7 +101,7 @@ export default function AgentPage() {
       await fetch("/api/agent/trigger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobId, intent: savedIntent, convexUserId }),
+        body: JSON.stringify({ jobId, intent: savedIntent, convexUserId, connectedPlatforms }),
       });
     } finally {
       setSubmitting(false);

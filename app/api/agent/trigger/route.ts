@@ -1,11 +1,15 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@/convex/_generated/api";
+
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { jobId, intent, convexUserId } = await req.json();
+  const { jobId, intent, convexUserId, connectedPlatforms = [] } = await req.json();
 
   const modalUrl = process.env.MODAL_AGENT_URL;
   if (!modalUrl) {
@@ -17,21 +21,26 @@ export async function POST(req: Request) {
 
   const secret = process.env.MODAL_AGENT_SECRET ?? "";
 
-  try {
-    await fetch(`${modalUrl}/run`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${secret}`,
-      },
-      body: JSON.stringify({ userId, convexUserId, intent, jobId }),
-    });
-  } catch {
-    return NextResponse.json(
-      { ok: false, error: "Failed to reach agent service" },
-      { status: 502 }
-    );
-  }
+  // Fire-and-forget — job status is tracked via Convex real-time.
+  // Do NOT await: Modal cold start can exceed Vercel's 30s route timeout.
+  void fetch(`${modalUrl}/run`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${secret}`,
+    },
+    body: JSON.stringify({ userId, convexUserId, intent, jobId, connectedPlatforms }),
+  }).catch(() => {
+    // If Modal is unreachable, fail the job so the UI doesn't poll forever
+    void convex
+      // @ts-ignore
+      .mutation(api.agentJobs.failJob, {
+        jobId,
+        userId: convexUserId,
+        error: "Agent service unreachable. Check MODAL_AGENT_URL.",
+      })
+      .catch(() => {});
+  });
 
   return NextResponse.json({ ok: true });
 }

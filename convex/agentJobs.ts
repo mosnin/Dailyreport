@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
 export const createJob = mutation({
@@ -83,5 +83,22 @@ export const listRecentJobs = query({
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .order("desc")
       .take(20);
+  },
+});
+
+// Called by server-side cron (no user auth context)
+export const createJobInternal = internalMutation({
+  args: {
+    userId: v.id("users"),
+    intent: v.string(),
+  },
+  handler: async (ctx, args) => {
+    return ctx.db.insert("agentJobs", {
+      userId: args.userId,
+      intent: args.intent,
+      status: "queued",
+      progressLog: [],
+      createdAt: Date.now(),
+    });
   },
 });

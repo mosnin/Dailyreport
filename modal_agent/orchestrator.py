@@ -1,21 +1,29 @@
 import os
 import json
 from agents import Agent, Runner, function_tool
-from composio_openai import ComposioToolSet, Action, App
+from composio_openai import ComposioToolSet, App
 from .client import AppClient
 from .types import AgentRequest
 
-SYSTEM_PROMPT = """You are the user's personal chief of staff. You have access to their daily reports, active goals, and all their connected work platforms (Slack, Notion, ClickUp, Trello, Asana).
+SYSTEM_PROMPT = """You are the user's personal chief of staff. You have access to their daily reports, active goals, and their connected work platforms.
 
-Your job:
-- When asked to "brief" or "brief me": fetch their tasks from all connected platforms, read their latest daily report and goals, then write a clear prioritized briefing as a JSON object with keys: "briefing" (prose paragraph), "priorities" (list of 3 strings), "taskCount" (int).
-- When asked to update or complete a task: find it and update it on the source platform.
-- When asked about their tasks: fetch and summarize them.
-- Be decisive and direct. Never hedge. Surface what matters most.
+Rules:
+- Be decisive and direct. Never hedge.
+- Always call post_progress before each major step so the user knows what you're doing.
+- When briefing: fetch their report, fetch their goals, synthesize into a clear briefing.
+- When asked about tasks: fetch them, sync them back, then summarize.
+- When done with all work, call complete_job with your final result as a JSON object.
+  For briefings include: briefing (string), priorities (list of 3 strings), taskCount (int).
+  For other intents include: summary (string), actions (list of strings of things done).
+- If complete_job is not called, Python will handle it — but always try to call it for structured output."""
 
-Always call sync_tasks_to_app after fetching tasks from platforms so the app stays in sync.
-Always call post_progress to keep the user informed as you work.
-Always end by calling complete_job with your result."""
+PLATFORM_APP_MAP: dict[str, App] = {
+    "slack":   App.SLACK,
+    "notion":  App.NOTION,
+    "asana":   App.ASANA,
+    "clickup": App.CLICKUP,
+    "trello":  App.TRELLO,
+}
 
 
 def run_agent(request: AgentRequest) -> None:
@@ -26,53 +34,80 @@ def run_agent(request: AgentRequest) -> None:
     job_id = request.jobId
     user_id = request.convexUserId
 
+    # Track whether the agent explicitly called complete_job
+    completion_state: dict = {"completed": False, "result": None}
+
     try:
-        # Initialize Composio toolset for this user's entity
         toolset = ComposioToolSet(api_key=os.environ["COMPOSIO_API_KEY"], entity_id=request.userId)
 
-        # Get tools for all supported platforms
-        composio_tools = []
-        for app in [App.NOTION, App.SLACK, App.ASANA, App.CLICKUP, App.TRELLO]:
+        # Only load tools for platforms the user has actually connected
+        # Empty connectedPlatforms = no Composio tools (reports+goals only)
+        composio_tools: list = []
+        for platform_id in request.connectedPlatforms:
+            composio_app = PLATFORM_APP_MAP.get(platform_id.lower())
+            if not composio_app:
+                continue
             try:
-                tools = toolset.get_tools(apps=[app])
+                tools = toolset.get_tools(apps=[composio_app])
                 composio_tools.extend(tools)
             except Exception:
-                pass  # Platform not connected — skip gracefully
+                pass  # Platform auth failed or not connected — skip
 
-        # Define app-callback tools
+        # ── Agent-to-app callback tools ────────────────────────────────────
+
         @function_tool
         def post_progress(text: str) -> str:
-            """Update the user on what you're currently doing."""
+            """Report progress to the user. Call before each major step."""
             client.post_progress(job_id, user_id, text)
-            return "Progress updated."
+            return "Progress noted."
 
         @function_tool
         def get_user_report() -> str:
-            """Get the user's latest daily report responses."""
+            """Get the user's last 7 daily reports. Returns JSON array."""
             data = client.get_data(user_id, "report")
             return json.dumps(data)
 
         @function_tool
         def get_user_goals() -> str:
-            """Get the user's active goals across all time horizons."""
+            """Get the user's active goals across all time horizons. Returns JSON."""
             data = client.get_data(user_id, "goals")
             return json.dumps(data)
 
         @function_tool
         def sync_tasks_to_app(tasks_json: str) -> str:
-            """Sync a list of tasks from external platforms back to the app. Pass a JSON array of task objects with: platform, externalId, title, status, dueDate (optional), url (optional), priority (optional), completed (bool)."""
-            tasks = json.loads(tasks_json)
+            """Sync fetched tasks back to the app so the user can see them.
+            Pass a JSON array where each item has: platform, externalId, title,
+            status, completed (bool), and optionally dueDate, url, priority."""
+            try:
+                tasks = json.loads(tasks_json)
+            except json.JSONDecodeError:
+                return "Error: invalid JSON"
             client.sync_tasks(user_id, tasks)
             return f"Synced {len(tasks)} tasks."
 
         @function_tool
         def complete_job(result_json: str) -> str:
-            """Call this when you are done. Pass a JSON object as the result. For briefings, include: briefing (string), priorities (list of strings), taskCount (int)."""
-            result = json.loads(result_json)
+            """Mark the job as done with a structured result. Always call this last.
+            Pass a JSON object. For briefings: {briefing, priorities, taskCount}.
+            For other tasks: {summary, actions}."""
+            try:
+                result = json.loads(result_json)
+            except json.JSONDecodeError:
+                result = {"summary": result_json}
             client.complete_job(job_id, user_id, result)
+            completion_state["completed"] = True
+            completion_state["result"] = result
             return "Job completed."
 
-        all_tools = [post_progress, get_user_report, get_user_goals, sync_tasks_to_app, complete_job] + composio_tools
+        # ── Build agent ────────────────────────────────────────────────────
+
+        all_tools = [
+            post_progress,
+            get_user_report,
+            get_user_goals,
+            sync_tasks_to_app,
+            complete_job,
+        ] + composio_tools
 
         agent = Agent(
             name="DailyReport Chief of Staff",
@@ -83,8 +118,24 @@ def run_agent(request: AgentRequest) -> None:
 
         client.post_progress(job_id, user_id, "Starting…")
 
-        Runner.run_sync(agent, request.intent)
+        run_result = Runner.run_sync(agent, request.intent, max_turns=15)
+
+        # If the agent didn't call complete_job (e.g. hit max_turns), handle it here
+        if not completion_state["completed"]:
+            output = run_result.final_output
+            if isinstance(output, str):
+                try:
+                    parsed = json.loads(output)
+                    result = parsed if isinstance(parsed, dict) else {"briefing": output}
+                except json.JSONDecodeError:
+                    result = {"briefing": output}
+            elif isinstance(output, dict):
+                result = output
+            else:
+                result = {"summary": str(output) if output else "Agent completed."}
+            client.complete_job(job_id, user_id, result)
 
     except Exception as e:
-        client.fail_job(job_id, user_id, str(e))
+        if not completion_state["completed"]:
+            client.fail_job(job_id, user_id, str(e))
         raise

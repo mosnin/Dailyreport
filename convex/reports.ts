@@ -357,3 +357,22 @@ export const addProblemToToday = mutation({
     }
   },
 });
+
+// No auth check — protected at HTTP route level by MODAL_AGENT_SECRET
+export const getRecentReportsForAgent = query({
+  args: { userId: v.id("users"), limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 7;
+    const reports = await ctx.db
+      .query("dailyReports")
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .take(limit);
+    // Return a condensed version to keep the agent's context tight
+    return reports.map((r) => ({
+      date: r.date,
+      responses: r.responses,
+      submittedAt: r.submittedAt,
+    }));
+  },
+});

@@ -20,14 +20,24 @@ export async function GET(req: Request) {
   }
 
   try {
+    if (type === "report") {
+      // getRecentReportsForAgent has no auth check — protected by MODAL_AGENT_SECRET above
+      // @ts-ignore — added in parallel; run npx convex dev --once
+      const reports = await convex.query(api.reports.getRecentReportsForAgent as any, {
+        userId: userId as any,
+        limit: 7,
+      });
+      return NextResponse.json({ reports });
+    }
+
     if (type === "goals") {
-      // getCurrentSummary returns completion stats across all time horizons
       const goals = await convex.query(api.goals.getCurrentSummary as any, { userId });
       return NextResponse.json({ goals });
     }
-    // For reports, return empty for now — agent will use what's available
-    return NextResponse.json({ data: null });
-  } catch {
+
+    return NextResponse.json({ error: "Unknown type" }, { status: 400 });
+  } catch (err) {
+    console.error("agent/data error:", err);
     return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
   }
 }
