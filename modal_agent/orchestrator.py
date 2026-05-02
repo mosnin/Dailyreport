@@ -3,7 +3,8 @@ import json
 from datetime import datetime
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from agents import Agent, Runner, function_tool
-from composio_openai_agents import Composio
+from composio import Composio
+from composio_openai_agents import OpenAIAgentsProvider
 from .client import AppClient
 from .types import AgentRequest
 
@@ -93,7 +94,10 @@ def run_agent(request: AgentRequest) -> None:
         composio_tools: list = []
         if request.connectedPlatforms:
             try:
-                composio = Composio(api_key=os.environ["COMPOSIO_API_KEY"])
+                composio = Composio(
+                    api_key=os.environ["COMPOSIO_API_KEY"],
+                    provider=OpenAIAgentsProvider(),
+                )
                 session = composio.create(user_id=request.userId)
                 composio_tools = session.tools(
                     apps=[p.lower() for p in request.connectedPlatforms]
