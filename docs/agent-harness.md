@@ -1,7 +1,7 @@
 # Agent Harness
 
 **Last updated:** May 2, 2026
-**Version:** 2.0.1
+**Version:** 2.0.2
 
 ---
 
@@ -278,7 +278,7 @@ Accepts `?userId={convexUserId}&type=report|goals`. Returns report or goal data 
 
 - If `composio_openai_agents` import fails at runtime, orchestrator now degrades gracefully to built-in tools and posts a progress message instead of crashing the job.
 - Modal image must include `composio-openai-agents` because orchestrator imports `from composio_openai_agents import OpenAIAgentsProvider`.
-- `APP_URL` in Modal secret must be the **final canonical host** (no redirect hop, e.g. `https://www.reports.quest` if that is canonical). Redirects can strip `Authorization` and cause 401 on `/api/agent/*` callbacks.
+- `APP_URL` in Modal secret should be the **final canonical host**. The Modal client now manually follows one redirect hop while preserving headers, but canonical host config remains recommended to avoid redirect loops/latency.
 - `modal_agent/types.py` now uses `Field(default_factory=list)` for `connectedPlatforms` to avoid shared mutable defaults across requests.
 - `sync_tasks_to_app()` in `modal_agent/orchestrator.py` now enforces the documented max of 50 tasks before persisting.
 - `POST /api/agent/sync-tasks` now returns HTTP 500 on Convex write failures so the Modal client can detect failure instead of silently reporting success.
