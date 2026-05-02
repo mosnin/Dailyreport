@@ -1,7 +1,7 @@
 # Agent Harness
 
 **Last updated:** May 3, 2026
-**Version:** 1.1
+**Version:** 1.2
 
 ---
 
@@ -97,16 +97,19 @@ queued → running → done
 ```python
 app = modal.App("dailyreport-agent")
 
-image = modal.Image.debian_slim(python_version="3.12").pip_install(
-    "openai-agents>=0.0.14",
-    "composio-openai>=0.5.0",
-    "httpx>=0.27.0",
-    "pydantic>=2.7.0",
-    "fastapi>=0.111.0",
+image = (
+    modal.Image.debian_slim(python_version="3.12")
+    .pip_install(
+        "openai-agents>=0.0.14",
+        "composio-openai>=0.5.0",
+        "httpx>=0.27.0",
+        "pydantic>=2.7.0",
+        "fastapi>=0.111.0",
+    )
+    .add_local_python_source("modal_agent")
 )
 
 agent_secrets = modal.Secret.from_name("dailyreport-agent")
-agent_mount = modal.Mount.from_local_python_packages("modal_agent")
 ```
 
 **Key settings:**

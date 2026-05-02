@@ -11,18 +11,15 @@ image = (
         "pydantic>=2.7.0",
         "fastapi>=0.111.0",
     )
+    .add_local_python_source("modal_agent")
 )
 
 agent_secrets = modal.Secret.from_name("dailyreport-agent")
-
-# Mount the local modal_agent package into the container
-agent_mount = modal.Mount.from_local_python_packages("modal_agent")
 
 
 @app.function(
     image=image,
     secrets=[agent_secrets],
-    mounts=[agent_mount],
     min_containers=0,       # No warm instances — user pays only on invocation
     scaledown_window=0,     # Scale down immediately after use
     timeout=300,
