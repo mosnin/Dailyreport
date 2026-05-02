@@ -28,41 +28,52 @@ export async function POST(req: Request) {
 
   const secret = process.env.MODAL_AGENT_SECRET ?? "";
 
+  const payload = {
+    userId,
+    convexUserId,
+    intent,
+    jobId,
+    connectedPlatforms,
+    userName,
+    userTimezone,
+    today: new Intl.DateTimeFormat("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      ...(userTimezone ? { timeZone: userTimezone } : {}),
+    }).format(new Date()),
+  };
+
   // Fire-and-forget — job status is tracked via Convex real-time.
   // Do NOT await: Modal cold start can exceed Vercel's 30s route timeout.
-  void fetch(`${modalUrl}/run`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${secret}`,
-    },
-    body: JSON.stringify({
-      userId,
-      convexUserId,
-      intent,
-      jobId,
-      connectedPlatforms,
-      userName,
-      userTimezone,
-      today: new Intl.DateTimeFormat("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        ...(userTimezone ? { timeZone: userTimezone } : {}),
-      }).format(new Date()),
-    }),
-  }).catch(() => {
-    // If Modal is unreachable, fail the job so the UI doesn't poll forever
-    void convex
-      // @ts-ignore
-      .mutation(api.agentJobs.failJob, {
-        jobId,
-        userId: convexUserId,
-        error: "Agent service unreachable. Check MODAL_AGENT_URL.",
-      })
-      .catch(() => {});
-  });
+  void (async () => {
+    try {
+      const response = await fetch(`${modalUrl}/run`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${secret}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Modal /run returned HTTP ${response.status}`);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Agent service unreachable";
+      // If Modal is unreachable or rejects the call, fail the job so UI doesn't poll forever.
+      void convex
+        // @ts-ignore
+        .mutation(api.agentJobs.failJob, {
+          jobId,
+          userId: convexUserId,
+          error: message,
+        })
+        .catch(() => {});
+    }
+  })();
 
   return NextResponse.json({ ok: true });
 }

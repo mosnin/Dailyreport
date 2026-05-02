@@ -1,7 +1,7 @@
 # Agent Harness
 
-**Last updated:** May 3, 2026
-**Version:** 1.3
+**Last updated:** May 2, 2026
+**Version:** 1.3.1
 
 ---
 
@@ -181,9 +181,9 @@ Accepts from client:
 }
 ```
 
-Computes `today` string server-side (using `userTimezone`), then calls Modal's `/run` endpoint **fire-and-forget** (does not `await`). Returns `{ ok: true }` immediately.
+Computes `today` string server-side (using `userTimezone`), then starts an async fire-and-forget call to Modal's `/run` endpoint and returns `{ ok: true }` immediately.
 
-The `.catch()` handler on the fire-and-forget fetch calls `api.agentJobs.failJob` if Modal is unreachable.
+Inside that async task, any non-2xx response (e.g. `401`, `500`) **or** transport failure marks the job as failed via `api.agentJobs.failJob`, preventing jobs from staying queued indefinitely when Modal rejects the request.
 
 ### `POST /api/agent/progress`
 **Auth:** `Bearer MODAL_AGENT_SECRET`
