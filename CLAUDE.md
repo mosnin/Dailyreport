@@ -44,9 +44,39 @@ Rules you follow without exception:
 - When in doubt about which persona applies: if the user can see it, Jobs. If only the machine sees it, Musk.
 - Never blend them. Be one fully, then switch fully.
 
+## Documentation — Living Reference Files
+
+The `docs/` directory contains detailed documentation for this codebase. **These files are the source of truth for how the system works.**
+
+| File | What it covers |
+|---|---|
+| `docs/ui.md` | Frontend architecture, all routes, components, data flow, animation system |
+| `docs/chippi.md` | Chippi the AI agent — system prompt, behaviors, tool call order, output format |
+| `docs/tools.md` | All agent tools — specs, when to call them, Composio platform map |
+| `docs/integrations.md` | Platform integrations — OAuth flow, data model, connect/disconnect, adding new platforms |
+| `docs/agent-harness.md` | Modal deployment, job lifecycle, API routes, security model, cron flow |
+
+### MANDATORY Documentation Update Rule
+
+**Whenever you make changes that affect how the system works, update the relevant doc file(s) in the same commit.** Specifically:
+
+| Type of change | Update |
+|---|---|
+| New route, page, nav item, or component | `docs/ui.md` |
+| Agent system prompt, tool, or behavior | `docs/chippi.md` and/or `docs/tools.md` |
+| New integration platform or OAuth flow change | `docs/integrations.md` |
+| Modal, job lifecycle, API route, or cron change | `docs/agent-harness.md` |
+| Schema table added/changed | `docs/agent-harness.md` + this file's schema table |
+
+When updating a doc file:
+1. Change the **Last updated** date to today's date
+2. Increment the **Version** (patch `x.x.N` for small fixes, minor `x.N.0` for significant additions)
+
+---
+
 ## What This Is
 
-A Next.js 14 App Router accountability app. Users fill in daily and weekly reports, receive PWA push notifications at their local 8pm (per-user IANA timezone), and explore their history via a dashboard, calendar, semantic search, AI chat, AI insights with charts, goals tracker, and affirmations flashcards.
+A Next.js 14 App Router accountability app. Users fill in daily and weekly reports, receive PWA push notifications at their local 8pm (per-user IANA timezone), and explore their history via a dashboard, calendar, semantic search, AI chat, AI insights with charts, goals tracker, and affirmations flashcards. An AI agent named **Chippi** runs on Modal and acts as the user's personal chief of staff — auto-briefing at 8am and executing commands against connected platforms (Slack, Notion, Asana, ClickUp, Trello, Google Calendar).
 
 ## Commands
 
@@ -73,23 +103,33 @@ npx convex env set OPENAI_API_KEY sk-...
 ```
 Browser (PWA)
   ├── Next.js App Router (Vercel)
-  │   ├── Auth0 v4 middleware — handles /auth/* routes automatically
-  │   └── /api/auth/token — exposes Auth0 ID token for Convex auth
-  ├── ConvexWithAuth0Provider — fetches token, passes to ConvexProviderWithAuth
+  │   ├── Clerk middleware (middleware.ts) — protects all non-public routes
+  │   └── /api/agent/* — bridge routes between UI/Convex and Modal
+  ├── ConvexWithClerkProvider — passes Clerk JWT to Convex for identity
   └── public/sw.js — service worker (push + offline cache)
 
 Convex (backend)
   ├── convex/schema.ts — single source of truth for all tables
   ├── convex/ai.ts ("use node") — OpenAI actions: embed, chat, insights, affirmation generation
-  ├── convex/aiInternal.ts — queries/mutations called by ai.ts (cannot be in ai.ts)
+  ├── convex/aiInternal.ts — queries/mutations called by ai.ts
+  ├── convex/agentScheduler.ts ("use node") — internalAction: fetch user context, trigger Modal
+  ├── convex/agentJobs.ts — job lifecycle mutations (createJob, appendProgress, completeJob, failJob)
+  ├── convex/integrations.ts — Composio connection storage
+  ├── convex/externalTasks.ts — synced tasks from connected platforms
   ├── convex/pushNotifications.ts ("use node") — web-push send action
   ├── convex/pushSubscriptions.ts — public mutations/queries for subscriptions
-  ├── convex/crons.ts — hourly notification cron + Monday insight cron
+  ├── convex/crons.ts — hourly notification + morning briefing cron + weekly jobs
   └── convex/{reports,users,goals,affirmations}.ts — domain functions
+
+Modal (Python agent sandbox)
+  ├── modal_agent/app.py — FastAPI ASGI app + run_agent_job Modal Function
+  ├── modal_agent/orchestrator.py — dynamic system prompt, tool definitions, agent loop
+  ├── modal_agent/client.py — HTTP client (with retry) calling back to Next.js /api/agent/*
+  └── modal_agent/types.py — AgentRequest pydantic model
 
 OpenAI
   ├── text-embedding-3-small (1536 dims) — embedded into report records on submit
-  └── gpt-4o (json_object mode) — insightsChat, generateAffirmations, chat, weeklyInsight
+  └── gpt-4o — insightsChat, generateAffirmations, chat, weeklyInsight, Chippi agent
 ```
 
 ## Convex File-Split Rule
@@ -106,14 +146,20 @@ Current split:
 
 | Table | Key fields | Index |
 |---|---|---|
-| `users` | `clerkId`, `email`, `name`, `timezone?`, `createdAt` | `by_clerk_id` |
+| `users` | `clerkId`, `email`, `name`, `timezone?`, `onboardingComplete?`, `createdAt` | `by_clerk_id` |
 | `dailyReports` | `userId`, `date` (yyyy-MM-dd), `responses: any`, `embedding?` | `by_user_date`, vectorIndex `by_embedding` |
 | `weeklyReports` | `userId`, `weekStartDate` (Monday yyyy-MM-dd), `responses: any`, `embedding?` | `by_user_week`, vectorIndex `by_embedding` |
 | `goals` | `userId`, `category`, `periodKey`, `title`, `completed` | `by_user_category_period` |
-| `affirmations` | `userId`, `text`, `source: "manual"\|"ai"` | `by_user` |
-| `aiInsights` | `userId`, `weekStartDate`, `content` | `by_user_week` |
+| `affirmations` | `userId`, `text`, `source: "manual"\|"ai"\|"saved"` | `by_user` |
+| `aiInsights` | `userId`, `weekStartDate`, `content`, `scores?` | `by_user_week` |
 | `pushSubscriptions` | `userId`, `endpoint`, `p256dh`, `auth` | `by_user` |
-| `sentNotifications` | `userId`, `type: "daily"\|"weekly"`, `date` | `by_user_type_date` |
+| `sentNotifications` | `userId`, `type: "daily"\|"weekly"\|"email_digest"\|"email_reminder"\|"morning_briefing"`, `date` | `by_user_type_date` |
+| `integrations` | `userId`, `platform`, `composioConnectionId`, `connected`, `connectedAt` | `by_user`, `by_user_platform` |
+| `agentJobs` | `userId`, `status`, `intent`, `progressLog[]`, `result?`, `error?`, `createdAt` | `by_user`, `by_user_status` |
+| `externalTasks` | `userId`, `platform`, `externalId`, `title`, `status`, `completed`, `lastSynced` | `by_user`, `by_user_platform`, `by_user_external` |
+| `visualizations` | `userId`, `date`, `scenarios[]`, `completedIndexes[]` | `by_user_date` |
+| `weekDrafts` | `userId`, `weekStartDate`, `bullets[]` | `by_user_week` |
+| `dailyBriefs` | `userId`, `date`, `content` | `by_user_date` |
 
 After any schema change, run `npx convex dev --once` and **also manually update** `convex/_generated/api.d.ts` to add the new module import and `fullApi` entry — the local dev server is not always running in CI.
 
@@ -146,6 +192,16 @@ OPENAI_API_KEY=
 VAPID_PRIVATE_KEY=
 VAPID_SUBJECT=mailto:you@example.com
 CLERK_JWT_ISSUER_DOMAIN=https://your-instance.clerk.accounts.dev
+MODAL_AGENT_URL=https://your-modal-app-url
+MODAL_AGENT_SECRET=your-random-secret
+```
+
+**Modal secret** (`modal secret create dailyreport-agent`):
+```
+OPENAI_API_KEY=
+COMPOSIO_API_KEY=
+MODAL_AGENT_SECRET=     # must match the one in Convex + Vercel
+APP_URL=https://your-app.vercel.app
 ```
 
 ## Goals Period Key System
@@ -200,16 +256,23 @@ node -e "const wp=require('web-push'); console.log(wp.generateVAPIDKeys())"
 | Route | Description |
 |---|---|
 | `/` | Landing page (redirects to /dashboard if logged in) |
+| `/today` | **Command center** — morning briefing, open tasks, goals at risk, agent chat thread |
 | `/dashboard` | Stats bar (streak, accuracy), calendar heatmap, AI insight card, push prompt |
 | `/reports/daily` | 7-question daily form; pre-fills if already submitted today |
 | `/reports/weekly` | Same 7-question structure, scoped to the current week |
 | `/goals` | 5 time-scoped goal categories with inline add/edit/toggle |
 | `/affirmations` | Add/edit/delete affirmations; AI-generate 5 from reports; flashcard mode |
+| `/dreams` | AI-generated visualization scenarios; tap to complete |
 | `/insights` | AI chat that auto-analyzes reports on load; returns markdown + optional Recharts chart |
+| `/patterns` | Behavior pattern analysis |
 | `/calendar` | Full calendar with clickable past days to view report inline |
 | `/search` | Semantic search over all report history via vector search |
 | `/chat` | RAG chat: embeds message, retrieves top-k reports, GPT-4o responds |
+| `/inspiration` | AI-generated inspirational stories |
+| `/agent` | Agent command page — fire jobs, view briefing, task list, recent job history |
+| `/integrations` | Connect/disconnect Composio platforms (Slack, Notion, Asana, ClickUp, Trello, Google Calendar) |
 | `/settings` | Timezone picker, push notification toggle, account info, sign-out |
+| `/admin` | Admin panel (role-gated: `user.role === "admin"`) |
 
 ## shadcn/ui Notes
 
