@@ -24,6 +24,8 @@ import {
   CalendarDays,
   Search,
   Mic,
+  Bot,
+  Plug,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
@@ -240,7 +242,14 @@ export function Sidebar() {
         {/* Build */}
         <Section label="Build" collapsed={collapsed} />
         <div className="space-y-0.5">
-          <NavItem href="/goals"    label="Goals"    icon={Crosshair} active={is("/goals")}    collapsed={collapsed} />
+          <NavItem href="/goals"  label="Goals"  icon={Crosshair} active={is("/goals")}  collapsed={collapsed} />
+          <NavItem href="/agent" label="Agent" icon={Bot}       active={is("/agent")} collapsed={collapsed} />
+        </div>
+
+        {/* Connect */}
+        <Section label="Connect" collapsed={collapsed} />
+        <div className="space-y-0.5">
+          <NavItem href="/integrations" label="Integrations" icon={Plug} active={is("/integrations")} collapsed={collapsed} />
         </div>
 
         {/* Reflect */}

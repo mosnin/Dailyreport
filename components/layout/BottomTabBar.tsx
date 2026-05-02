@@ -21,6 +21,8 @@ import {
   Activity,
   CalendarDays,
   Mic,
+  Bot,
+  Plug,
 } from "lucide-react";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
@@ -292,7 +294,14 @@ export function BottomTabBar() {
               {/* Build */}
               <DrawerSection label="Build" />
               <div className="space-y-0.5">
-                <DrawerItem href="/goals" label="Goals" icon={Crosshair} active={is("/goals")} onClose={close} />
+                <DrawerItem href="/goals"  label="Goals"  icon={Crosshair} active={is("/goals")}  onClose={close} />
+                <DrawerItem href="/agent" label="Agent" icon={Bot}       active={is("/agent")} onClose={close} />
+              </div>
+
+              {/* Connect */}
+              <DrawerSection label="Connect" />
+              <div className="space-y-0.5 mb-2">
+                <DrawerItem href="/integrations" label="Integrations" icon={Plug} active={is("/integrations")} onClose={close} />
               </div>
 
               {/* Reflect */}
