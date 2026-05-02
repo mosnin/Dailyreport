@@ -7,6 +7,7 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const platform = searchParams.get("platform")?.toUpperCase();
+  const mode = searchParams.get("mode") ?? "json";
   if (!platform) return NextResponse.json({ error: "Missing platform" }, { status: 400 });
 
   const composioApiKey = process.env.COMPOSIO_API_KEY;
@@ -43,6 +44,9 @@ export async function GET(req: Request) {
     const redirectUrl = data.redirectUrl ?? data.redirect_url ?? null;
     if (!redirectUrl) {
       return NextResponse.json({ error: "Composio returned no redirect URL", raw: data }, { status: 502 });
+    }
+    if (mode === "redirect") {
+      return NextResponse.redirect(redirectUrl);
     }
     return NextResponse.json({ redirectUrl });
   } catch {

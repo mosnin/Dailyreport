@@ -1,7 +1,7 @@
 # Platform Integrations
 
 **Last updated:** May 2, 2026
-**Version:** 1.1
+**Version:** 1.2
 
 ---
 
@@ -57,8 +57,9 @@ async function handleConnect(platform: string) {
   const data = await res.json();
   if (!res.ok) throw new Error(data?.error ?? "Failed to start connection");
 
-  const popup = window.open(data.redirectUrl, "composio-oauth", "popup=yes,width=560,height=740");
-  if (!popup) window.location.href = data.redirectUrl; // fallback
+  const routeUrl = `/api/integrations/connect?platform=${platform}&mode=redirect`;
+  const popup = window.open(routeUrl, "composio-oauth", "popup=yes,width=560,height=740");
+  if (!popup) window.location.href = routeUrl; // fallback
 }
 ```
 

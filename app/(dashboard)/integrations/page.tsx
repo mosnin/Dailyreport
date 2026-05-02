@@ -20,17 +20,11 @@ const PLATFORMS = [
   { id: "trello",         name: "Trello",          description: "Manage boards, cards, and deadlines.",                       color: "bg-[#0052CC]" },
 ] as const;
 
-async function handleConnect(platform: string) {
-  const res = await fetch(`/api/integrations/connect?platform=${platform}`);
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.error ?? "Failed to start connection");
-
-  const redirectUrl = data?.redirectUrl as string | undefined;
-  if (!redirectUrl) throw new Error("Missing redirect URL");
-
-  const popup = window.open(redirectUrl, "composio-oauth", "popup=yes,width=560,height=740");
+function handleConnect(platform: string) {
+  const routeUrl = `/api/integrations/connect?platform=${platform}&mode=redirect`;
+  const popup = window.open(routeUrl, "composio-oauth", "popup=yes,width=560,height=740");
   if (!popup) {
-    window.location.href = redirectUrl;
+    window.location.href = routeUrl;
   }
 }
 
@@ -146,9 +140,11 @@ function IntegrationsContent() {
                 <button
                   onClick={() => {
                     setConnectError("");
-                    handleConnect(platform.id).catch((err) => {
+                    try {
+                      handleConnect(platform.id);
+                    } catch (err) {
                       setConnectError(err instanceof Error ? err.message : "Connection failed");
-                    });
+                    }
                   }}
                   className="w-full rounded-xl bg-primary text-primary-foreground text-sm font-semibold py-2 hover:opacity-90 transition-opacity"
                 >
