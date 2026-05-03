@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
@@ -9,6 +9,12 @@ import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
 import { fadeUp } from "@/lib/motion";
 import { Bot, User, History } from "lucide-react";
+
+type AgentEvent = {
+  id: string;
+  ts: number;
+  label: string;
+};
 
 type ChatMessage = {
   id: string;
@@ -33,6 +39,7 @@ export default function AgentPage() {
   const [intent, setIntent] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const feedRef = useRef<HTMLDivElement | null>(null);
 
   // @ts-ignore
   const createJob = useMutation(api.agentJobs.createJob);
@@ -60,6 +67,22 @@ export default function AgentPage() {
     }
     return out.sort((a, b) => a.ts - b.ts);
   }, [activeJob]);
+
+
+  const timelineEvents: AgentEvent[] = useMemo(() => {
+    if (!activeJob) return [];
+    const progress = Array.isArray(activeJob.progressLog) ? activeJob.progressLog : [];
+    return progress.map((p: any, idx: number) => ({
+      id: `${activeJob._id}-event-${idx}-${p.ts}`,
+      ts: p.ts,
+      label: p.text,
+    }));
+  }, [activeJob]);
+
+  useEffect(() => {
+    if (!feedRef.current) return;
+    feedRef.current.scrollTop = feedRef.current.scrollHeight;
+  }, [messages, timelineEvents]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -125,7 +148,7 @@ export default function AgentPage() {
           <p className="text-sm text-muted-foreground">Claude-style conversation with memory and job history.</p>
         </div>
 
-        <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+        <div ref={feedRef} className="flex-1 p-4 space-y-3 overflow-y-auto">
           {messages.length === 0 ? (
             <p className="text-sm text-muted-foreground">Start a conversation to create your first run.</p>
           ) : (
@@ -146,6 +169,21 @@ export default function AgentPage() {
             ))
           )}
         </div>
+
+
+        {timelineEvents.length > 0 && (
+          <div className="mx-4 mb-3 rounded-xl border border-border bg-muted/30 px-3 py-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1">Agent activity</p>
+            <div className="space-y-1.5 max-h-28 overflow-y-auto">
+              {timelineEvents.map((event) => (
+                <div key={event.id} className="flex items-start gap-2 text-xs text-muted-foreground">
+                  <span className="font-mono opacity-60 shrink-0">{new Date(event.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>
+                  <span>{event.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="p-4 border-t border-border">
           <textarea
