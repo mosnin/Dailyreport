@@ -20,10 +20,14 @@ const PLATFORMS = [
   { id: "trello",         name: "Trello",          description: "Manage boards, cards, and deadlines.",                       color: "bg-[#0052CC]" },
 ] as const;
 
-async function handleConnect(platform: string) {
-  const res = await fetch(`/api/integrations/connect?platform=${platform}`);
-  const { redirectUrl } = await res.json();
-  if (redirectUrl) window.location.href = redirectUrl;
+function getConnectionIdFromParams(searchParams: ReturnType<typeof useSearchParams>): string | null {
+  return (
+    searchParams.get("connectionId") ??
+    searchParams.get("connectedAccountId") ??
+    searchParams.get("connected_account_id") ??
+    searchParams.get("connection_id") ??
+    searchParams.get("id")
+  );
 }
 
 function IntegrationsContent() {
@@ -46,12 +50,13 @@ function IntegrationsContent() {
 
   // Handle OAuth redirect with connectionId + platform params
   useEffect(() => {
-    const connectionId = searchParams.get("connectionId");
-    const platform = searchParams.get("platform");
+    const connectionId = getConnectionIdFromParams(searchParams);
+    const platform = searchParams.get("platform")?.toLowerCase();
     if (connectionId && platform && convexUserId) {
       saveIntegration({
         userId: convexUserId,
         platform: platform as any,
+        metadata: { oauthCallback: Object.fromEntries(searchParams.entries()) },
         composioConnectionId: connectionId,
       }).then(() => router.replace("/integrations"));
     }
@@ -134,17 +139,20 @@ function IntegrationsContent() {
                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={() => handleConnect(platform.id)}
-                  className="w-full rounded-xl bg-primary text-primary-foreground text-sm font-semibold py-2 hover:opacity-90 transition-opacity"
+                <a
+                  href={`/api/integrations/connect?platform=${platform.id}&mode=redirect`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full rounded-xl bg-primary text-primary-foreground text-sm font-semibold py-2 hover:opacity-90 transition-opacity text-center"
                 >
                   Connect
-                </button>
+                </a>
               )}
             </div>
           );
         })}
       </motion.div>
+
     </div>
   );
 }

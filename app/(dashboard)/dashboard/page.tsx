@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery, useAction } from "convex/react";
+import { useQuery, useAction, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { useTodayStatus } from "@/hooks/useTodayStatus";
@@ -95,6 +95,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { convexUserId, convexUser, isLoading } = useConvexUser();
   const { user } = useUser();
+  const firstName = user?.firstName ?? null;
   const [showTzModal, setShowTzModal] = useState(false);
 
   const { pullDistance, refreshing } = usePullToRefresh(async () => {
@@ -109,12 +110,24 @@ export default function DashboardPage() {
     api.aiInternal.getDailyBriefPublic,
     convexUserId ? { userId: convexUserId, date: todayString() } : "skip"
   );
+
+  const integrations = useQuery(
+    api.integrations.getUserIntegrations as any,
+    convexUserId ? { userId: convexUserId } : "skip"
+  ) ?? [];
+  const externalTasks = useQuery(
+    api.externalTasks.getTasksByUser as any,
+    convexUserId ? { userId: convexUserId } : "skip"
+  ) ?? [];
+
   const allProblems = useQuery(
     api.problems.getAllProblems,
     convexUserId ? { userId: convexUserId } : "skip"
   ) as Array<{ solvedManually: boolean | null; aiResolved: boolean | null }> | undefined;
   const generateBrief = useAction(api.ai.generateMorningBrief);
+  const createJob = useMutation(api.agentJobs.createJob as any);
   const briefTriggered = useRef(false);
+  const syncTriggered = useRef(false);
 
   useEffect(() => {
     if (convexUser && !convexUser.timezone) setShowTzModal(true);
@@ -126,6 +139,37 @@ export default function DashboardPage() {
     briefTriggered.current = true;
     generateBrief({ userId: convexUserId }).catch(() => {});
   }, [brief, convexUserId, generateBrief]);
+
+  useEffect(() => {
+    if (!convexUserId || syncTriggered.current) return;
+    const connectedPlatforms = (integrations as any[]).filter((i: any) => i.connected).map((i: any) => i.platform);
+    if (connectedPlatforms.length === 0) return;
+    syncTriggered.current = true;
+
+    const run = async () => {
+      try {
+        const intent = `Sync my latest tasks and important updates from connected apps (${connectedPlatforms.join(", ")}). Return concise summary and sync tasks to app.`;
+        const jobId = await createJob({ userId: convexUserId, intent });
+        await fetch("/api/agent/trigger", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jobId,
+            intent,
+            convexUserId,
+            connectedPlatforms,
+            userName: (convexUser as any)?.name ?? firstName ?? "",
+            userTimezone: (convexUser as any)?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
+          }),
+        });
+      } catch (err) {
+        console.error("[dashboard/auto-agent-sync]", err);
+      }
+    };
+
+    void run();
+  }, [convexUserId, integrations, createJob, convexUser, firstName]);
+
 
   if (isLoading || !convexUserId) {
     return (
@@ -150,7 +194,6 @@ export default function DashboardPage() {
     );
   }
 
-  const firstName = user?.firstName ?? null;
   const allDone = reportDone && affirmDone && vizDone;
   const openProblems = (allProblems ?? []).filter(
     (p) => p.solvedManually !== true && !(p.solvedManually === null && p.aiResolved === true)
@@ -216,6 +259,19 @@ export default function DashboardPage() {
               </motion.p>
             )}
           </AnimatePresence>
+
+
+          {/* Connected apps snapshot */}
+          {Array.isArray(externalTasks) && externalTasks.length > 0 && (
+            <motion.div {...fadeUp(0.05)} className="rounded-2xl border border-border bg-card p-4">
+              <p className="text-[10px] font-semibold tracking-[0.14em] uppercase text-muted-foreground/40 mb-2">
+                Live from connected apps
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {externalTasks.filter((t: any) => !t.completed).length} open task{externalTasks.filter((t: any) => !t.completed).length === 1 ? "" : "s"} synced
+              </p>
+            </motion.div>
+          )}
 
           {/* ── Year ring + consistency panel ── */}
           <motion.div {...fadeUp(0.08)}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
@@ -8,85 +8,81 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
 import { fadeUp } from "@/lib/motion";
-import { Bot, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
+import { Bot, User, History } from "lucide-react";
 
-const PLATFORMS = [
-  { id: "slack",   name: "Slack",   color: "bg-[#4A154B]" },
-  { id: "notion",  name: "Notion",  color: "bg-gray-800" },
-  { id: "asana",   name: "Asana",   color: "bg-[#FC636B]" },
-  { id: "clickup", name: "ClickUp", color: "bg-[#7B68EE]" },
-  { id: "trello",  name: "Trello",  color: "bg-[#0052CC]" },
-] as const;
+type AgentEvent = {
+  id: string;
+  ts: number;
+  label: string;
+};
 
-function getPlatform(id: string) {
-  return PLATFORMS.find((p) => p.id === id) ?? { id, name: id, color: "bg-muted" };
-}
+type ChatMessage = {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+  ts: number;
+  status?: string;
+};
 
-function StatusBadge({ status }: { status: string }) {
-  const variants: Record<string, string> = {
-    queued:  "bg-muted text-muted-foreground",
-    running: "bg-blue-500/10 text-blue-500 animate-pulse",
-    done:    "bg-emerald-500/10 text-emerald-600",
-    failed:  "bg-destructive/10 text-destructive",
-  };
-  return (
-    <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium", variants[status] ?? variants.queued)}>
-      {status}
-    </span>
-  );
+function formatAssistant(job: any): string {
+  if (job.status === "failed") return job.error ?? "Something went wrong.";
+  if (!job.result) return "Working on it…";
+  if (job.result.briefing) {
+    const priorities = Array.isArray(job.result.priorities) ? job.result.priorities.slice(0, 3) : [];
+    return [job.result.briefing, ...priorities.map((p: string, i: number) => `${i + 1}. ${p}`)].join("\n");
+  }
+  return job.result.summary ?? "Done.";
 }
 
 export default function AgentPage() {
   const { convexUserId, convexUser, isLoading } = useConvexUser();
-
   const [intent, setIntent] = useState("");
-  const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [jobsExpanded, setJobsExpanded] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const feedRef = useRef<HTMLDivElement | null>(null);
 
   // @ts-ignore
   const createJob = useMutation(api.agentJobs.createJob);
   // @ts-ignore
-  const markTaskComplete = useMutation(api.externalTasks.markTaskComplete);
-
-  // @ts-ignore
-  const integrations = useQuery(
-    // @ts-ignore
-    api.integrations.getUserIntegrations,
-    convexUserId ? { userId: convexUserId } : "skip"
-  ) ?? [];
+  const integrations = useQuery(api.integrations.getUserIntegrations, convexUserId ? { userId: convexUserId } : "skip") ?? [];
   const connectedPlatforms = (integrations as any[]).map((i: any) => i.platform);
 
-  // @ts-ignore — agentJobs not yet in generated types; run npx convex dev --once
-  const activeJob = useQuery(
-    // @ts-ignore
-    api.agentJobs.getJob,
-    // @ts-ignore
-    activeJobId ? { jobId: activeJobId } : "skip"
-  );
-
   // @ts-ignore
-  const recentJobs = useQuery(
-    // @ts-ignore
-    api.agentJobs.listRecentJobs,
-    convexUserId ? { userId: convexUserId } : "skip"
-  ) ?? [];
-
+  const recentJobs = useQuery(api.agentJobs.listRecentJobs, convexUserId ? { userId: convexUserId } : "skip") ?? [];
   // @ts-ignore
-  const externalTasks = useQuery(
-    // @ts-ignore
-    api.externalTasks.getTasksByUser,
-    convexUserId ? { userId: convexUserId } : "skip"
-  ) ?? [];
+  const selectedJob = useQuery(api.agentJobs.getJob, selectedJobId ? { jobId: selectedJobId } : "skip");
 
-  // Clear activeJobId 3 seconds after job finishes
-  useEffect(() => {
-    if (!activeJob) return;
-    if (activeJob.status === "done" || activeJob.status === "failed") {
-      const t = setTimeout(() => setActiveJobId(null), 3000);
-      return () => clearTimeout(t);
+  const activeJob = selectedJob ?? (recentJobs as any[])[0] ?? null;
+
+  const messages: ChatMessage[] = useMemo(() => {
+    if (!activeJob) return [];
+    const createdTs = activeJob._creationTime ?? Date.now();
+    const out: ChatMessage[] = [
+      { id: `${activeJob._id}-user`, role: "user", text: activeJob.intent ?? "", ts: createdTs, status: activeJob.status },
+      { id: `${activeJob._id}-assistant`, role: "assistant", text: formatAssistant(activeJob), ts: createdTs + 1, status: activeJob.status },
+    ];
+    const progress = Array.isArray(activeJob.progressLog) ? activeJob.progressLog : [];
+    for (const p of progress) {
+      out.push({ id: `${activeJob._id}-progress-${p.ts}`, role: "assistant", text: `Thinking: ${p.text}`, ts: p.ts, status: "running" });
     }
-  }, [activeJob?.status]);
+    return out.sort((a, b) => a.ts - b.ts);
+  }, [activeJob]);
+
+
+  const timelineEvents: AgentEvent[] = useMemo(() => {
+    if (!activeJob) return [];
+    const progress = Array.isArray(activeJob.progressLog) ? activeJob.progressLog : [];
+    return progress.map((p: any, idx: number) => ({
+      id: `${activeJob._id}-event-${idx}-${p.ts}`,
+      ts: p.ts,
+      label: p.text,
+    }));
+  }, [activeJob]);
+
+  useEffect(() => {
+    if (!feedRef.current) return;
+    feedRef.current.scrollTop = feedRef.current.scrollHeight;
+  }, [messages, timelineEvents]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -95,10 +91,10 @@ export default function AgentPage() {
     try {
       // @ts-ignore
       const jobId = await createJob({ userId: convexUserId, intent: intent.trim() });
-      setActiveJobId(jobId);
+      setSelectedJobId(jobId);
       const savedIntent = intent.trim();
       setIntent("");
-      await fetch("/api/agent/trigger", {
+      const triggerRes = await fetch("/api/agent/trigger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -110,226 +106,105 @@ export default function AgentPage() {
           userTimezone: (convexUser as any)?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
         }),
       });
+      if (!triggerRes.ok) throw new Error(await triggerRes.text());
+    } catch (err) {
+      console.error("[agent-page/trigger]", err);
     } finally {
       setSubmitting(false);
     }
   }
 
-  // Find the latest completed job with a briefing
-  const latestBriefingJob = (recentJobs as any[]).find(
-    (j: any) => j.status === "done" && j.result?.briefing
-  );
-
   if (isLoading || !convexUserId) {
-    return (
-      <div className="max-w-2xl space-y-4">
-        <Skeleton className="h-8 w-36" />
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-24 w-full" />
-      </div>
-    );
+    return <div className="max-w-5xl"><Skeleton className="h-[520px] w-full rounded-2xl" /></div>;
   }
 
   return (
-    <div className="max-w-2xl space-y-6 pb-8">
-      {/* Header */}
-      <motion.div {...fadeUp(0)}>
-        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Agent</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Your chief of staff. Always working.</p>
-      </motion.div>
+    <div className="max-w-5xl grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 pb-8">
+      <motion.aside {...fadeUp(0)} className="rounded-2xl border border-border bg-card p-3 h-fit">
+        <div className="flex items-center gap-2 px-2 pb-2 border-b border-border">
+          <History className="w-4 h-4 text-muted-foreground" />
+          <p className="text-sm font-semibold">Conversation history</p>
+        </div>
+        <div className="pt-2 space-y-1 max-h-[580px] overflow-y-auto">
+          {(recentJobs as any[]).map((job: any) => (
+            <button
+              key={job._id}
+              onClick={() => setSelectedJobId(job._id)}
+              className={cn(
+                "w-full text-left rounded-lg px-2.5 py-2 hover:bg-muted/60",
+                (selectedJobId ? selectedJobId === job._id : (recentJobs as any[])[0]?._id === job._id) && "bg-muted"
+              )}
+            >
+              <p className="text-xs text-foreground truncate">{job.intent}</p>
+              <p className="text-[11px] text-muted-foreground">{new Date(job._creationTime).toLocaleString()}</p>
+            </button>
+          ))}
+        </div>
+      </motion.aside>
 
-      {/* Briefing card */}
-      <motion.div {...fadeUp(1)}>
-        {latestBriefingJob ? (
-          <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
-            <p className="font-heading text-sm italic text-foreground/90 leading-relaxed">
-              {latestBriefingJob.result.briefing}
-            </p>
-            {Array.isArray(latestBriefingJob.result.priorities) && latestBriefingJob.result.priorities.length > 0 && (
-              <ol className="space-y-1 mt-2">
-                {(latestBriefingJob.result.priorities as string[]).slice(0, 3).map((p, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <span className="font-semibold text-foreground/70 shrink-0 w-4">{i + 1}.</span>
-                    <span>{p}</span>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-border bg-card p-5">
-            <p className="text-sm text-muted-foreground italic">
-              Run a briefing to see your day at a glance. Ask me what&apos;s overdue, what to prioritize, or what your week looks like.
-            </p>
-          </div>
-        )}
-      </motion.div>
+      <motion.main {...fadeUp(1)} className="rounded-2xl border border-border bg-card flex flex-col min-h-[580px]">
+        <div className="p-4 border-b border-border">
+          <h1 className="font-heading text-xl font-semibold">Agent Chat</h1>
+          <p className="text-sm text-muted-foreground">Claude-style conversation with memory and job history.</p>
+        </div>
 
-      {/* Active job status */}
-      {activeJobId && activeJob && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="rounded-2xl border border-border bg-card p-5 space-y-3"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold">Running</span>
-            <StatusBadge status={activeJob.status} />
-          </div>
-          {activeJob.intent && (
-            <p className="text-xs text-muted-foreground truncate">{activeJob.intent}</p>
+        <div ref={feedRef} className="flex-1 p-4 space-y-3 overflow-y-auto">
+          {messages.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Start a conversation to create your first run.</p>
+          ) : (
+            messages.map((m) => (
+              <div key={m.id} className={cn("flex gap-2", m.role === "user" ? "justify-end" : "justify-start")}>
+                {m.role === "assistant" && <Bot className="w-4 h-4 mt-1 text-muted-foreground" />}
+                <div
+                  className={cn(
+                    "max-w-[80%] rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap",
+                    m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
+                  )}
+                >
+                  {m.text}
+                  {m.status === "running" && <span className="ml-2 inline-flex gap-1 align-middle"><span className="animate-pulse">•</span><span className="animate-pulse [animation-delay:120ms]">•</span><span className="animate-pulse [animation-delay:240ms]">•</span></span>}
+                </div>
+                {m.role === "user" && <User className="w-4 h-4 mt-1 text-muted-foreground" />}
+              </div>
+            ))
           )}
-          {Array.isArray(activeJob.progressLog) && activeJob.progressLog.length > 0 && (
-            <div className="space-y-0.5 max-h-40 overflow-y-auto">
-              {(activeJob.progressLog as { ts: number; text: string }[]).map((entry, i) => (
-                <div key={i} className="flex items-start gap-2 font-mono text-[11px] text-muted-foreground">
-                  <span className="shrink-0 opacity-50">
-                    {new Date(entry.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-                  </span>
-                  <span>{entry.text}</span>
+        </div>
+
+
+        {timelineEvents.length > 0 && (
+          <div className="mx-4 mb-3 rounded-xl border border-border bg-muted/30 px-3 py-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1">Agent activity</p>
+            <div className="space-y-1.5 max-h-28 overflow-y-auto">
+              {timelineEvents.map((event) => (
+                <div key={event.id} className="flex items-start gap-2 text-xs text-muted-foreground">
+                  <span className="font-mono opacity-60 shrink-0">{new Date(event.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>
+                  <span>{event.label}</span>
                 </div>
               ))}
             </div>
-          )}
-          {activeJob.status === "done" && activeJob.result && (
-            <p className="text-xs text-emerald-600 font-medium">Done. Clearing in a moment…</p>
-          )}
-          {activeJob.status === "failed" && (
-            <p className="text-xs text-destructive font-medium">{activeJob.error ?? "Something went wrong."}</p>
-          )}
-        </motion.div>
-      )}
-
-      {/* Task feed */}
-      <motion.div {...fadeUp(2)} className="space-y-3">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-[0.12em]">Tasks</h2>
-        {(externalTasks as any[]).length === 0 ? (
-          <div className="rounded-2xl border border-border bg-card p-5">
-            <p className="text-sm text-muted-foreground">
-              No tasks synced yet. Connect a platform to get started — your agent will pull tasks automatically.
-            </p>
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-border bg-card divide-y divide-border overflow-hidden">
-            {(externalTasks as any[]).map((task: any) => {
-              const platform = getPlatform(task.platform);
-              return (
-                <div
-                  key={task._id}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-3 transition-colors",
-                    task.completed ? "opacity-50" : "hover:bg-muted/30"
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "w-6 h-6 rounded-md text-white text-[9px] font-bold flex items-center justify-center shrink-0",
-                      platform.color
-                    )}
-                  >
-                    {platform.id[0].toUpperCase()}
-                  </div>
-                  <span className={cn("text-sm flex-1 min-w-0 truncate", task.completed && "line-through")}>
-                    {task.title}
-                  </span>
-                  {task.dueDate && (
-                    <span className="text-xs text-muted-foreground shrink-0 hidden sm:block">{task.dueDate}</span>
-                  )}
-                  {task.url && (
-                    <a
-                      href={task.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                      title="Open"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  )}
-                  {!task.completed && (
-                    <button
-                      onClick={() =>
-                        // @ts-ignore
-                        markTaskComplete({ userId: convexUserId, taskId: task._id })
-                      }
-                      className="shrink-0 text-xs font-medium text-muted-foreground hover:text-emerald-600 hover:bg-emerald-500/10 rounded-md px-2 py-1 transition-colors"
-                    >
-                      Done
-                    </button>
-                  )}
-                </div>
-              );
-            })}
           </div>
         )}
-      </motion.div>
 
-      {/* Command bar */}
-      <motion.div {...fadeUp(3)}>
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-2xl border border-border bg-card p-4 shadow-sm"
-        >
-          <div className="flex items-start gap-3">
-            <Bot className="w-4 h-4 text-muted-foreground/50 mt-0.5 shrink-0" />
-            <textarea
-              value={intent}
-              onChange={(e) => setIntent(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit(e as unknown as React.FormEvent);
-                }
-              }}
-              placeholder="Brief me for today. What's overdue? Mark the landing page done…"
-              rows={2}
-              disabled={submitting}
-              className="flex-1 text-sm bg-transparent resize-none focus:outline-none placeholder:text-muted-foreground/40 leading-relaxed disabled:opacity-50"
-            />
-          </div>
-          <div className="flex justify-end mt-3">
+        <form onSubmit={handleSubmit} className="p-4 border-t border-border">
+          <textarea
+            value={intent}
+            onChange={(e) => setIntent(e.target.value)}
+            rows={3}
+            placeholder="Message your agent…"
+            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm resize-none"
+            disabled={submitting}
+          />
+          <div className="mt-2 flex justify-end">
             <button
               type="submit"
-              disabled={!intent.trim() || submitting || !convexUserId}
-              className="flex items-center gap-1.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold px-4 py-1.5 disabled:opacity-40 hover:opacity-90 transition-opacity"
+              disabled={!intent.trim() || submitting}
+              className="rounded-xl bg-primary text-primary-foreground text-sm font-semibold px-4 py-2 disabled:opacity-50"
             >
-              <Bot className="w-3.5 h-3.5" />
-              {submitting ? "Running…" : "Run"}
+              {submitting ? "Sending…" : "Send"}
             </button>
           </div>
         </form>
-      </motion.div>
-
-      {/* Recent jobs */}
-      <motion.div {...fadeUp(4)} className="space-y-2">
-        <button
-          onClick={() => setJobsExpanded((v) => !v)}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <span className="font-semibold uppercase tracking-[0.12em]">Recent jobs</span>
-          {jobsExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-        </button>
-        {jobsExpanded && (
-          <div className="flex flex-col gap-1.5">
-            {(recentJobs as any[]).length === 0 ? (
-              <p className="text-xs text-muted-foreground">No recent jobs. Submit a command above to get started.</p>
-            ) : (
-              (recentJobs as any[]).map((job: any) => (
-                <div
-                  key={job._id}
-                  className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2"
-                >
-                  <span className="text-xs text-foreground/80 flex-1 truncate">{job.intent}</span>
-                  <StatusBadge status={job.status} />
-                </div>
-              ))
-            )}
-          </div>
-        )}
-      </motion.div>
+      </motion.main>
     </div>
   );
 }
