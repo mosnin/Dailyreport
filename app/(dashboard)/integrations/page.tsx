@@ -20,6 +20,16 @@ const PLATFORMS = [
   { id: "trello",         name: "Trello",          description: "Manage boards, cards, and deadlines.",                       color: "bg-[#0052CC]" },
 ] as const;
 
+function getConnectionIdFromParams(searchParams: ReturnType<typeof useSearchParams>): string | null {
+  return (
+    searchParams.get("connectionId") ??
+    searchParams.get("connectedAccountId") ??
+    searchParams.get("connected_account_id") ??
+    searchParams.get("connection_id") ??
+    searchParams.get("id")
+  );
+}
+
 function IntegrationsContent() {
   const { convexUserId, isLoading } = useConvexUser();
   const searchParams = useSearchParams();
@@ -40,12 +50,13 @@ function IntegrationsContent() {
 
   // Handle OAuth redirect with connectionId + platform params
   useEffect(() => {
-    const connectionId = searchParams.get("connectionId");
-    const platform = searchParams.get("platform");
+    const connectionId = getConnectionIdFromParams(searchParams);
+    const platform = searchParams.get("platform")?.toLowerCase();
     if (connectionId && platform && convexUserId) {
       saveIntegration({
         userId: convexUserId,
         platform: platform as any,
+        metadata: { oauthCallback: Object.fromEntries(searchParams.entries()) },
         composioConnectionId: connectionId,
       }).then(() => router.replace("/integrations"));
     }
