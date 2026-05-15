@@ -21,6 +21,7 @@ import {
   Activity,
   CalendarDays,
   Sun,
+  ListChecks,
 } from "lucide-react";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
@@ -276,6 +277,7 @@ export function BottomTabBar() {
               <div className="space-y-0.5">
                 <DrawerItem href="/affirmations" label="Affirmations" icon={Flame} active={is("/affirmations")} onClose={close} dot={affirmDone} />
                 <DrawerItem href="/dreams" label="Visualizations" icon={Telescope} active={is("/dreams")} onClose={close} />
+                <DrawerItem href="/rituals" label="Rituals" icon={ListChecks} active={is("/rituals")} onClose={close} />
                 <DrawerItem href="/reports/weekly" label="Weekly Review" icon={BookOpen} active={is("/reports/weekly")} onClose={close} />
               </div>
 

@@ -12,7 +12,7 @@ import { fadeUp } from "@/lib/motion";
 import { format, parseISO, startOfWeek, endOfWeek, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { CheckCircle2, XCircle, Minus, NotepadText, BookOpen, Users, Target, AlertTriangle, CheckSquare, CalendarDays, Pencil, X } from "lucide-react";
+import { CheckCircle2, XCircle, Minus, NotepadText, BookOpen, Users, Target, AlertTriangle, CheckSquare, CalendarDays, Pencil, X, ListChecks } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -334,10 +334,65 @@ function WeeklyReportView({ userId, weekStartDate }: { userId: Id<"users">; week
   );
 }
 
+// ── Ritual log viewer ─────────────────────────────────────────────────────
+
+function RitualLogView({ userId, date }: { userId: Id<"users">; date: string }) {
+  // @ts-ignore
+  const rituals = useQuery(api.rituals.list as any, { userId }) ?? [];
+  // @ts-ignore
+  const log = useQuery(api.rituals.getLog as any, { userId, date });
+
+  if (rituals === undefined || log === undefined) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => <Skeleton key={i} className="h-8 w-full rounded-lg" />)}
+      </div>
+    );
+  }
+
+  if ((rituals as any[]).length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
+        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+          <ListChecks className="w-5 h-5 text-muted-foreground/40" />
+        </div>
+        <p className="text-sm text-muted-foreground">No rituals set up yet.</p>
+      </div>
+    );
+  }
+
+  const completedIds = new Set<string>((log as any)?.completedIds ?? []);
+  const completed = (rituals as any[]).filter((r) => completedIds.has(r._id)).length;
+  const total = (rituals as any[]).length;
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-muted-foreground">{completed} of {total} completed</p>
+      <div className="space-y-2">
+        {(rituals as any[]).map((ritual: any) => {
+          const done = completedIds.has(ritual._id);
+          return (
+            <div key={ritual._id} className="flex items-center gap-3">
+              {done ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+              ) : (
+                <XCircle className="w-4 h-4 text-muted-foreground/30 shrink-0" />
+              )}
+              <span className={cn("text-sm", done ? "text-foreground" : "text-muted-foreground line-through")}>
+                {ritual.title}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Report panel (tabs + viewer) ──────────────────────────────────────────
 
 function ReportPanel({ userId, date, isEditable }: { userId: Id<"users">; date: string; isEditable: boolean }) {
-  const [tab, setTab] = useState<"daily" | "weekly">("daily");
+  const [tab, setTab] = useState<"daily" | "weekly" | "rituals">("daily");
   const [editing, setEditing] = useState(false);
   const weekStartDate = getMondayOfWeek(date);
   const weekRange = getWeekRange(date);
@@ -389,17 +444,19 @@ function ReportPanel({ userId, date, isEditable }: { userId: Id<"users">; date: 
       {/* Tabs — hidden when editing */}
       {!editing && (
         <div className="flex border-b border-border/50">
-          {(["daily", "weekly"] as const).map((t) => (
+          {(["daily", "weekly", "rituals"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={cn(
-                "flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-colors relative",
+                "flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold transition-colors relative",
                 tab === t ? "text-foreground" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {t === "daily" ? <NotepadText className="w-3.5 h-3.5" /> : <BookOpen className="w-3.5 h-3.5" />}
-              {t === "daily" ? "Daily Report" : "Weekly Review"}
+              {t === "daily" && <NotepadText className="w-3.5 h-3.5" />}
+              {t === "weekly" && <BookOpen className="w-3.5 h-3.5" />}
+              {t === "rituals" && <ListChecks className="w-3.5 h-3.5" />}
+              {t === "daily" ? "Daily" : t === "weekly" ? "Weekly" : "Rituals"}
               {tab === t && (
                 <motion.span
                   layoutId="tab-underline"
@@ -438,11 +495,9 @@ function ReportPanel({ userId, date, isEditable }: { userId: Id<"users">; date: 
               exit={{ opacity: 0 }}
               transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             >
-              {tab === "daily" ? (
-                <DailyReportView userId={userId} date={date} />
-              ) : (
-                <WeeklyReportView userId={userId} weekStartDate={weekStartDate} />
-              )}
+              {tab === "daily" && <DailyReportView userId={userId} date={date} />}
+              {tab === "weekly" && <WeeklyReportView userId={userId} weekStartDate={weekStartDate} />}
+              {tab === "rituals" && <RitualLogView userId={userId} date={date} />}
             </motion.div>
           )}
         </AnimatePresence>

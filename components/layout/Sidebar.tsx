@@ -24,6 +24,7 @@ import {
   CalendarDays,
   Search,
   Sun,
+  ListChecks,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
@@ -217,9 +218,10 @@ export function Sidebar() {
         {/* Practice */}
         <Section label="Practice" collapsed={collapsed} />
         <div className="space-y-0.5">
-          <NavItem href="/affirmations"    label="Affirmations"   icon={Flame}      active={is("/affirmations")}    collapsed={collapsed} dot={affirmDone} />
+          <NavItem href="/affirmations"    label="Affirmations"   icon={Flame}       active={is("/affirmations")}    collapsed={collapsed} dot={affirmDone} />
           <NavItem href="/dreams"          label="Visualizations"  icon={Telescope}  active={is("/dreams")}          collapsed={collapsed} dot={vizDone} />
-          <NavItem href="/reports/weekly"  label="Weekly Review"  icon={BookOpen}   active={is("/reports/weekly")}  collapsed={collapsed} />
+          <NavItem href="/rituals"         label="Rituals"         icon={ListChecks} active={is("/rituals")}         collapsed={collapsed} />
+          <NavItem href="/reports/weekly"  label="Weekly Review"   icon={BookOpen}   active={is("/reports/weekly")}  collapsed={collapsed} />
         </div>
 
         {/* Build */}
