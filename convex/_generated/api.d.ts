@@ -30,6 +30,7 @@ import type * as rateLimits from "../rateLimits.js";
 import type * as integrations from "../integrations.js";
 import type * as agentJobs from "../agentJobs.js";
 import type * as externalTasks from "../externalTasks.js";
+import type * as rituals from "../rituals.js";
 
 import type {
   ApiFromModules,
@@ -60,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   integrations: typeof integrations;
   agentJobs: typeof agentJobs;
   externalTasks: typeof externalTasks;
+  rituals: typeof rituals;
 }>;
 
 /**

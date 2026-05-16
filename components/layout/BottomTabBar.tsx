@@ -20,10 +20,8 @@ import {
   Lightbulb,
   Activity,
   CalendarDays,
-  Mic,
-  Bot,
-  Plug,
   Sun,
+  ListChecks,
 } from "lucide-react";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
@@ -172,17 +170,6 @@ export function BottomTabBar() {
         style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
       >
         <ul className="flex items-stretch px-1 pt-1">
-          {/* Voice agent — center pill button */}
-          <li className="flex-1 flex items-center justify-center">
-            <motion.button
-              whileTap={{ scale: 0.88 }}
-              onClick={() => window.dispatchEvent(new CustomEvent("open-voice-agent"))}
-              className="w-11 h-11 rounded-full bg-primary/10 hover:bg-primary/15 border border-primary/20 flex items-center justify-center text-primary/70 transition-colors"
-              title="Voice agent"
-            >
-              <Mic className="w-5 h-5" />
-            </motion.button>
-          </li>
           {tabs.map((tab) => {
             const isMore = tab.key === "more";
             const active = isMore ? moreActive : !!tab.href && is(tab.href);
@@ -290,6 +277,7 @@ export function BottomTabBar() {
               <div className="space-y-0.5">
                 <DrawerItem href="/affirmations" label="Affirmations" icon={Flame} active={is("/affirmations")} onClose={close} dot={affirmDone} />
                 <DrawerItem href="/dreams" label="Visualizations" icon={Telescope} active={is("/dreams")} onClose={close} />
+                <DrawerItem href="/rituals" label="Rituals" icon={ListChecks} active={is("/rituals")} onClose={close} />
                 <DrawerItem href="/reports/weekly" label="Weekly Review" icon={BookOpen} active={is("/reports/weekly")} onClose={close} />
               </div>
 
@@ -297,13 +285,6 @@ export function BottomTabBar() {
               <DrawerSection label="Build" />
               <div className="space-y-0.5">
                 <DrawerItem href="/goals"  label="Goals"  icon={Crosshair} active={is("/goals")}  onClose={close} />
-                <DrawerItem href="/agent" label="Agent" icon={Bot}       active={is("/agent")} onClose={close} />
-              </div>
-
-              {/* Connect */}
-              <DrawerSection label="Connect" />
-              <div className="space-y-0.5 mb-2">
-                <DrawerItem href="/integrations" label="Integrations" icon={Plug} active={is("/integrations")} onClose={close} />
               </div>
 
               {/* Reflect */}

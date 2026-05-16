@@ -23,10 +23,8 @@ import {
   Activity,
   CalendarDays,
   Search,
-  Mic,
-  Bot,
-  Plug,
   Sun,
+  ListChecks,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
@@ -207,22 +205,6 @@ export function Sidebar() {
         </motion.button>
       </div>
 
-      {/* Voice agent summon */}
-      <div className={cn("shrink-0 mt-2", collapsed ? "px-1.5" : "px-3")}>
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={() => window.dispatchEvent(new CustomEvent("open-voice-agent"))}
-          title={collapsed ? "Voice agent" : undefined}
-          className={cn(
-            "w-full flex items-center rounded-xl text-sm font-medium transition-colors bg-primary/8 hover:bg-primary/12 text-primary/70 hover:text-primary border border-primary/15",
-            collapsed ? "justify-center p-2" : "gap-2 px-3 py-2"
-          )}
-        >
-          <Mic className="w-3.5 h-3.5 shrink-0" />
-          {!collapsed && <span className="text-xs">Voice agent</span>}
-        </motion.button>
-      </div>
-
       {/* Nav */}
       <nav className={cn("flex flex-col flex-1 overflow-y-auto min-h-0 py-2", collapsed ? "px-1.5" : "px-2")}>
 
@@ -236,22 +218,16 @@ export function Sidebar() {
         {/* Practice */}
         <Section label="Practice" collapsed={collapsed} />
         <div className="space-y-0.5">
-          <NavItem href="/affirmations"    label="Affirmations"   icon={Flame}      active={is("/affirmations")}    collapsed={collapsed} dot={affirmDone} />
+          <NavItem href="/affirmations"    label="Affirmations"   icon={Flame}       active={is("/affirmations")}    collapsed={collapsed} dot={affirmDone} />
           <NavItem href="/dreams"          label="Visualizations"  icon={Telescope}  active={is("/dreams")}          collapsed={collapsed} dot={vizDone} />
-          <NavItem href="/reports/weekly"  label="Weekly Review"  icon={BookOpen}   active={is("/reports/weekly")}  collapsed={collapsed} />
+          <NavItem href="/rituals"         label="Rituals"         icon={ListChecks} active={is("/rituals")}         collapsed={collapsed} />
+          <NavItem href="/reports/weekly"  label="Weekly Review"   icon={BookOpen}   active={is("/reports/weekly")}  collapsed={collapsed} />
         </div>
 
         {/* Build */}
         <Section label="Build" collapsed={collapsed} />
         <div className="space-y-0.5">
           <NavItem href="/goals"  label="Goals"  icon={Crosshair} active={is("/goals")}  collapsed={collapsed} />
-          <NavItem href="/agent" label="Agent" icon={Bot}       active={is("/agent")} collapsed={collapsed} />
-        </div>
-
-        {/* Connect */}
-        <Section label="Connect" collapsed={collapsed} />
-        <div className="space-y-0.5">
-          <NavItem href="/integrations" label="Integrations" icon={Plug} active={is("/integrations")} collapsed={collapsed} />
         </div>
 
         {/* Reflect */}

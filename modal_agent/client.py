@@ -14,7 +14,7 @@ class AppClient:
         last_exc: Exception = RuntimeError("no attempts made")
         for attempt in range(retries + 1):
             try:
-                resp = httpx.post(url, json=json_data, headers=self.headers, timeout=timeout)
+                resp = httpx.post(url, json=json_data, headers=self.headers, timeout=timeout, follow_redirects=True)
                 resp.raise_for_status()
                 return
             except Exception as exc:
@@ -31,6 +31,7 @@ class AppClient:
                 json={"jobId": job_id, "userId": user_id, "text": text},
                 headers=self.headers,
                 timeout=10,
+                follow_redirects=True,
             )
         except Exception:
             pass  # progress updates are best-effort
@@ -55,6 +56,7 @@ class AppClient:
             json={"userId": user_id, "tasks": tasks},
             headers=self.headers,
             timeout=30,
+            follow_redirects=True,
         )
 
     def get_data(self, user_id: str, data_type: str) -> dict:
@@ -63,5 +65,6 @@ class AppClient:
             params={"userId": user_id, "type": data_type},
             headers=self.headers,
             timeout=15,
+            follow_redirects=True,
         )
         return response.json()

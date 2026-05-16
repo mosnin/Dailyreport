@@ -251,4 +251,17 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_user_platform", ["userId", "platform"])
     .index("by_user_external", ["userId", "externalId"]),
+
+  rituals: defineTable({
+    userId: v.id("users"),
+    title: v.string(),
+    order: v.number(),
+    createdAt: v.number(),
+  }).index("by_user", ["userId"]),
+
+  ritualLogs: defineTable({
+    userId: v.id("users"),
+    date: v.string(),
+    completedIds: v.array(v.string()),
+  }).index("by_user_date", ["userId", "date"]),
 });

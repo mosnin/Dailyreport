@@ -6,25 +6,23 @@ image = (
     modal.Image.debian_slim(python_version="3.12")
     .pip_install(
         "openai-agents>=0.0.14",
-        "composio-openai>=0.5.0",
+        "composio",
+        "composio-openai-agents",
         "httpx>=0.27.0",
         "pydantic>=2.7.0",
         "fastapi>=0.111.0",
     )
+    .add_local_python_source("modal_agent")
 )
 
 agent_secrets = modal.Secret.from_name("dailyreport-agent")
-
-# Mount the local modal_agent package into the container
-agent_mount = modal.Mount.from_local_python_packages("modal_agent")
 
 
 @app.function(
     image=image,
     secrets=[agent_secrets],
-    mounts=[agent_mount],
     min_containers=0,       # No warm instances — user pays only on invocation
-    scaledown_window=0,     # Scale down immediately after use
+    scaledown_window=2,     # Scale down ~immediately after use (min allowed by Modal)
     timeout=300,
     retries=0,
 )
@@ -39,7 +37,7 @@ def run_agent_job(request_dict: dict) -> None:
     image=image,
     secrets=[agent_secrets],
     min_containers=0,
-    scaledown_window=0,
+    scaledown_window=2,
     timeout=30,
 )
 @modal.asgi_app(label="dailyreport-agent")
@@ -56,7 +54,7 @@ def fastapi_app():
             raise HTTPException(status_code=401, detail="Unauthorized")
 
         body = await request.json()
-        run_agent_job.spawn(body)
+        await run_agent_job.spawn.aio(body)
 
         return {"status": "started", "jobId": body.get("jobId")}
 

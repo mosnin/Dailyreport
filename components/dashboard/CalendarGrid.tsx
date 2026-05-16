@@ -135,6 +135,13 @@ export function CalendarGrid({
     month: current.getMonth(),
   });
 
+  // @ts-ignore
+  const ritualData = useQuery(api.rituals.getCalendarData as any, {
+    userId,
+    year: current.getFullYear(),
+    month: current.getMonth(),
+  }) as Record<string, { total: number; completed: number }> | undefined;
+
   const monthStart = startOfMonth(current);
   const monthEnd = endOfMonth(current);
   const calStart = startOfWeek(monthStart, { weekStartsOn: 0 });
@@ -218,6 +225,9 @@ export function CalendarGrid({
             const isSelected = selectedDate === key;
             const isClickable =
               clickable && isSameMonth(day, current) && (isPast(day) || isToday(day));
+            const ritualInfo = ritualData?.[key];
+            const ritualsAllDone = ritualInfo && ritualInfo.completed === ritualInfo.total && ritualInfo.total > 0;
+            const ritualsSomeDone = ritualInfo && ritualInfo.completed > 0 && !ritualsAllDone;
             return (
               <motion.button
                 key={day.toISOString()}
@@ -243,6 +253,12 @@ export function CalendarGrid({
                 {weeklyDone && (
                   <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-indigo-400" />
                 )}
+                {ritualsAllDone && (
+                  <span className="absolute bottom-0.5 left-0.5 w-1.5 h-1.5 rounded-full bg-teal-400" />
+                )}
+                {ritualsSomeDone && (
+                  <span className="absolute bottom-0.5 left-0.5 w-1.5 h-1.5 rounded-full bg-teal-400/50" />
+                )}
               </motion.button>
             );
           })}
@@ -261,6 +277,9 @@ export function CalendarGrid({
         </span>
         <span className="flex items-center gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" /> Weekly done
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-teal-400" /> Rituals done
         </span>
       </div>
 
