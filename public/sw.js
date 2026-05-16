@@ -1,5 +1,5 @@
-const CACHE_NAME = "dailyreport-v3";
-const STATIC_ASSETS = ["/", "/dashboard", "/manifest.json"];
+const CACHE_NAME = "dailyreport-v4";
+const STATIC_ASSETS = ["/manifest.json", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
