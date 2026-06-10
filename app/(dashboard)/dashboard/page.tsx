@@ -296,7 +296,7 @@ export default function DashboardPage() {
                 {openProblems > 0 && (
                   <motion.div {...fadeUp(0.28)}>
                     <Link
-                      href="/problems"
+                      href="/patterns"
                       className="flex items-center justify-between rounded-xl px-4 py-3 bg-muted/40 hover:bg-muted/60 transition-colors"
                     >
                       <div className="flex items-center gap-3">

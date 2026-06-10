@@ -36,7 +36,7 @@ export const checkNotifications = internalAction({
         const hour = localDate.getHours();
         const localDateStr = localDate.toISOString().split("T")[0];
 
-        // Morning briefing at 8am — agent pre-briefs before the user opens the app
+        // Morning briefing at 8am — generate today's brief before the user opens the app
         if (hour === 8 && user.onboardingComplete) {
           const briefingSent = await ctx.runQuery(internal.crons.wasNotificationSent, {
             userId: user._id,
@@ -50,13 +50,12 @@ export const checkNotifications = internalAction({
               date: localDateStr,
             });
             try {
-              await ctx.runAction(
-                // @ts-ignore — agentScheduler added in parallel; run npx convex dev --once
-                (internal as any).agentScheduler.triggerMorningBriefing,
-                { userId: user._id, clerkId: user.clerkId }
-              );
+              await ctx.runAction(internal.ai.generateMorningBriefInternal, {
+                userId: user._id,
+                date: localDateStr,
+              });
             } catch (err) {
-              console.error(`Morning briefing failed for ${user._id}:`, err);
+              console.error(`Morning brief failed for ${user._id}:`, err);
             }
           }
         }

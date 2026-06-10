@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useMutation } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { usePushSubscription } from "@/hooks/usePushSubscription";
@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { useClerk } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import { Check, Sun, Moon, Monitor } from "lucide-react";
+import { Check, Sun, Moon, Monitor, CalendarDays, Mail } from "lucide-react";
 import { motion } from "motion/react";
 import { fadeUp } from "@/lib/motion";
 import Image from "next/image";
@@ -79,6 +79,18 @@ export default function SettingsPage() {
   const updateTimezone = useMutation(api.users.updateTimezone);
   const updateEmailOptOut = useMutation(api.users.updateEmailOptOut);
   const updateProfile = useMutation(api.users.updateProfile);
+  // @ts-ignore
+  const saveIntegration = useMutation(api.integrations.saveIntegration as any);
+  // @ts-ignore
+  const removeIntegration = useMutation(api.integrations.removeIntegration as any);
+
+  // @ts-ignore
+  const integrations = useQuery(
+    api.integrations.getUserIntegrations as any,
+    convexUserId ? { userId: convexUserId } : "skip"
+  ) ?? [];
+  const gcalConnected = (integrations as any[]).some((i: any) => i.platform === "googlecalendar");
+  const gmailConnected = (integrations as any[]).some((i: any) => i.platform === "gmail");
 
   const [profileName, setProfileName] = useState("");
   const [profileBio, setProfileBio] = useState("");
@@ -104,6 +116,49 @@ export default function SettingsPage() {
       window.history.replaceState({}, "", "/settings");
     }
   }, []);
+
+  // Handle OAuth callback from Composio — reads ?platform=X&connectionId=Y
+  const connectionSaved = useRef(false);
+  useEffect(() => {
+    if (!convexUserId || connectionSaved.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const platform = params.get("platform");
+    const connectionId = params.get("connectionId");
+    if (!platform || !["googlecalendar", "gmail"].includes(platform)) return;
+    // Prefer URL param, fall back to sessionStorage
+    const storedId = connectionId || (typeof sessionStorage !== "undefined" ? sessionStorage.getItem(`connection_${platform}`) : null);
+    if (!storedId) return;
+    connectionSaved.current = true;
+    if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(`connection_${platform}`);
+    window.history.replaceState({}, "", "/settings");
+    saveIntegration({ userId: convexUserId, platform: platform as any, composioConnectionId: storedId })
+      .then(() => {
+        const name = platform === "googlecalendar" ? "Google Calendar" : "Gmail";
+        toast.success(`${name} connected!`);
+      })
+      .catch(() => toast.error("Failed to save connection."));
+  }, [convexUserId]);
+
+  async function handleConnect(platform: string) {
+    try {
+      const res = await fetch(`/api/integrations/connect?platform=${platform}`);
+      const data = await res.json() as { redirectUrl?: string; connectionId?: string; error?: string };
+      if (!data.redirectUrl) { toast.error(data.error ?? "Failed to initiate connection"); return; }
+      if (data.connectionId && typeof sessionStorage !== "undefined") {
+        sessionStorage.setItem(`connection_${platform}`, data.connectionId);
+      }
+      window.location.href = data.redirectUrl;
+    } catch {
+      toast.error("Failed to initiate connection.");
+    }
+  }
+
+  async function handleDisconnect(platform: string) {
+    if (!convexUserId) return;
+    await removeIntegration({ userId: convexUserId, platform: platform as any });
+    const name = platform === "googlecalendar" ? "Google Calendar" : "Gmail";
+    toast.success(`${name} disconnected.`);
+  }
 
   useEffect(() => {
     if (convexUser?.timezone) setTz(convexUser.timezone);
@@ -312,6 +367,59 @@ export default function SettingsPage() {
               >
                 {savingTz ? "…" : "Save"}
               </button>
+            </div>
+          </Row>
+        </div>
+      </motion.div>
+
+      {/* ── Connections section ── */}
+      <motion.div {...fadeUp(0.33)}>
+        <SectionLabel>Connections</SectionLabel>
+        <div className="rounded-2xl border border-border bg-card px-5 py-1">
+          <Row
+            label="Google Calendar"
+            sub={gcalConnected ? "Connected — today's events appear in your morning brief" : "Show today's schedule in your morning brief"}
+          >
+            <div className="flex items-center gap-2">
+              <CalendarDays className={cn("w-3.5 h-3.5 shrink-0", gcalConnected ? "text-[#1A73E8]" : "text-muted-foreground/30")} />
+              {gcalConnected ? (
+                <button
+                  onClick={() => void handleDisconnect("googlecalendar")}
+                  className="text-xs text-muted-foreground/60 hover:text-destructive transition-colors"
+                >
+                  Disconnect
+                </button>
+              ) : (
+                <button
+                  onClick={() => void handleConnect("googlecalendar")}
+                  className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                >
+                  Connect
+                </button>
+              )}
+            </div>
+          </Row>
+          <Row
+            label="Gmail"
+            sub={gmailConnected ? "Connected — email context included in morning brief" : "Include email context in your morning brief"}
+          >
+            <div className="flex items-center gap-2">
+              <Mail className={cn("w-3.5 h-3.5 shrink-0", gmailConnected ? "text-[#EA4335]" : "text-muted-foreground/30")} />
+              {gmailConnected ? (
+                <button
+                  onClick={() => void handleDisconnect("gmail")}
+                  className="text-xs text-muted-foreground/60 hover:text-destructive transition-colors"
+                >
+                  Disconnect
+                </button>
+              ) : (
+                <button
+                  onClick={() => void handleConnect("gmail")}
+                  className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                >
+                  Connect
+                </button>
+              )}
             </div>
           </Row>
         </div>

@@ -1108,6 +1108,151 @@ Good examples:
   },
 });
 
+// Internal version of generateMorningBrief — called by cron, no auth context required.
+// Richer than the dashboard's on-demand version: includes yesterday's plan, goals, and calendar.
+export const generateMorningBriefInternal = internalAction({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, { userId, date }) => {
+    const existing = await ctx.runQuery(internal.aiInternal.getDailyBriefInternal, { userId, date });
+    if (existing) return;
+
+    const [reports, calendarRows] = await Promise.all([
+      ctx.runQuery(internal.aiInternal.getRecentReportsForInsights, { userId }),
+      ctx.runQuery(internal.integrations.getConnectedPlatformsInternal, { userId }),
+    ]);
+
+    const daily = (reports.daily as { date: string; responses: unknown }[]).slice(0, 7);
+    if (daily.length === 0) return;
+
+    // Pull yesterday's committed plan specifically
+    const yesterday = daily[0];
+    const yesterdayPlan = (yesterday?.responses as Record<string, unknown>)?.tomorrowPlan;
+    const yesterdayPlanStr =
+      typeof yesterdayPlan === "string" && yesterdayPlan.trim()
+        ? yesterdayPlan.trim()
+        : null;
+
+    // Build recent context lines
+    const recentLines = daily
+      .map((r) => {
+        const res = r.responses as Record<string, unknown>;
+        const parts: string[] = [];
+        if (typeof res?.dayActivity === "string" && res.dayActivity.trim())
+          parts.push(`day: ${res.dayActivity.slice(0, 120)}`);
+        if (typeof res?.emotionalDrain === "string" && res.emotionalDrain.trim())
+          parts.push(`energy: ${res.emotionalDrain.slice(0, 80)}`);
+        if (Array.isArray(res?.problemsToSolve) && res.problemsToSolve.length > 0)
+          parts.push(`problems: ${(res.problemsToSolve as Array<{ title?: string }>).map((p) => p.title).filter(Boolean).join(", ")}`);
+        return parts.length ? `[${r.date}] ${parts.join(" | ")}` : null;
+      })
+      .filter(Boolean)
+      .join("\n");
+
+    // Fetch calendar events if connected — best effort
+    let calendarContext = "";
+    if (calendarRows.includes("googlecalendar")) {
+      try {
+        const events = await ctx.runAction(internal.ai.fetchCalendarEventsInternal, { userId, date });
+        if (events && events.length > 0) {
+          calendarContext = `\nToday's calendar: ${events.map((e: { title: string; time: string }) => `${e.title} at ${e.time}`).join("; ")}`;
+        }
+      } catch {
+        // calendar fetch is best-effort
+      }
+    }
+
+    const userMessage = [
+      yesterdayPlanStr ? `Yesterday's plan: "${yesterdayPlanStr}"` : "",
+      calendarContext,
+      `Recent entries:\n${recentLines}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    const openai = getOpenAI();
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are an accountability coach writing a sharp morning brief — 2 to 3 sentences.
+
+Rules:
+- If yesterday's plan is provided, open by referencing it directly: did they follow through, or is it still waiting?
+- Mention today's calendar obligations if relevant to their goals or patterns
+- Close with one observation grounded in their actual recent entries — a pattern, a tension, a win
+- Never use motivational-poster language. No "you've got this", no "stay focused"
+- Sound like a trusted mentor who has read their journal, not a generic AI coach
+- Do not start with "You". Do not use bullet points.`,
+          },
+          { role: "user", content: userMessage },
+        ],
+        max_tokens: 120,
+      });
+
+      const content = completion.choices[0].message.content?.trim() ?? null;
+      if (content) {
+        await ctx.runMutation(internal.aiInternal.saveDailyBrief, { userId, date, content });
+      }
+    } catch (err) {
+      console.error("generateMorningBriefInternal failed:", err);
+    }
+  },
+});
+
+// Fetches today's Google Calendar events via Composio — returns simplified event list.
+export const fetchCalendarEventsInternal = internalAction({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, { userId, date }): Promise<{ title: string; time: string }[]> => {
+    const integration = await ctx.runQuery(internal.integrations.getIntegrationByPlatform, {
+      userId,
+      platform: "googlecalendar",
+    });
+    if (!integration?.composioConnectionId) return [];
+
+    const composioApiKey = process.env.COMPOSIO_API_KEY;
+    if (!composioApiKey) return [];
+
+    const timeMin = `${date}T00:00:00Z`;
+    const timeMax = `${date}T23:59:59Z`;
+
+    try {
+      const res = await fetch("https://backend.composio.dev/api/v1/actions/execute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": composioApiKey },
+        body: JSON.stringify({
+          action: "GOOGLECALENDAR_LIST_EVENTS",
+          connectedAccountId: integration.composioConnectionId,
+          input: { calendarId: "primary", timeMin, timeMax, maxResults: 8, singleEvents: true, orderBy: "startTime" },
+        }),
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      const items: Array<{ summary?: string; start?: { dateTime?: string; date?: string } }> =
+        data?.data?.items ?? data?.response_data?.items ?? data?.items ?? [];
+      return items.slice(0, 8).map((e) => ({
+        title: e.summary ?? "Untitled",
+        time: e.start?.dateTime
+          ? new Date(e.start.dateTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+          : "All day",
+      }));
+    } catch {
+      return [];
+    }
+  },
+});
+
+// Public action: client calls this to refresh and return today's calendar events.
+export const fetchCalendarEvents = action({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, args): Promise<{ title: string; time: string }[]> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    return ctx.runAction(internal.ai.fetchCalendarEventsInternal, args);
+  },
+});
+
 export const generateVisualizationsInternal = internalAction({
   args: { userId: v.id("users"), date: v.string() },
   handler: async (ctx, args) => {

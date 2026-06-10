@@ -194,6 +194,19 @@ export default defineSchema({
     generatedAt: v.number(),
   }).index("by_user_week", ["userId", "weekStartDate"]),
 
+  rituals: defineTable({
+    userId: v.id("users"),
+    title: v.string(),
+    order: v.number(),
+    createdAt: v.number(),
+  }).index("by_user", ["userId"]),
+
+  ritualLogs: defineTable({
+    userId: v.id("users"),
+    date: v.string(),
+    completedIds: v.array(v.string()),
+  }).index("by_user_date", ["userId", "date"]),
+
   integrations: defineTable({
     userId: v.id("users"),
     platform: v.union(
@@ -202,7 +215,8 @@ export default defineSchema({
       v.literal("clickup"),
       v.literal("trello"),
       v.literal("asana"),
-      v.literal("googlecalendar")
+      v.literal("googlecalendar"),
+      v.literal("gmail")
     ),
     composioConnectionId: v.string(),
     connected: v.boolean(),
