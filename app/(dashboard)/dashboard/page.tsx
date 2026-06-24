@@ -1,344 +1,144 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { useQuery, useAction } from "convex/react";
+import { useEffect, useState } from "react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
-import { useTodayStatus } from "@/hooks/useTodayStatus";
-import { usePushSubscription } from "@/hooks/usePushSubscription";
-import { usePullToRefresh } from "@/hooks/usePullToRefresh";
-import { TimezoneModal } from "@/components/dashboard/TimezoneModal";
-import { StatsBar } from "@/components/dashboard/StatsBar";
-import { YearRing } from "@/components/dashboard/YearRing";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+import { BentoCard } from "@/components/bento/BentoCard";
+import { ScoreRing } from "@/components/bento/ScoreRing";
+import { PageHeader } from "@/components/bento/PageHeader";
+import { LineTrend, RadarScores } from "@/components/charts/Charts";
+import { TimezoneModal } from "@/components/dashboard/TimezoneModal";
+import { AIPatterns } from "@/components/analytics/AIPatterns";
+import { AREAS, type AreaKey, scoreLabel, creditLabel } from "@/lib/areas";
+import { TrendingUp, TrendingDown, Minus, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { todayString } from "@/lib/utils";
-import { Bell, ArrowRight, Check, BookOpen, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
-import { useUser } from "@clerk/nextjs";
-import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "motion/react";
 
-function greeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
-}
-
-const ease = [0.16, 1, 0.3, 1] as const;
-
-function fadeUp(delay = 0) {
-  return {
-    initial: { opacity: 0, y: 10 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.55, ease, delay },
-  };
-}
-
-// ── Ritual step ───────────────────────────────────────────────────────────────
-
-function RitualStep({
-  done,
-  label,
-  sub,
-  href,
-  icon: Icon,
-  index,
-}: {
-  done: boolean;
-  label: string;
-  sub?: string;
-  href: string;
-  icon: React.ElementType;
-  index: number;
-}) {
+function Trend({ value }: { value: number }) {
+  if (value === 0) return <span className="inline-flex items-center gap-0.5 text-muted-foreground text-xs"><Minus className="w-3 h-3" /></span>;
+  const up = value > 0;
   return (
-    <motion.div {...fadeUp(0.25 + index * 0.07)}>
-      <Link
-        href={href}
-        className={cn(
-          "flex items-center justify-between rounded-xl px-4 py-3 transition-colors",
-          done
-            ? "bg-muted/30 text-muted-foreground pointer-events-none"
-            : "bg-muted/50 hover:bg-muted/70"
-        )}
-      >
-        <div className="flex items-center gap-3">
-          <div
-            className={cn(
-              "w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors",
-              done ? "bg-emerald-500/15" : "bg-background/80 border border-border"
-            )}
-          >
-            {done ? (
-              <Check className="w-3.5 h-3.5 text-emerald-500" />
-            ) : (
-              <Icon className="w-3.5 h-3.5 text-muted-foreground" />
-            )}
-          </div>
-          <div>
-            <p className={cn("text-sm font-medium", done && "line-through opacity-50")}>{label}</p>
-            {sub && <p className="text-xs text-muted-foreground/60 mt-0.5">{sub}</p>}
-          </div>
-        </div>
-        {!done && <ArrowRight className="w-4 h-4 text-muted-foreground/40" />}
-      </Link>
-    </motion.div>
+    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${up ? "text-emerald-400" : "text-rose-400"}`}>
+      {up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+      {up ? "+" : ""}{value}
+    </span>
   );
 }
-
-// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const { convexUserId, convexUser, isLoading } = useConvexUser();
-  const { user } = useUser();
-  const [showTzModal, setShowTzModal] = useState(false);
-
-  const { pullDistance, refreshing } = usePullToRefresh(async () => {
-    router.refresh();
-    // Brief pause so the spinner is visible — feels intentional
-    await new Promise((r) => setTimeout(r, 700));
-  });
-  const { subscribe, subscribed } = usePushSubscription(convexUserId);
-  const { reportDone, affirmDone, vizDone, streak } = useTodayStatus(convexUserId);
-
-  const brief = useQuery(
-    api.aiInternal.getDailyBriefPublic,
-    convexUserId ? { userId: convexUserId, date: todayString() } : "skip"
-  );
-  const allProblems = useQuery(
-    api.problems.getAllProblems,
-    convexUserId ? { userId: convexUserId } : "skip"
-  ) as Array<{ solvedManually: boolean | null; aiResolved: boolean | null }> | undefined;
-  const generateBrief = useAction(api.ai.generateMorningBrief);
-  const briefTriggered = useRef(false);
+  const { convexUserId, convexUser } = useConvexUser();
+  const [showTz, setShowTz] = useState(false);
+  const score = useQuery(api.lifeScore.getCurrent, convexUserId ? { userId: convexUserId, windowDays: 14 } : "skip");
+  const series = useQuery(api.lifeScore.getSeries, convexUserId ? { userId: convexUserId, days: 30 } : "skip");
 
   useEffect(() => {
-    if (convexUser && !convexUser.timezone) setShowTzModal(true);
+    if (convexUser && !convexUser.timezone) setShowTz(true);
   }, [convexUser]);
 
-  useEffect(() => {
-    if (!convexUserId || brief === undefined || briefTriggered.current) return;
-    if (brief !== null) return;
-    briefTriggered.current = true;
-    generateBrief({ userId: convexUserId }).catch(() => {});
-  }, [brief, convexUserId, generateBrief]);
-
-  if (isLoading || !convexUserId) {
+  if (!convexUserId || score === undefined) {
     return (
-      <div className="max-w-xl space-y-8 py-4">
-        <div className="space-y-2">
-          <Skeleton className="h-3 w-32" />
-          <Skeleton className="h-9 w-52" />
-        </div>
-        <div className="flex items-center gap-6">
-          <Skeleton className="w-[140px] h-[140px] rounded-full shrink-0" />
-          <div className="space-y-2 flex-1">
-            <Skeleton className="h-3 w-24" />
-            <Skeleton className="h-4 w-16" />
-          </div>
-        </div>
-        <Skeleton className="h-24 w-full rounded-2xl" />
-        <div className="space-y-2">
-          <Skeleton className="h-14 w-full rounded-xl" />
-          <Skeleton className="h-14 w-full rounded-xl" />
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-64" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-3xl" />)}
         </div>
       </div>
     );
   }
 
-  const firstName = user?.firstName ?? null;
-  const allDone = reportDone && affirmDone && vizDone;
-  const openProblems = (allProblems ?? []).filter(
-    (p) => p.solvedManually !== true && !(p.solvedManually === null && p.aiResolved === true)
-  ).length;
+  const areas = score?.areas ?? [];
+  const radarData = areas.filter((a: any) => !a.needsData).map((a: any) => ({ area: AREAS[a.key as AreaKey].label, score: a.score }));
 
   return (
-    <div
-      className="max-w-5xl"
-      style={{
-        paddingTop: pullDistance > 0 ? `${pullDistance * 0.6}px` : undefined,
-        transition: refreshing ? "none" : "padding-top 0.15s ease-out",
-      }}
-    >
-      {/* Pull-to-refresh indicator — mobile only */}
-      <div
-        className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-end justify-center pointer-events-none"
-        style={{
-          paddingTop: "env(safe-area-inset-top)",
-          height: `calc(env(safe-area-inset-top) + ${Math.max(0, pullDistance)}px + 3.5rem)`,
-          opacity: pullDistance > 10 ? Math.min(pullDistance / 72, 1) : 0,
-          transition: refreshing ? "none" : "opacity 0.1s",
-        }}
-      >
-        <div className="mb-3">
-          <RefreshCw
-            className={cn(
-              "w-5 h-5 text-muted-foreground transition-transform",
-              refreshing && "animate-spin"
-            )}
-            style={{
-              transform: refreshing ? undefined : `rotate(${(pullDistance / 72) * 180}deg)`,
-            }}
-          />
-        </div>
-      </div>
+    <div className="space-y-4 pb-6">
+      <PageHeader
+        eyebrow="Overview"
+        title="Your Life Score"
+        subtitle="A weighted, credit-style score across all six dimensions of your life — last 14 days."
+        action={
+          <Link href="/analytics" className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium hover:bg-accent/70 transition-colors">
+            Full analytics <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        }
+      />
 
-      <div>
-
-        {/* ── Main content ── */}
-        <div className="max-w-xl space-y-8">
-
-          {/* Date + greeting */}
-          <motion.div {...fadeUp(0)}>
-            <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-muted-foreground/40 mb-1.5">
-              {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-            </p>
-            <h1 className="font-heading text-[2.1rem] font-semibold tracking-tight leading-[1.15]">
-              {greeting()}{firstName ? `, ${firstName}` : ""}
-            </h1>
-          </motion.div>
-
-          {/* Morning brief */}
-          <AnimatePresence>
-            {brief?.content && (
-              <motion.p
-                key="brief"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.9, delay: 0.2 }}
-                className="font-heading italic text-[15px] leading-relaxed text-muted-foreground border-l-2 border-primary/30 pl-4"
-              >
-                {brief.content}
-              </motion.p>
-            )}
-          </AnimatePresence>
-
-          {/* ── Year ring + consistency panel ── */}
-          <motion.div {...fadeUp(0.08)}>
-            <div className="flex items-center gap-6 py-2">
-              <YearRing userId={convexUserId} streak={streak} createdAt={convexUser?.createdAt} />
-              <div className="flex flex-col gap-1.5">
-                <p className="text-[10px] font-semibold tracking-[0.14em] uppercase text-muted-foreground/40">
-                  Daily consistency
-                </p>
-                <p className="text-sm text-muted-foreground/50 leading-snug">
-                  {new Date().getFullYear()}
-                </p>
-                <p className="text-sm text-muted-foreground/60 leading-snug">
-                  Keep going.
-                </p>
-                {streak > 0 && (
-                  <p className="text-sm font-semibold text-orange-500 mt-1">
-                    {streak} day{streak === 1 ? "" : "s"} in a row
-                  </p>
-                )}
-              </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {/* Composite credit score */}
+        <BentoCard tint="var(--primary)" className="col-span-2 flex items-center gap-5" delay={0.02}>
+          <ScoreRing value={score?.composite ?? 0} color="oklch(0.2 0.03 264)" size={120} stroke={11} track="oklch(0.2 0.03 264 / 20%)">
+            <div className="text-center">
+              <div className="text-3xl font-bold numeral leading-none">{score?.credit ?? "—"}</div>
+              <div className="text-[10px] uppercase tracking-wide mt-1 opacity-70">/ 850</div>
             </div>
-          </motion.div>
+          </ScoreRing>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-70">Composite</p>
+            <p className="text-2xl font-bold mt-0.5">{score ? creditLabel(score.credit) : ""}</p>
+            <p className="text-sm mt-1 opacity-80">
+              {score && score.compositeTrend !== 0 ? `${score.compositeTrend > 0 ? "+" : ""}${score.compositeTrend} pts vs prior 2 weeks` : "Holding steady"}
+            </p>
+          </div>
+        </BentoCard>
 
-          {/* ── BEFORE: entry not done ── */}
-          <AnimatePresence mode="wait">
-            {!reportDone ? (
-              <motion.div key="before" className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+        {/* Radar */}
+        <BentoCard className="col-span-2 lg:row-span-2" delay={0.04}>
+          <h2 className="font-semibold mb-1">Balance</h2>
+          <p className="text-xs text-muted-foreground mb-2">How evenly you&apos;re investing across areas</p>
+          {radarData.length >= 3 ? (
+            <RadarScores data={radarData} height={260} />
+          ) : (
+            <div className="h-[260px] grid place-items-center text-center text-sm text-muted-foreground px-6">
+              Log a few more areas to unlock your balance chart.
+            </div>
+          )}
+        </BentoCard>
 
-                {/* Primary CTA */}
-                <motion.div {...fadeUp(0.1)}>
-                  <Link
-                    href="/reports/daily"
-                    className="group block rounded-2xl bg-foreground text-background px-8 py-7 hover:opacity-90 active:scale-[0.99] transition-all"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-heading text-xl font-semibold">Begin today&apos;s entry</p>
-                        <p className="text-sm opacity-55 mt-1">
-                          {new Date().toLocaleDateString("en-US", { weekday: "long" })}&apos;s report is waiting.
-                        </p>
-                      </div>
-                      <ArrowRight className="w-5 h-5 opacity-50 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </Link>
-                </motion.div>
-
-                {/* Practice ritual */}
-                <div className="space-y-2">
-                  <motion.p {...fadeUp(0.22)} className="text-[10px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40">
-                    Your ritual
-                  </motion.p>
-                  <RitualStep done={affirmDone} label="Affirmations" sub="5 rounds" href="/affirmations" icon={Sparkles} index={0} />
-                  <RitualStep done={vizDone} label="Visualizations" sub="60-second scenes" href="/dreams" icon={BookOpen} index={1} />
+        {/* Area score tiles */}
+        {areas.map((a: any, i: number) => {
+          const meta = AREAS[a.key as AreaKey];
+          const Icon = meta.icon;
+          return (
+            <BentoCard key={a.key} href={meta.href} className="flex flex-col gap-3" delay={0.04 + i * 0.03}>
+              <div className="flex items-center justify-between">
+                <span className="grid place-items-center w-9 h-9 rounded-xl" style={{ background: `color-mix(in oklch, ${meta.color} 18%, transparent)` }}>
+                  <Icon className="w-[18px] h-[18px]" style={{ color: meta.color }} />
+                </span>
+                {!a.needsData && <Trend value={a.trend} />}
+              </div>
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-2xl font-bold numeral">{a.needsData ? "—" : a.score}</span>
+                  {!a.needsData && <span className="text-xs text-muted-foreground">/ 100</span>}
                 </div>
-              </motion.div>
-
-            ) : (
-              /* ── AFTER: entry done ── */
-              <motion.div key="after" className="space-y-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
-
-                {/* Compact stats */}
-                <motion.div {...fadeUp(0.22)}>
-                  <StatsBar userId={convexUserId} compact />
-                </motion.div>
-
-                {/* Ritual completion */}
-                <div className="space-y-2">
-                  <motion.p {...fadeUp(0.15)} className="text-[10px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40">
-                    Your ritual
-                  </motion.p>
-                  <RitualStep done={true}       label="Today's entry"  href="/reports/daily"  icon={BookOpen}  index={0} />
-                  <RitualStep done={affirmDone} label="Affirmations"   sub="5 rounds" href="/affirmations" icon={Sparkles} index={1} />
-                  <RitualStep done={vizDone}    label="Visualizations"  sub="60-second scenes" href="/dreams" icon={BookOpen} index={2} />
-                </div>
-
-                {/* Open problems nudge */}
-                {openProblems > 0 && (
-                  <motion.div {...fadeUp(0.28)}>
-                    <Link
-                      href="/patterns"
-                      className="flex items-center justify-between rounded-xl px-4 py-3 bg-muted/40 hover:bg-muted/60 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
-                        <span className="text-sm text-muted-foreground">
-                          {openProblems} open problem{openProblems === 1 ? "" : "s"}
-                        </span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-muted-foreground/40" />
-                    </Link>
-                  </motion.div>
-                )}
-
-                {/* Push prompt */}
-                {!subscribed &&
-                  typeof window !== "undefined" &&
-                  "Notification" in window &&
-                  Notification.permission !== "granted" && (
-                    <motion.div {...fadeUp(0.35)} className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/20 px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <Bell className="w-4 h-4 text-muted-foreground/50 shrink-0" />
-                        <span className="text-muted-foreground/60 text-sm">Get reminded at 8pm every day.</span>
-                      </div>
-                      <Button size="sm" variant="outline" onClick={subscribe} className="text-xs">Enable</Button>
-                    </motion.div>
-                  )}
-
-
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
+                <p className="text-sm font-medium mt-0.5">{meta.label}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{a.needsData ? "No data yet" : scoreLabel(a.score)}</p>
+              </div>
+            </BentoCard>
+          );
+        })}
       </div>
 
-      {convexUserId && (
-        <TimezoneModal
-          userId={convexUserId}
-          open={showTzModal}
-          onClose={() => setShowTzModal(false)}
-        />
-      )}
+      {/* Score over time */}
+      <BentoCard delay={0.1}>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className="font-semibold">Life Score over time</h2>
+            <p className="text-xs text-muted-foreground">Last 30 days · composite</p>
+          </div>
+          <Link href="/analytics" className="text-xs text-muted-foreground hover:text-foreground">Compare areas →</Link>
+        </div>
+        {series && series.length > 0 ? (
+          <LineTrend data={series} series={[{ key: "composite", name: "Life Score", color: "var(--primary)" }]} height={220} />
+        ) : (
+          <div className="h-[220px] grid place-items-center text-sm text-muted-foreground">Not enough history yet.</div>
+        )}
+      </BentoCard>
+
+      {/* AI cross-domain patterns */}
+      <AIPatterns userId={convexUserId} />
+
+      {convexUserId && <TimezoneModal userId={convexUserId} open={showTz} onClose={() => setShowTz(false)} />}
     </div>
   );
 }

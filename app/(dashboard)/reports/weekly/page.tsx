@@ -6,6 +6,8 @@ import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { WeeklyReportForm } from "@/components/reports/WeeklyReportForm";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BentoCard } from "@/components/bento/BentoCard";
+import { PageHeader } from "@/components/bento/PageHeader";
 import { currentWeekStartString, isSunday, nextSundayDate } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import { CalendarClock, CheckCircle2, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
@@ -145,24 +147,15 @@ export default function WeeklyReportPage() {
   }
 
   return (
-    <div className="max-w-2xl">
-      <motion.div {...fadeUp(0)} className="mb-10">
-        <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-muted-foreground/40 mb-1.5">
-          Weekly Review
-        </p>
-        <h1 className="font-heading text-[2.2rem] font-semibold tracking-tight leading-[1.15]">
-          {format(parseISO(weekStart + "T00:00:00"), "MMMM d")} — {format(new Date(), "MMMM d, yyyy")}
-        </h1>
-        <div className="flex items-center gap-3 mt-2">
-          <p className="text-sm text-muted-foreground">Seven days to account for.</p>
-          {existing && (
-            <span className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              Saved
-            </span>
-          )}
-        </div>
-      </motion.div>
+    <div className="max-w-3xl">
+      <PageHeader
+        eyebrow="Weekly review"
+        title={`${format(parseISO(weekStart + "T00:00:00"), "MMM d")} — ${format(new Date(), "MMM d, yyyy")}`}
+        subtitle="Seven days to account for."
+        action={existing ? (
+          <span className="flex items-center gap-1 text-xs font-medium text-emerald-400"><CheckCircle2 className="w-3.5 h-3.5" /> Saved</span>
+        ) : undefined}
+      />
 
       {weekDraft && weekDraft.bullets.length > 0 && (
         <WeekDraftCard
@@ -172,11 +165,13 @@ export default function WeeklyReportPage() {
         />
       )}
 
-      <WeeklyReportForm
-        userId={convexUserId}
-        initialResponses={existing?.responses as Record<string, unknown> | undefined}
-        draftBullets={appendedBullets}
-      />
+      <BentoCard className="!p-6 sm:!p-8">
+        <WeeklyReportForm
+          userId={convexUserId}
+          initialResponses={existing?.responses as Record<string, unknown> | undefined}
+          draftBullets={appendedBullets}
+        />
+      </BentoCard>
     </div>
   );
 }

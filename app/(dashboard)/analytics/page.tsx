@@ -4,466 +4,356 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-import {
-  Target,
-  AlertOctagon,
-  Users,
-  Brain,
-  NotepadText,
-  Flame,
-  Telescope,
-} from "lucide-react";
-import { motion } from "motion/react";
-import { fadeUp } from "@/lib/motion";
+import Link from "next/link";
+import { BentoCard } from "@/components/bento/BentoCard";
+import { PageHeader } from "@/components/bento/PageHeader";
+import { LineTrend, AreaTrend, ScatterPlot, RadarScores } from "@/components/charts/Charts";
+import { AREAS, AREA_ORDER, type AreaKey, scoreLabel } from "@/lib/areas";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// ── Types ─────────────────────────────────────────────────────────────────
+const RANGES = [30, 60, 90] as const;
 
-type GoalKey = "yearly" | "quarterly" | "monthly" | "weekly";
-
-// ── Range selector ────────────────────────────────────────────────────────
-
-const RANGE_OPTIONS = [
-  { label: "8w", weeks: 8 },
-  { label: "12w", weeks: 12 },
-  { label: "24w", weeks: 24 },
-];
-
-function RangeSelector({
-  weeks,
-  onChange,
-}: {
-  weeks: number;
-  onChange: (w: number) => void;
-}) {
+function TrendBadge({ trend }: { trend?: number }) {
+  if (trend == null || Number.isNaN(trend)) return null;
+  const up = trend > 0;
+  const flat = Math.abs(trend) < 0.5;
   return (
-    <div className="flex items-center gap-0.5 rounded-lg border border-border p-0.5">
-      {RANGE_OPTIONS.map((opt) => (
-        <button
-          key={opt.weeks}
-          onClick={() => onChange(opt.weeks)}
-          className={cn(
-            "px-2.5 py-1 text-xs font-medium rounded-md transition-colors",
-            weeks === opt.weeks
-              ? "bg-foreground text-background"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
+    <span
+      className={cn(
+        "text-[11px] font-semibold tabular-nums",
+        flat
+          ? "text-muted-foreground/60"
+          : up
+          ? "text-emerald-500"
+          : "text-rose-500"
+      )}
+    >
+      {flat ? "→" : up ? "▲" : "▼"} {Math.abs(Math.round(trend))}
+    </span>
   );
 }
-
-// ── Section wrapper ───────────────────────────────────────────────────────
-
-function Section({
-  title,
-  icon: Icon,
-  iconClass,
-  children,
-}: {
-  title: string;
-  icon: React.ElementType;
-  iconClass?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Icon className={cn("w-5 h-5", iconClass ?? "text-primary")} />
-        <h2 className="text-base font-semibold">{title}</h2>
-      </div>
-      {children}
-    </section>
-  );
-}
-
-// ── Practice consistency tooltip ──────────────────────────────────────────
-
-function PracticeTooltip({
-  active,
-  payload,
-  label,
-}: {
-  active?: boolean;
-  payload?: Array<{ name: string; value: number; fill: string }>;
-  label?: string;
-}) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="rounded-xl bg-card ring-1 ring-foreground/10 px-3 py-2.5 text-xs space-y-1.5 min-w-[140px]">
-      <p className="font-semibold text-foreground">Week of {label}</p>
-      {payload.map((entry) => (
-        <div key={entry.name} className="flex items-center justify-between gap-4">
-          <span className="text-muted-foreground capitalize">{entry.name}</span>
-          <span className="font-medium tabular-nums" style={{ color: entry.fill }}>
-            {entry.value}d
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Goal progress bar ─────────────────────────────────────────────────────
-
-function GoalBar({
-  label,
-  total,
-  completed,
-  periodKey,
-}: {
-  label: string;
-  total: number;
-  completed: number;
-  periodKey: string;
-}) {
-  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between text-sm">
-        <span className="font-medium">{label}</span>
-        <span className="text-muted-foreground tabular-nums text-xs">
-          {completed}/{total}
-          {total > 0 && (
-            <span className="ml-1.5 font-semibold text-foreground">{pct}%</span>
-          )}
-        </span>
-      </div>
-      <div className="h-2 rounded-full bg-muted overflow-hidden">
-        <div
-          className={cn(
-            "h-full rounded-full transition-all",
-            pct === 100
-              ? "bg-emerald-500"
-              : pct >= 60
-              ? "bg-primary"
-              : pct >= 30
-              ? "bg-amber-500"
-              : "bg-muted-foreground/30"
-          )}
-          style={{ width: total > 0 ? `${pct}%` : "0%" }}
-        />
-      </div>
-      <p className="text-[10px] text-muted-foreground/60">{periodKey}</p>
-    </div>
-  );
-}
-
-// ── Horizontal bar row ────────────────────────────────────────────────────
-
-function HBarRow({
-  label,
-  count,
-  max,
-  color,
-}: {
-  label: string;
-  count: number;
-  max: number;
-  color: string;
-}) {
-  const pct = max > 0 ? (count / max) * 100 : 0;
-  return (
-    <div className="flex items-center gap-3">
-      <span className="w-28 shrink-0 text-xs text-right text-muted-foreground truncate" title={label}>
-        {label}
-      </span>
-      <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-        <div
-          className="h-full rounded-full"
-          style={{ width: `${pct}%`, backgroundColor: color }}
-        />
-      </div>
-      <span className="w-6 text-xs tabular-nums text-muted-foreground">{count}</span>
-    </div>
-  );
-}
-
-// ── Stat tile ─────────────────────────────────────────────────────────────
-
-function StatTile({
-  label,
-  value,
-  sub,
-  accent,
-}: {
-  label: string;
-  value: string | number;
-  sub?: string;
-  accent?: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-4 space-y-1">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={cn("text-3xl font-bold tabular-nums", accent)}>{value}</p>
-      {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
-    </div>
-  );
-}
-
-// ── Main page ─────────────────────────────────────────────────────────────
 
 export default function AnalyticsPage() {
-  const { convexUserId, isLoading } = useConvexUser();
-  const [weeks, setWeeks] = useState(12);
+  const { convexUserId } = useConvexUser();
+  const [days, setDays] = useState<number>(30);
 
-  const data = useQuery(
-    api.analytics.getAnalytics,
-    convexUserId ? { userId: convexUserId, weeks } : "skip"
-  );
+  const series = useQuery(
+    api.lifeScore.getSeries,
+    convexUserId ? { userId: convexUserId, days } : "skip"
+  ) as any[] | undefined;
 
-  if (isLoading || !convexUserId) {
+  const current = useQuery(
+    api.lifeScore.getCurrent,
+    convexUserId ? { userId: convexUserId, windowDays: 14 } : "skip"
+  ) as any | undefined;
+
+  const health = useQuery(
+    api.health.getRecent,
+    convexUserId ? { userId: convexUserId, days: 90 } : "skip"
+  ) as any[] | undefined;
+
+  const finance = useQuery(
+    api.finances.getRecent,
+    convexUserId ? { userId: convexUserId, days: 90 } : "skip"
+  ) as any[] | undefined;
+
+  // Loading state — wait for user + main series query.
+  if (!convexUserId || series === undefined) {
     return (
-      <div className="max-w-3xl space-y-8">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-64 w-full" />
-        <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-48 w-full" />
+      <div className="space-y-4 pb-6">
+        <Skeleton className="h-10 w-64 rounded-3xl" />
+        <Skeleton className="h-[320px] w-full rounded-3xl" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <Skeleton className="col-span-2 h-64 rounded-3xl" />
+          <Skeleton className="col-span-2 h-64 rounded-3xl" />
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-40 rounded-3xl" />
+          ))}
+        </div>
       </div>
     );
   }
 
-  if (!data) {
-    return (
-      <div className="max-w-3xl space-y-8">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-64 w-full" />
-        <Skeleton className="h-48 w-full" />
-      </div>
-    );
-  }
+  const rows = Array.isArray(series) ? series : [];
+  const healthRows = Array.isArray(health) ? health : [];
+  const financeRows = Array.isArray(finance) ? finance : [];
 
-  const goalOrder: GoalKey[] = ["yearly", "quarterly", "monthly", "weekly"];
-  const goalLabels: Record<GoalKey, string> = {
-    yearly: "Yearly",
-    quarterly: "Quarterly",
-    monthly: "Monthly",
-    weekly: "Weekly",
-  };
+  const areasByKey: Record<string, any> = {};
+  for (const a of current?.areas ?? []) areasByKey[a.key] = a;
 
-  const drainMax = data.topDrainThemes[0]?.count ?? 1;
-  const peopleMax = data.topPeople[0]?.count ?? 1;
+  // Radar — areas with data, only if >= 3.
+  const radarData = (current?.areas ?? [])
+    .filter((a: any) => !a.needsData && AREAS[a.key as AreaKey])
+    .map((a: any) => ({ area: AREAS[a.key as AreaKey].label, score: a.score }));
+
+  // Scatter datasets.
+  const sleepMood = healthRows
+    .filter((r) => r.sleepHours != null && r.mood != null)
+    .map((r) => ({ sleepHours: r.sleepHours, mood: r.mood }));
+  const exerciseEnergy = healthRows
+    .filter((r) => r.exerciseMinutes != null && r.energy != null)
+    .map((r) => ({ exerciseMinutes: r.exerciseMinutes, energy: r.energy }));
+  const spendStress = financeRows
+    .filter((r) => r.spending != null && r.financialStress != null)
+    .map((r) => ({ spending: r.spending, financialStress: r.financialStress }));
+  const stressMood = healthRows
+    .filter((r) => r.stress != null && r.mood != null)
+    .map((r) => ({ stress: r.stress, mood: r.mood }));
+
+  const sparse = rows.length < 2;
 
   return (
-    <div className="max-w-3xl space-y-10">
-      {/* Header */}
-      <motion.div {...fadeUp(0)} className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Analytics</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Your progress over time — reports, practices, goals, and patterns.
-          </p>
-        </div>
-        <RangeSelector weeks={weeks} onChange={setWeeks} />
-      </motion.div>
-
-      {/* Summary stat strip */}
-      <motion.div {...fadeUp(0.1)} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatTile
-          label="Total reports"
-          value={data.totalDailyReports}
-          sub="daily submissions"
-        />
-        <StatTile
-          label="Goals completed"
-          value={data.allTimeGoals.completed}
-          sub={`of ${data.allTimeGoals.total} total`}
-          accent="text-emerald-600 dark:text-emerald-400"
-        />
-        <StatTile
-          label="Problems resolved"
-          value={`${data.problemStats.resolutionRate}%`}
-          sub={`${data.problemStats.resolved}/${data.problemStats.total} problems`}
-          accent={
-            data.problemStats.resolutionRate >= 70
-              ? "text-emerald-600 dark:text-emerald-400"
-              : data.problemStats.resolutionRate >= 40
-              ? "text-amber-600 dark:text-amber-400"
-              : undefined
-          }
-        />
-        <StatTile
-          label="People mentioned"
-          value={data.topPeople.length}
-          sub="unique connections"
-          accent="text-sky-600 dark:text-sky-400"
-        />
-      </motion.div>
-
-      {/* Practice consistency */}
-      <motion.div {...fadeUp(0.2)}>
-        <Section title="Practice Consistency" icon={NotepadText} iconClass="text-emerald-500">
-          <div className="rounded-2xl border border-border bg-card p-5">
-            <p className="text-xs text-muted-foreground mb-4">
-              Days per week each practice was completed
-            </p>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart
-                data={data.weeklyData}
-                margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
-                barSize={8}
-                barCategoryGap="30%"
+    <div className="space-y-4 pb-6">
+      <PageHeader
+        eyebrow="Analytics"
+        title="The full picture"
+        subtitle="Every dimension of your life, measured over time."
+        action={
+          <div className="flex items-center gap-1 rounded-full bg-accent/40 p-1">
+            {RANGES.map((r) => (
+              <button
+                key={r}
+                onClick={() => setDays(r)}
+                className={cn(
+                  "rounded-full px-3 py-1 text-xs font-semibold transition-colors",
+                  days === r
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-accent text-muted-foreground"
+                )}
               >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="currentColor"
-                  strokeOpacity={0.06}
-                />
-                <XAxis
-                  dataKey="label"
-                  tick={{ fontSize: 10, fill: "currentColor", opacity: 0.45 }}
-                  tickLine={false}
-                  axisLine={false}
-                  interval={weeks <= 8 ? 0 : Math.floor(weeks / 8)}
-                />
-                <YAxis
-                  tick={{ fontSize: 10, fill: "currentColor", opacity: 0.45 }}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                  domain={[0, 7]}
-                  ticks={[0, 2, 4, 6, 7]}
-                />
-                <Tooltip content={<PracticeTooltip />} cursor={{ fill: "currentColor", fillOpacity: 0.03 }} />
-                <Legend
-                  iconType="circle"
-                  iconSize={7}
-                  wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
-                />
-                <Bar dataKey="reports" name="Reports" fill="#22c55e" radius={[2, 2, 0, 0]} />
-                <Bar dataKey="affirmations" name="Affirmations" fill="#f59e0b" radius={[2, 2, 0, 0]} />
-                <Bar dataKey="visualizations" name="Visualizations" fill="#0ea5e9" radius={[2, 2, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+                {r}d
+              </button>
+            ))}
           </div>
-        </Section>
-      </motion.div>
+        }
+      />
 
-      <div className="border-t border-border" />
-
-      {/* Goals by category */}
-      <motion.div {...fadeUp(0.1)}>
-        <Section title="Goal Completion" icon={Target} iconClass="text-violet-500">
-          <div className="rounded-2xl border border-border bg-card p-5 space-y-5">
-            {goalOrder.map((cat) => {
-              const s = data.goalStats[cat];
-              if (!s) return null;
-              return (
-                <GoalBar
-                  key={cat}
-                  label={goalLabels[cat]}
-                  total={s.total}
-                  completed={s.completed}
-                  periodKey={s.periodKey}
-                />
-              );
-            })}
-            {goalOrder.every((c) => (data.goalStats[c]?.total ?? 0) === 0) && (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No goals set yet. Add some in the Goals page.
-              </p>
-            )}
-          </div>
-        </Section>
-      </motion.div>
-
-      <div className="border-t border-border" />
-
-      {/* Problem stats */}
-      <motion.div {...fadeUp(0.1)}>
-        <Section title="Problem Tracker" icon={AlertOctagon} iconClass="text-rose-500">
-          <div className="grid grid-cols-3 gap-3">
-            <StatTile label="Total logged" value={data.problemStats.total} />
-            <StatTile
-              label="Still open"
-              value={data.problemStats.open}
-              accent={data.problemStats.open > 5 ? "text-rose-500" : undefined}
-            />
-            <StatTile
-              label="Resolved"
-              value={data.problemStats.resolved}
-              accent="text-emerald-600 dark:text-emerald-400"
-            />
-          </div>
-          {data.problemStats.total === 0 && (
-            <p className="text-sm text-muted-foreground">No problems logged yet.</p>
+      {/* 1. Big multi-line chart */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <BentoCard className="col-span-2 lg:col-span-4" delay={0}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+            Trends
+          </p>
+          <h2 className="mt-1 text-lg font-semibold">Every area over time</h2>
+          {sparse ? (
+            <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
+              Log a few more days to see your trends take shape.
+            </div>
+          ) : (
+            <div className="mt-3">
+              <LineTrend
+                data={rows}
+                xKey="label"
+                domain={[0, 100]}
+                height={300}
+                series={AREA_ORDER.map((key) => ({
+                  key,
+                  name: AREAS[key].label,
+                  color: AREAS[key].color,
+                }))}
+              />
+            </div>
           )}
-        </Section>
-      </motion.div>
+        </BentoCard>
 
-      <div className="border-t border-border" />
-
-      {/* Emotional drain themes */}
-      <motion.div {...fadeUp(0.1)}>
-        <Section title="Emotional Drain Patterns" icon={Brain} iconClass="text-amber-500">
-          <div className="rounded-2xl border border-border bg-card p-5">
-            {data.topDrainThemes.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-2">
-                Fill in the &ldquo;emotional drain&rdquo; field in daily reports to see patterns here.
-              </p>
-            ) : (
-              <div className="space-y-2.5">
-                {data.topDrainThemes.map((entry: { word: string; count: number }) => (
-                  <HBarRow
-                    key={entry.word}
-                    label={entry.word}
-                    count={entry.count}
-                    max={drainMax}
-                    color="#f59e0b"
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-          {data.topDrainThemes.length > 0 && (
-            <p className="text-xs text-muted-foreground/60">
-              Most frequent words in your daily emotional drain entries. Use this to spot recurring stressors.
-            </p>
+        {/* 2. Composite area + 3. Radar */}
+        <BentoCard className="col-span-2" delay={0.05}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+            Overall
+          </p>
+          <h2 className="mt-1 text-lg font-semibold">Composite Life Score</h2>
+          {sparse ? (
+            <div className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">
+              Not enough data yet.
+            </div>
+          ) : (
+            <div className="mt-3">
+              <AreaTrend
+                data={rows}
+                xKey="label"
+                dataKey="composite"
+                name="Composite"
+                color="var(--primary)"
+                domain={[0, 100]}
+                height={200}
+              />
+            </div>
           )}
-        </Section>
-      </motion.div>
+        </BentoCard>
 
-      <div className="border-t border-border" />
+        <BentoCard className="col-span-2" delay={0.1}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+            Balance
+          </p>
+          <h2 className="mt-1 text-lg font-semibold">Current balance</h2>
+          {radarData.length >= 3 ? (
+            <div className="mt-3">
+              <RadarScores data={radarData} height={240} />
+            </div>
+          ) : (
+            <div className="flex h-[240px] items-center justify-center text-center text-sm text-muted-foreground">
+              Log across at least three areas to see your balance.
+            </div>
+          )}
+        </BentoCard>
+      </div>
 
-      {/* People network */}
-      <motion.div {...fadeUp(0.1)}>
-        <Section title="Your Network" icon={Users} iconClass="text-sky-500">
-          <div className="rounded-2xl border border-border bg-card p-5 pb-6">
-            {data.topPeople.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-2">
-                Log people you meet in daily reports to see who you interact with most.
-              </p>
-            ) : (
-              <div className="space-y-2.5">
-                {data.topPeople.map((entry: { name: string; count: number }) => (
-                  <HBarRow
-                    key={entry.name}
-                    label={entry.name}
-                    count={entry.count}
-                    max={peopleMax}
-                    color="#0ea5e9"
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </Section>
-      </motion.div>
+      {/* 4. Trends by area */}
+      <div className="space-y-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+          Trends by area
+        </p>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          {AREA_ORDER.map((key, i) => {
+            const meta = AREAS[key];
+            const Icon = meta.icon;
+            const area = areasByKey[key];
+            const score = area?.score;
+            return (
+              <BentoCard key={key} href={meta.href} delay={0.04 * i}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Icon className="h-4 w-4" style={{ color: meta.color }} />
+                    <span className="text-sm font-semibold">{meta.label}</span>
+                  </div>
+                  <TrendBadge trend={area?.trend} />
+                </div>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="text-2xl font-bold tabular-nums">
+                    {score != null ? Math.round(score) : "—"}
+                  </span>
+                  {score != null && (
+                    <span className="text-[11px] text-muted-foreground">
+                      {scoreLabel(score)}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-2">
+                  {sparse ? (
+                    <div className="flex h-[110px] items-center justify-center text-xs text-muted-foreground/60">
+                      No data yet
+                    </div>
+                  ) : (
+                    <AreaTrend
+                      data={rows}
+                      xKey="label"
+                      dataKey={key}
+                      name={meta.label}
+                      color={meta.color}
+                      domain={[0, 100]}
+                      height={110}
+                    />
+                  )}
+                </div>
+              </BentoCard>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 5. Correlations */}
+      <div className="space-y-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+          Correlations
+        </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <CorrelationCard
+            title="Sleep vs Mood"
+            data={sleepMood}
+            delay={0}
+            scatter={
+              <ScatterPlot
+                data={sleepMood}
+                xKey="sleepHours"
+                yKey="mood"
+                xName="Sleep (hrs)"
+                yName="Mood"
+                color="var(--emotional)"
+                xDomain={[0, 12]}
+                yDomain={[0, 10]}
+              />
+            }
+          />
+          <CorrelationCard
+            title="Exercise vs Energy"
+            data={exerciseEnergy}
+            delay={0.05}
+            scatter={
+              <ScatterPlot
+                data={exerciseEnergy}
+                xKey="exerciseMinutes"
+                yKey="energy"
+                xName="Exercise (min)"
+                yName="Energy"
+                color="var(--health)"
+                yDomain={[0, 10]}
+              />
+            }
+          />
+          <CorrelationCard
+            title="Spending vs Money stress"
+            data={spendStress}
+            delay={0.1}
+            scatter={
+              <ScatterPlot
+                data={spendStress}
+                xKey="spending"
+                yKey="financialStress"
+                xName="Spending"
+                yName="Money stress"
+                color="var(--finance)"
+                yDomain={[0, 10]}
+              />
+            }
+          />
+          <CorrelationCard
+            title="Stress vs Mood"
+            data={stressMood}
+            delay={0.15}
+            scatter={
+              <ScatterPlot
+                data={stressMood}
+                xKey="stress"
+                yKey="mood"
+                xName="Stress"
+                yName="Mood"
+                color="var(--progress)"
+                xDomain={[0, 10]}
+                yDomain={[0, 10]}
+              />
+            }
+          />
+        </div>
+      </div>
     </div>
+  );
+}
+
+function CorrelationCard({
+  title,
+  data,
+  scatter,
+  delay,
+}: {
+  title: string;
+  data: any[];
+  scatter: React.ReactNode;
+  delay?: number;
+}) {
+  const ready = Array.isArray(data) && data.length >= 3;
+  return (
+    <BentoCard delay={delay}>
+      <h3 className="text-sm font-semibold">{title}</h3>
+      {ready ? (
+        <div className="mt-2">{scatter}</div>
+      ) : (
+        <div className="mt-2 flex h-[200px] items-center justify-center text-center text-sm text-muted-foreground">
+          Log more to see this correlation
+        </div>
+      )}
+    </BentoCard>
   );
 }

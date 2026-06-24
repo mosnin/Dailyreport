@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { CheckCircle2, XCircle, Minus, NotepadText, BookOpen, Users, Target, AlertTriangle, CheckSquare, CalendarDays, Pencil, X, ListChecks } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
+import { PageHeader } from "@/components/bento/PageHeader";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -526,13 +527,12 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="max-w-5xl space-y-6">
-      <motion.div {...fadeUp(0)}>
-        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">History</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Select any past day to read your daily report and weekly review.
-        </p>
-      </motion.div>
+    <div className="max-w-5xl space-y-4 pb-6">
+      <PageHeader
+        eyebrow="Reflect"
+        title="History"
+        subtitle="Select any past day to read your daily report and weekly review."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 items-start">
         {/* Calendar */}

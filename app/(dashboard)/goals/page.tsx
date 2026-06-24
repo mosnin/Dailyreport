@@ -1,243 +1,317 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { useQuery, useAction } from "convex/react";
+import { useState } from "react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { useConvexUser } from "@/hooks/useConvexUser";
-import { GoalSection } from "@/components/goals/GoalSection";
-import { Skeleton } from "@/components/ui/skeleton";
-import { type GoalCategory, periodLabel } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "motion/react";
-import { fadeUp } from "@/lib/motion";
-import { Sparkles, ArrowRight, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import Link from "next/link";
+import { currentPeriodKey, periodLabel, type GoalCategory } from "@/lib/utils";
+import { BentoCard } from "@/components/bento/BentoCard";
+import { ScoreRing } from "@/components/bento/ScoreRing";
+import { PageHeader } from "@/components/bento/PageHeader";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Check, Plus, Pencil, Trash2 } from "lucide-react";
 
-const TABS: { key: GoalCategory; label: string }[] = [
-  { key: "weekly",    label: "Week" },
-  { key: "monthly",   label: "Month" },
-  { key: "quarterly", label: "Quarter" },
-  { key: "yearly",    label: "Year" },
-];
+const GOALS = "var(--goals)";
 
-const CATEGORIES: GoalCategory[] = ["yearly", "quarterly", "monthly", "weekly"];
-
-const CATEGORY_META: Record<GoalCategory, { label: string; color: string; dot: string }> = {
-  yearly:    { label: "Year",    color: "text-chart-1", dot: "bg-chart-1" },
-  quarterly: { label: "Quarter", color: "text-chart-2", dot: "bg-chart-2" },
-  monthly:   { label: "Month",   color: "text-chart-3", dot: "bg-chart-3" },
-  weekly:    { label: "Week",    color: "text-chart-4", dot: "bg-chart-4" },
+const CATEGORY_META: Record<GoalCategory, { label: string }> = {
+  yearly: { label: "Long-term" },
+  quarterly: { label: "Mid-term" },
+  monthly: { label: "Monthly" },
+  weekly: { label: "Weekly" },
 };
 
+/* ---------------------------------------------------------------- */
+/* Overview ring                                                     */
+/* ---------------------------------------------------------------- */
+
+function OverviewRing({
+  category,
+  data,
+}: {
+  category: GoalCategory;
+  data: { total: number; completed: number; periodKey: string } | undefined;
+}) {
+  const total = data?.total ?? 0;
+  const completed = data?.completed ?? 0;
+  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const pk = data?.periodKey ?? currentPeriodKey(category);
+
+  return (
+    <BentoCard className="flex flex-col items-center justify-center gap-3 text-center">
+      <ScoreRing value={pct} color={GOALS} size={72} stroke={7}>
+        <span className="numeral text-sm font-bold leading-none">
+          {completed}
+          <span className="text-muted-foreground/60">/{total}</span>
+        </span>
+      </ScoreRing>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold capitalize">{CATEGORY_META[category].label}</p>
+        <p className="text-[11px] text-muted-foreground/70 truncate">
+          {periodLabel(category, pk)}
+        </p>
+      </div>
+    </BentoCard>
+  );
+}
+
+/* ---------------------------------------------------------------- */
+/* Goal row                                                          */
+/* ---------------------------------------------------------------- */
+
+function GoalRow({ goal }: { goal: any }) {
+  const toggle = useMutation(api.goals.toggle);
+  const remove = useMutation(api.goals.remove);
+  const updateTitle = useMutation(api.goals.updateTitle);
+
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(goal.title);
+
+  async function saveEdit() {
+    const title = draft.trim();
+    setEditing(false);
+    if (!title || title === goal.title) {
+      setDraft(goal.title);
+      return;
+    }
+    await updateTitle({ goalId: goal._id as Id<"goals">, title });
+    toast.success("Goal updated");
+  }
+
+  return (
+    <div className="group flex items-center gap-2.5 py-1.5">
+      <button
+        type="button"
+        onClick={() => toggle({ goalId: goal._id as Id<"goals"> })}
+        aria-label={goal.completed ? "Mark incomplete" : "Mark complete"}
+        className={cn(
+          "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors",
+          goal.completed
+            ? "border-transparent text-[oklch(0.2_0.03_264)]"
+            : "border-border text-transparent hover:border-[var(--goals)]"
+        )}
+        style={goal.completed ? { background: GOALS } : undefined}
+      >
+        <Check className="h-3 w-3" strokeWidth={3} />
+      </button>
+
+      {editing ? (
+        <input
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={saveEdit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") saveEdit();
+            if (e.key === "Escape") {
+              setDraft(goal.title);
+              setEditing(false);
+            }
+          }}
+          className="flex-1 bg-background border border-border rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+      ) : (
+        <span
+          className={cn(
+            "flex-1 text-sm leading-snug",
+            goal.completed && "line-through text-muted-foreground/60"
+          )}
+        >
+          {goal.title}
+        </span>
+      )}
+
+      {!editing && (
+        <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <button
+            type="button"
+            onClick={() => {
+              setDraft(goal.title);
+              setEditing(true);
+            }}
+            aria-label="Edit goal"
+            className="rounded-md p-1 text-muted-foreground/70 hover:text-foreground hover:bg-muted/60"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              await remove({ goalId: goal._id as Id<"goals"> });
+              toast.success("Goal removed");
+            }}
+            aria-label="Delete goal"
+            className="rounded-md p-1 text-muted-foreground/70 hover:text-red-500 hover:bg-muted/60"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------- */
+/* Goal list (per category)                                          */
+/* ---------------------------------------------------------------- */
+
+function GoalList({ category, label }: { category: GoalCategory; label: string }) {
+  const { convexUserId } = useConvexUser();
+  const periodKey = currentPeriodKey(category);
+
+  const goals = useQuery(
+    api.goals.list,
+    convexUserId ? { userId: convexUserId, category, periodKey } : "skip"
+  );
+  const add = useMutation(api.goals.add);
+
+  const [input, setInput] = useState("");
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    const title = input.trim();
+    if (!title || !convexUserId) return;
+    setInput("");
+    await add({ userId: convexUserId, category, periodKey, title });
+    toast.success("Goal added");
+  }
+
+  const list: any[] = goals ?? [];
+  const completed = list.filter((g) => g.completed).length;
+  const total = list.length;
+
+  return (
+    <BentoCard className="flex h-full flex-col">
+      <div className="mb-3 flex items-baseline justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+            {label}
+          </p>
+          <p className="text-xs text-muted-foreground/70 truncate">
+            {periodLabel(category, periodKey)}
+          </p>
+        </div>
+        <span className="numeral shrink-0 text-sm font-semibold text-muted-foreground">
+          {completed}/{total}
+        </span>
+      </div>
+
+      <div className="flex-1 -my-1">
+        {goals === undefined ? (
+          <div className="space-y-2 py-1">
+            <Skeleton className="h-5 w-full rounded-lg" />
+            <Skeleton className="h-5 w-4/5 rounded-lg" />
+          </div>
+        ) : total === 0 ? (
+          <p className="py-3 text-sm text-muted-foreground/50">
+            No goals yet — add one below.
+          </p>
+        ) : (
+          <div className="divide-y divide-border/40">
+            {list.map((g) => (
+              <GoalRow key={g._id} goal={g} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <form onSubmit={handleAdd} className="mt-3 flex items-center gap-2">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder={`Add a ${label.toLowerCase()} goal…`}
+          className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+        <Button
+          type="submit"
+          size="icon"
+          disabled={!input.trim()}
+          className="shrink-0"
+          style={{ background: GOALS, color: "oklch(0.2 0.03 264)" }}
+        >
+          <Plus className="h-4 w-4" strokeWidth={2.5} />
+        </Button>
+      </form>
+    </BentoCard>
+  );
+}
+
+/* ---------------------------------------------------------------- */
+/* Page                                                              */
+/* ---------------------------------------------------------------- */
+
 export default function GoalsPage() {
-  const { convexUserId, isLoading } = useConvexUser();
-  const [activeTab, setActiveTab] = useState<GoalCategory>("weekly");
+  const { convexUserId } = useConvexUser();
 
   const summary = useQuery(
     api.goals.getCurrentSummary,
     convexUserId ? { userId: convexUserId } : "skip"
   );
 
-  const parseGoals = useAction(api.ai.parseGoalsFromText);
-  const [aiInput, setAiInput] = useState("");
-  const [aiParsing, setAiParsing] = useState(false);
-  const [aiResult, setAiResult] = useState<{ title: string; category: string }[] | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (!aiResult) return;
-    const t = setTimeout(() => setAiResult(null), 4000);
-    return () => clearTimeout(t);
-  }, [aiResult]);
-
-  async function handleParseGoals(e: React.FormEvent) {
-    e.preventDefault();
-    const text = aiInput.trim();
-    if (!text || !convexUserId) return;
-    setAiParsing(true);
-    setAiResult(null);
-    try {
-      const parsed = await parseGoals({ userId: convexUserId, text });
-      setAiResult(parsed);
-      setAiInput("");
-    } finally {
-      setAiParsing(false);
-    }
-  }
-
-  if (isLoading || !convexUserId) {
+  if (!convexUserId || summary === undefined) {
     return (
-      <div className="space-y-4 max-w-3xl">
-        <Skeleton className="h-8 w-32" />
-        <Skeleton className="h-16 w-full" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-48 w-full" />
+      <div className="space-y-4 pb-6">
+        <Skeleton className="h-20 w-full rounded-3xl" />
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-36 rounded-3xl" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <Skeleton className="h-72 rounded-3xl" />
+          <Skeleton className="h-72 rounded-3xl" />
+        </div>
+        <Skeleton className="h-72 w-full rounded-3xl" />
       </div>
     );
   }
 
+  const categories: GoalCategory[] = ["yearly", "quarterly", "monthly", "weekly"];
+
   return (
-    <div className="max-w-3xl space-y-6">
-      <motion.div {...fadeUp(0)}>
-        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Goals</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Track what you&apos;re working toward across every time horizon.
-        </p>
-      </motion.div>
-
-      {/* Overview strip — compact scoreboard */}
-      <motion.div {...fadeUp(1)} className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {CATEGORIES.map((cat) => {
-          const meta = CATEGORY_META[cat];
-          const data = summary?.[cat];
-          const total = data?.total ?? 0;
-          const completed = data?.completed ?? 0;
-          const pct = total > 0 ? Math.round((completed / total) * 100) : null;
-          const pk = data?.periodKey ?? "";
-          const isActive = activeTab === cat;
-
-          return (
-            <div
-              key={cat}
-              onClick={() => setActiveTab(cat)}
-              className={cn(
-                "rounded-xl border border-border bg-card p-2 flex flex-col gap-1.5 cursor-pointer transition-all",
-                isActive
-                  ? "ring-1 ring-border shadow-sm"
-                  : "opacity-70 hover:opacity-90"
-              )}
-            >
-              <div className="flex items-center gap-1.5">
-                <span
-                  className={cn(
-                    "w-2 h-2 rounded-full shrink-0 transition-opacity",
-                    meta.dot,
-                    isActive ? "opacity-100" : "opacity-60"
-                  )}
-                />
-                <span className="text-xs font-medium truncate">{meta.label}</span>
-              </div>
-              <div className="text-lg font-bold leading-none">
-                {summary === undefined ? (
-                  <span className="text-muted-foreground text-sm">…</span>
-                ) : total === 0 ? (
-                  <span className="text-muted-foreground text-sm">—</span>
-                ) : (
-                  <span className={pct === 100 ? "text-green-500" : undefined}>
-                    {pct}%
-                  </span>
-                )}
-              </div>
-              {total > 0 && (
-                <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
-                  <div
-                    className={cn(
-                      "h-full rounded-full transition-all",
-                      meta.dot,
-                      isActive ? "opacity-100" : "opacity-60"
-                    )}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-              )}
-              {pk && (
-                <p className="text-[10px] text-muted-foreground/70 truncate leading-tight">
-                  {periodLabel(cat, pk)}
-                </p>
-              )}
-            </div>
-          );
-        })}
-      </motion.div>
-
-      {/* AI goal parser */}
-      <motion.div {...fadeUp(2)}>
-        <form onSubmit={handleParseGoals} className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
-          <div className="flex items-start gap-3 px-4 pt-4 pb-3">
-            <Sparkles className="w-4 h-4 text-muted-foreground/50 mt-0.5 shrink-0" />
-            <textarea
-              ref={textareaRef}
-              value={aiInput}
-              onChange={(e) => setAiInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleParseGoals(e as unknown as React.FormEvent);
-                }
-              }}
-              placeholder="Describe your goals in plain English — I'll sort them into the right buckets."
-              rows={2}
-              className="flex-1 text-sm bg-transparent resize-none focus:outline-none placeholder:text-muted-foreground/40 leading-relaxed"
-            />
-          </div>
-          <div className="flex items-center justify-between px-4 pb-3">
-            <span className="text-[11px] text-muted-foreground/40">
-              e.g. &ldquo;Lose 10 lbs this year, launch the landing page this week, read a book this month&rdquo;
-            </span>
-            <button
-              type="submit"
-              disabled={!aiInput.trim() || aiParsing}
-              className="flex items-center gap-1.5 text-xs font-semibold text-primary disabled:opacity-30 hover:opacity-80 transition-opacity"
-            >
-              {aiParsing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowRight className="w-3.5 h-3.5" />}
-              {aiParsing ? "Parsing…" : "Add goals"}
-            </button>
-          </div>
-        </form>
-
-        <AnimatePresence>
-          {aiResult && aiResult.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="mt-2 flex flex-wrap gap-1.5"
-            >
-              {aiResult.map((g, i) => (
-                <span
-                  key={i}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium px-2.5 py-1"
-                >
-                  <span className="opacity-60 capitalize">{g.category}</span>
-                  <span>·</span>
-                  {g.title}
-                </span>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-
-      {/* Tab bar */}
-      <motion.div {...fadeUp(3)} className="flex gap-1 p-1 rounded-xl bg-muted/60">
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={cn(
-              "flex-1 py-1.5 px-3 rounded-lg text-sm font-medium transition-all",
-              activeTab === tab.key
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
+    <div className="space-y-4 pb-6">
+      <PageHeader
+        eyebrow="Life domain"
+        title="Goals"
+        subtitle="Your ambitions across every horizon — short, mid and long-term."
+        action={
+          <Link
+            href="/projects"
+            className="rounded-full px-4 py-2 text-sm font-semibold text-[oklch(0.2_0.03_264)]"
+            style={{ background: GOALS }}
           >
-            {tab.label}
-          </button>
-        ))}
-      </motion.div>
+            Projects →
+          </Link>
+        }
+      />
 
-      {/* Active GoalSection */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <GoalSection userId={convexUserId} category={activeTab} />
-        </motion.div>
-      </AnimatePresence>
+      {/* Overview rings */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {categories.map((cat) => (
+          <OverviewRing key={cat} category={cat} data={summary?.[cat]} />
+        ))}
+      </div>
+
+      {/* Long-term + Mid-term */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <GoalList category="yearly" label="This year" />
+        <GoalList category="quarterly" label="This quarter" />
+      </div>
+
+      {/* Short-term */}
+      <div>
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+          Short-term
+        </p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <GoalList category="monthly" label="This month" />
+          <GoalList category="weekly" label="This week" />
+        </div>
+      </div>
     </div>
   );
 }

@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import Link from "next/link";
+import { PageHeader } from "@/components/bento/PageHeader";
 import {
   Zap,
   Users,
@@ -1249,12 +1250,11 @@ export default function PatternsPage() {
   return (
     <div className="max-w-3xl space-y-6">
       {/* Page header */}
-      <motion.div {...fadeUp(0)}>
-        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Patterns</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          How you spend energy, who you connect with, what you solve, and how you give.
-        </p>
-      </motion.div>
+      <PageHeader
+        eyebrow="Reflect"
+        title="Patterns"
+        subtitle="How you spend energy, who you connect with, what you solve, and how you give."
+      />
 
       {/* Tab bar */}
       <div className="flex gap-1 p-1 rounded-xl bg-muted/60">
