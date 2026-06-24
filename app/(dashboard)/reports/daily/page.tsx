@@ -8,6 +8,8 @@ import { useConvexUser } from "@/hooks/useConvexUser";
 import { useTodayStatus } from "@/hooks/useTodayStatus";
 import { DailyReportForm } from "@/components/reports/DailyReportForm";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BentoCard } from "@/components/bento/BentoCard";
+import { PageHeader } from "@/components/bento/PageHeader";
 import { todayString } from "@/lib/utils";
 import { CheckCircle2, Flame, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -171,76 +173,43 @@ function DailyReportContent() {
         />
       )}
 
-      <div className="max-w-2xl py-4">
-        {/* Notebook header */}
-        <motion.div {...fadeUp(0)} className="mb-10">
-          {isPastDate ? (
-            <>
-              <Link
-                href="/calendar"
-                className="inline-flex items-center gap-1 text-[11px] font-semibold tracking-[0.18em] uppercase text-muted-foreground/40 hover:text-muted-foreground/60 transition-colors mb-1.5"
-              >
-                <ArrowLeft className="w-3 h-3" />
-                Catching up
-              </Link>
-              <h1 className="font-heading text-[2.2rem] font-semibold tracking-tight leading-[1.15]">
-                {format(dateObj, "MMMM d")}
-              </h1>
-              <div className="flex items-center gap-3 mt-2">
-                <p className="text-sm text-muted-foreground">
-                  {format(dateObj, "EEEE, yyyy")}
-                </p>
-                {existing && (
-                  <span className={cn("flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400")}>
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Saved
-                  </span>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-muted-foreground/40 mb-1.5">
-                {greeting()}
-              </p>
-              <h1 className="font-heading text-[2.2rem] font-semibold tracking-tight leading-[1.15]">
-                {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric" })}
-              </h1>
-              <div className="flex items-center gap-3 mt-2">
-                <p className="text-sm text-muted-foreground">
-                  {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric" })}
-                </p>
-                {existing && (
-                  <span className={cn("flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400")}>
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Saved
-                  </span>
-                )}
-                {streak > 0 && (
-                  <span className="flex items-center gap-1 text-xs font-medium text-orange-500">
-                    <Flame className="w-3.5 h-3.5" />
-                    {streak}d streak
-                  </span>
-                )}
-              </div>
-            </>
-          )}
-        </motion.div>
+      <div className="max-w-3xl">
+        {isPastDate && (
+          <Link href="/calendar" className="inline-flex items-center gap-1 text-[11px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/50 hover:text-foreground transition-colors mb-2">
+            <ArrowLeft className="w-3 h-3" /> Catching up
+          </Link>
+        )}
+        <PageHeader
+          eyebrow={isPastDate ? format(dateObj, "EEEE, yyyy") : `${greeting()} · ${new Date().toLocaleDateString("en-US", { weekday: "long" })}`}
+          title={isPastDate ? format(dateObj, "MMMM d") : new Date().toLocaleDateString("en-US", { month: "long", day: "numeric" })}
+          action={
+            <div className="flex items-center gap-2">
+              {existing && (
+                <span className="flex items-center gap-1 text-xs font-medium text-emerald-400"><CheckCircle2 className="w-3.5 h-3.5" /> Saved</span>
+              )}
+              {!isPastDate && streak > 0 && (
+                <span className="flex items-center gap-1 text-xs font-medium text-primary"><Flame className="w-3.5 h-3.5" /> {streak}d</span>
+              )}
+            </div>
+          }
+        />
 
         {/* The form */}
         <motion.div {...fadeUp(0.08)}>
-          <DailyReportForm
-            userId={convexUserId}
-            date={targetDate}
-            initialResponses={existing?.responses as Record<string, unknown> | undefined}
-            onSuccess={handleSuccess}
-          />
+          <BentoCard className="!p-6 sm:!p-8">
+            <DailyReportForm
+              userId={convexUserId}
+              date={targetDate}
+              initialResponses={existing?.responses as Record<string, unknown> | undefined}
+              onSuccess={handleSuccess}
+            />
+          </BentoCard>
         </motion.div>
 
-        <div className="mt-6 pt-6 border-t border-border/40 flex items-center justify-center gap-6 text-xs text-muted-foreground/40">
-          <Link href="/affirmations" className="hover:text-muted-foreground transition-colors">Affirmations</Link>
-          <Link href="/dreams" className="hover:text-muted-foreground transition-colors">Visualizations</Link>
-          <Link href="/goals" className="hover:text-muted-foreground transition-colors">Goals</Link>
+        <div className="mt-6 flex items-center justify-center gap-6 text-xs text-muted-foreground/50">
+          <Link href="/reports/health" className="hover:text-foreground transition-colors">Health</Link>
+          <Link href="/affirmations" className="hover:text-foreground transition-colors">Affirmations</Link>
+          <Link href="/goals" className="hover:text-foreground transition-colors">Goals</Link>
         </div>
       </div>
     </>

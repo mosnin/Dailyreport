@@ -38,6 +38,7 @@ import type * as growth from "../growth.js";
 import type * as projects from "../projects.js";
 import type * as lifeScore from "../lifeScore.js";
 import type * as checklist from "../checklist.js";
+import type * as lifePatterns from "../lifePatterns.js";
 
 import type {
   ApiFromModules,
@@ -76,6 +77,7 @@ declare const fullApi: ApiFromModules<{
   projects: typeof projects;
   lifeScore: typeof lifeScore;
   checklist: typeof checklist;
+  lifePatterns: typeof lifePatterns;
 }>;
 
 /**

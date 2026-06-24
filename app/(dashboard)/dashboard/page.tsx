@@ -10,6 +10,7 @@ import { ScoreRing } from "@/components/bento/ScoreRing";
 import { PageHeader } from "@/components/bento/PageHeader";
 import { LineTrend, RadarScores } from "@/components/charts/Charts";
 import { TimezoneModal } from "@/components/dashboard/TimezoneModal";
+import { AIPatterns } from "@/components/analytics/AIPatterns";
 import { AREAS, type AreaKey, scoreLabel, creditLabel } from "@/lib/areas";
 import { TrendingUp, TrendingDown, Minus, ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -133,6 +134,9 @@ export default function DashboardPage() {
           <div className="h-[220px] grid place-items-center text-sm text-muted-foreground">Not enough history yet.</div>
         )}
       </BentoCard>
+
+      {/* AI cross-domain patterns */}
+      <AIPatterns userId={convexUserId} />
 
       {convexUserId && <TimezoneModal userId={convexUserId} open={showTz} onClose={() => setShowTz(false)} />}
     </div>
