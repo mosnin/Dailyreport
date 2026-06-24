@@ -1,300 +1,185 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useQuery, useAction } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { cn, todayString } from "@/lib/utils";
 import { motion } from "motion/react";
-import { fadeUp } from "@/lib/motion";
-import {
-  Sparkles,
-  ArrowUpRight,
-  Calendar,
-  CheckCircle2,
-  Circle,
-  ClipboardList,
-} from "lucide-react";
+import { BentoCard } from "@/components/bento/BentoCard";
+import { ScoreRing } from "@/components/bento/ScoreRing";
+import { PageHeader } from "@/components/bento/PageHeader";
+import { AREAS, type AreaKey, scoreLabel } from "@/lib/areas";
+import { Sparkles, Check, ChevronRight, Flame, Sun } from "lucide-react";
 import Link from "next/link";
 
-function greet(firstName: string): string {
+function greet(name: string) {
   const h = new Date().getHours();
-  if (h < 12) return `Good morning, ${firstName}.`;
-  if (h < 17) return `Good afternoon, ${firstName}.`;
-  return `Good evening, ${firstName}.`;
-}
-
-function todayLabel(): string {
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  }).format(new Date());
-}
-
-function todayIso(): string {
-  return new Date().toISOString().split("T")[0];
+  if (h < 12) return `Good morning, ${name}`;
+  if (h < 17) return `Good afternoon, ${name}`;
+  return `Good evening, ${name}`;
 }
 
 export default function TodayPage() {
-  const { convexUserId, convexUser, isLoading } = useConvexUser();
+  const { convexUserId } = useConvexUser();
   const { user } = useUser();
   const firstName = user?.firstName ?? user?.fullName?.split(" ")[0] ?? "there";
-  const today = todayIso();
+  const today = todayString();
 
-  const brief = useQuery(
-    api.aiInternal.getDailyBriefPublic,
-    convexUserId ? { userId: convexUserId, date: today } : "skip"
-  );
+  const checklist = useQuery(api.checklist.getToday, convexUserId ? { userId: convexUserId, date: today } : "skip");
+  const score = useQuery(api.lifeScore.getCurrent, convexUserId ? { userId: convexUserId, windowDays: 14 } : "skip");
+  const brief = useQuery(api.aiInternal.getDailyBriefPublic, convexUserId ? { userId: convexUserId, date: today } : "skip");
+  const rituals = useQuery(api.rituals.list, convexUserId ? { userId: convexUserId } : "skip") ?? [];
+  const ritualLog = useQuery(api.rituals.getLog, convexUserId ? { userId: convexUserId, date: today } : "skip");
+  const toggleRitual = useMutation(api.rituals.toggle);
 
-  const recentReports = useQuery(
-    api.reports.getRecentReports,
-    convexUserId ? { userId: convexUserId, limit: 2 } : "skip"
-  );
-
-  const goalSummary = useQuery(
-    api.goals.getCurrentSummary,
-    convexUserId ? { userId: convexUserId } : "skip"
-  );
-
-  const rituals = useQuery(
-    api.rituals.list,
-    convexUserId ? { userId: convexUserId } : "skip"
-  ) ?? [];
-
-  const ritualLog = useQuery(
-    api.rituals.getLog,
-    convexUserId ? { userId: convexUserId, date: today } : "skip"
-  );
-
-  // @ts-ignore
-  const integrations = useQuery(
-    api.integrations.getUserIntegrations as any,
-    convexUserId ? { userId: convexUserId } : "skip"
-  ) ?? [];
-  const hasCalendar = (integrations as any[]).some((i: any) => i.platform === "googlecalendar");
-
-  const fetchCalendarEvents = useAction(api.ai.fetchCalendarEvents);
-  const [calendarEvents, setCalendarEvents] = useState<{ title: string; time: string }[] | null>(null);
-  const [calendarLoading, setCalendarLoading] = useState(false);
-
-  useEffect(() => {
-    if (!convexUserId || !hasCalendar || calendarEvents !== null) return;
-    setCalendarLoading(true);
-    fetchCalendarEvents({ userId: convexUserId, date: today })
-      .then((events) => setCalendarEvents(events))
-      .catch(() => setCalendarEvents([]))
-      .finally(() => setCalendarLoading(false));
-  }, [convexUserId, hasCalendar]);
-
-  // Yesterday's committed plan — most recent daily report's tomorrowPlan
-  const yesterdayPlan = (recentReports as any)?.[0]?.responses
-    ? ((recentReports as any)[0].responses as Record<string, unknown>)?.tomorrowPlan
-    : null;
-  const yesterdayPlanStr =
-    typeof yesterdayPlan === "string" && yesterdayPlan.trim()
-      ? yesterdayPlan.trim()
-      : null;
-
-  // Goals needing attention
-  const goalsAtRisk = goalSummary
-    ? (Object.entries(goalSummary) as [string, any][]).filter(
-        ([, v]) => v.total > 0 && v.completed < v.total
-      )
-    : [];
-
-  // Ritual progress
-  const completedIds: string[] = ritualLog?.completedIds ?? [];
-  const totalRituals = (rituals as any[]).length;
-  const completedRituals = (rituals as any[]).filter((r: any) =>
-    completedIds.includes(r._id)
-  ).length;
-  const allRitualsDone = totalRituals > 0 && completedRituals === totalRituals;
-
-  const onboardingComplete = (convexUser as any)?.onboardingComplete;
-
-  if (isLoading || !convexUserId) {
+  if (!convexUserId || checklist === undefined || score === undefined) {
     return (
-      <div className="max-w-xl space-y-5">
-        <Skeleton className="h-10 w-52" />
-        <Skeleton className="h-24 w-full rounded-2xl" />
-        <Skeleton className="h-32 w-full rounded-2xl" />
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-64" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-3xl" />)}
+        </div>
       </div>
     );
   }
 
+  const items = checklist?.items ?? [];
+  const doneCount = checklist?.doneCount ?? 0;
+  const total = checklist?.total ?? 0;
+  const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+  const completedIds: string[] = ritualLog?.completedIds ?? [];
+
   return (
-    <div className="max-w-xl space-y-6 pb-8">
+    <div className="space-y-4 pb-6">
+      <PageHeader
+        eyebrow={new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric" }).format(new Date())}
+        title={greet(firstName)}
+        subtitle="Your daily checklist — knock these out to keep every area climbing."
+      />
 
-      {/* Date + greeting */}
-      <motion.div {...fadeUp(0)}>
-        <p className="text-xs text-muted-foreground font-medium tracking-wide mb-1 select-none">
-          {todayLabel()}
-        </p>
-        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">
-          {greet(firstName)}
-        </h1>
-      </motion.div>
-
-      {/* Morning brief */}
-      {brief ? (
-        <motion.div
-          {...fadeUp(0.06)}
-          className="rounded-2xl border border-primary/20 bg-primary/[0.04] p-5"
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-3.5 h-3.5 text-primary/60" />
-            <span className="text-[11px] font-semibold text-primary/60 uppercase tracking-[0.14em]">
-              Morning brief
-            </span>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {/* Checklist — spans wide */}
+        <BentoCard className="col-span-2 lg:col-span-2 lg:row-span-2" delay={0.02}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Sun className="w-4 h-4 text-primary" />
+              <h2 className="font-semibold">Today&apos;s checklist</h2>
+            </div>
+            <span className="text-sm font-semibold numeral text-muted-foreground">{doneCount}/{total}</span>
           </div>
-          <p className="text-sm text-foreground/85 leading-relaxed italic">{brief.content}</p>
-        </motion.div>
-      ) : onboardingComplete ? (
-        <motion.div
-          {...fadeUp(0.06)}
-          className="rounded-2xl border border-border bg-card px-5 py-4"
-        >
-          <div className="flex items-start gap-3">
-            <ClipboardList className="w-4 h-4 text-muted-foreground/30 shrink-0 mt-0.5" />
-            <p className="text-sm text-muted-foreground">
-              Your morning brief generates at 8am each day.
-            </p>
+          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden mb-4">
+            <motion.div className="h-full rounded-full bg-primary" initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} />
           </div>
-        </motion.div>
-      ) : null}
-
-      {/* Today's schedule — Google Calendar */}
-      {(hasCalendar || calendarLoading) && (
-        <motion.div {...fadeUp(0.12)} className="space-y-2">
-          <h2 className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-[0.14em]">
-            Today&apos;s schedule
-          </h2>
-          <div className="rounded-2xl border border-border bg-card divide-y divide-border overflow-hidden">
-            {calendarLoading ? (
-              <div className="px-5 py-3.5 text-sm text-muted-foreground">Loading…</div>
-            ) : calendarEvents && calendarEvents.length > 0 ? (
-              calendarEvents.map((event, i) => (
-                <div key={i} className="flex items-center gap-3 px-5 py-3">
-                  <Calendar className="w-3.5 h-3.5 text-muted-foreground/30 shrink-0" />
-                  <span className="text-sm flex-1 min-w-0 truncate">{event.title}</span>
-                  <span className="text-xs text-muted-foreground/60 shrink-0">{event.time}</span>
-                </div>
-              ))
-            ) : (
-              <div className="px-5 py-3.5 text-sm text-muted-foreground">No events today.</div>
-            )}
-          </div>
-        </motion.div>
-      )}
-
-      {/* Yesterday's committed plan */}
-      {yesterdayPlanStr && (
-        <motion.div {...fadeUp(0.18)} className="space-y-2">
-          <h2 className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-[0.14em]">
-            You planned for today
-          </h2>
-          <div className="rounded-2xl border border-border bg-card px-5 py-4">
-            <p className="text-sm text-foreground/80 leading-relaxed">&ldquo;{yesterdayPlanStr}&rdquo;</p>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Ritual progress */}
-      {totalRituals > 0 && (
-        <motion.div {...fadeUp(0.24)} className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-[0.14em]">
-              Daily rituals
-            </h2>
-            <Link
-              href="/rituals"
-              className="text-[11px] text-muted-foreground/50 hover:text-primary transition-colors"
-            >
-              {completedRituals}/{totalRituals}{allRitualsDone && " ✓"}
-            </Link>
-          </div>
-          <div className="rounded-2xl border border-border bg-card divide-y divide-border overflow-hidden">
-            {(rituals as any[]).slice(0, 6).map((ritual: any) => {
-              const done = completedIds.includes(ritual._id);
+          <div className="space-y-1.5">
+            {items.map((item: any, i: number) => {
+              const meta = AREAS[item.area as AreaKey];
               return (
-                <div key={ritual._id} className="flex items-center gap-3 px-5 py-3">
-                  {done ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                  ) : (
-                    <Circle className="w-4 h-4 text-muted-foreground/25 shrink-0" />
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors group",
+                    item.done ? "bg-accent/40" : "hover:bg-accent/60"
                   )}
-                  <span className={cn("text-sm", done && "text-muted-foreground/60")}>
-                    {ritual.title}
+                >
+                  <span
+                    className={cn(
+                      "grid place-items-center w-6 h-6 rounded-full border-2 shrink-0 transition-colors",
+                      item.done ? "border-transparent" : "border-border"
+                    )}
+                    style={item.done ? { background: meta?.color ?? "var(--primary)" } : undefined}
+                  >
+                    {item.done && <Check className="w-3.5 h-3.5 text-[oklch(0.2_0.03_264)]" strokeWidth={3} />}
                   </span>
-                </div>
+                  <span className={cn("flex-1 text-sm font-medium", item.done && "text-muted-foreground line-through decoration-1")}>
+                    {item.label}
+                    {item.optional && <span className="ml-1.5 text-[10px] uppercase tracking-wide text-muted-foreground/50">optional</span>}
+                  </span>
+                  {item.progress && (
+                    <span className="text-xs text-muted-foreground numeral">{item.progress.done}/{item.progress.total}</span>
+                  )}
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors" />
+                </Link>
               );
             })}
           </div>
-          {totalRituals > 6 && (
-            <Link href="/rituals" className="block text-center text-xs text-muted-foreground/50 hover:text-primary transition-colors">
-              +{totalRituals - 6} more →
-            </Link>
-          )}
-        </motion.div>
-      )}
+        </BentoCard>
 
-      {/* Goals needing attention */}
-      {goalsAtRisk.length > 0 && (
-        <motion.div {...fadeUp(0.30)} className="space-y-2">
-          <h2 className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-[0.14em]">
-            Goals needing attention
-          </h2>
-          <div className="rounded-2xl border border-border bg-card divide-y divide-border overflow-hidden">
-            {goalsAtRisk.map(([category, stats]: [string, any]) => (
-              <Link
-                key={category}
-                href="/goals"
-                className="flex items-center gap-4 px-5 py-3 hover:bg-muted/20 transition-colors"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium capitalize">{category} goals</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {stats.completed} of {stats.total} complete
-                  </p>
-                </div>
-                <div className="flex gap-1 shrink-0">
-                  {Array.from({ length: Math.min(stats.total, 8) }).map((_, i) => (
-                    <span
-                      key={i}
-                      className={cn(
-                        "w-2 h-2 rounded-full transition-colors",
-                        i < stats.completed ? "bg-emerald-400" : "bg-border"
-                      )}
-                    />
-                  ))}
-                </div>
-                <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0" />
-              </Link>
-            ))}
+        {/* Life score ring */}
+        <BentoCard href="/dashboard" className="flex flex-col items-center justify-center text-center" delay={0.06}>
+          <ScoreRing value={score?.composite ?? 0} color="var(--primary)" size={104}>
+            <div>
+              <div className="text-2xl font-bold numeral leading-none">{score?.credit ?? "—"}</div>
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground mt-1">Life score</div>
+            </div>
+          </ScoreRing>
+          <p className="text-xs text-muted-foreground mt-3">{score ? scoreLabel(score.composite) : "Start logging"}</p>
+        </BentoCard>
+
+        {/* Morning brief */}
+        <BentoCard tint="var(--primary)" className="flex flex-col justify-between min-h-[140px]" delay={0.1}>
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.14em]">Morning brief</span>
           </div>
-        </motion.div>
-      )}
-
-      {/* Empty state */}
-      {!brief && !yesterdayPlanStr && totalRituals === 0 && goalsAtRisk.length === 0 && (
-        <motion.div {...fadeUp(0.36)} className="rounded-2xl border border-border bg-card px-5 py-6 text-center space-y-3">
-          <p className="text-sm font-medium">Your command center is empty.</p>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Fill in a daily report, add some goals and rituals — then this page
-            becomes your accountability hub.
+          <p className="text-sm font-medium leading-snug mt-2">
+            {brief?.content ?? "Your AI brief lands here at 8am — a focused nudge for the day ahead."}
           </p>
-          <Link
-            href="/reports/daily"
-            className="inline-block text-xs font-medium text-primary hover:text-primary/80 transition-colors mt-1"
-          >
-            Start today&apos;s report →
-          </Link>
-        </motion.div>
-      )}
+        </BentoCard>
+      </div>
 
+      {/* Area mini-scores */}
+      <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
+        {(score?.areas ?? []).map((a: any, i: number) => {
+          const meta = AREAS[a.key as AreaKey];
+          const Icon = meta.icon;
+          return (
+            <BentoCard key={a.key} href={meta.href} className="!p-3.5 flex flex-col gap-2" delay={0.04 * i}>
+              <Icon className="w-4 h-4" style={{ color: meta.color }} />
+              <div>
+                <div className="text-lg font-bold numeral leading-none">{a.needsData ? "—" : a.score}</div>
+                <div className="text-[10px] text-muted-foreground mt-1 leading-tight">{meta.label}</div>
+              </div>
+            </BentoCard>
+          );
+        })}
+      </div>
+
+      {/* Rituals quick-toggle */}
+      {rituals.length > 0 && (
+        <BentoCard delay={0.12}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Flame className="w-4 h-4 text-execution" style={{ color: "var(--execution)" }} />
+              <h2 className="font-semibold">Daily rituals</h2>
+            </div>
+            <Link href="/rituals" className="text-xs text-muted-foreground hover:text-foreground">Manage →</Link>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {(rituals as any[]).map((r) => {
+              const done = completedIds.includes(r._id);
+              return (
+                <button
+                  key={r._id}
+                  onClick={() => convexUserId && toggleRitual({ userId: convexUserId, date: today, ritualId: r._id })}
+                  className={cn(
+                    "flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium border transition-colors",
+                    done ? "border-transparent bg-execution/15 text-foreground" : "border-border text-muted-foreground hover:text-foreground"
+                  )}
+                  style={done ? { background: "color-mix(in oklch, var(--execution) 18%, transparent)" } : undefined}
+                >
+                  <span className={cn("grid place-items-center w-4 h-4 rounded-full", done ? "" : "border border-border")} style={done ? { background: "var(--execution)" } : undefined}>
+                    {done && <Check className="w-3 h-3 text-[oklch(0.2_0.03_264)]" strokeWidth={3} />}
+                  </span>
+                  {r.title}
+                </button>
+              );
+            })}
+          </div>
+        </BentoCard>
+      )}
     </div>
   );
 }
