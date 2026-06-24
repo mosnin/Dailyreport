@@ -25,6 +25,8 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { fadeUp } from "@/lib/motion";
 import { StagingArea } from "@/components/affirmations/StagingArea";
+import { PageHeader } from "@/components/bento/PageHeader";
+import { BentoCard } from "@/components/bento/BentoCard";
 
 const GOAL_ROUNDS = 5;
 
@@ -625,12 +627,11 @@ export default function AffirmationsPage() {
     <>
     <div className="max-w-lg space-y-6">
       {/* Header */}
-      <motion.div {...fadeUp(0)}>
-        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Affirmations</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-        </p>
-      </motion.div>
+      <PageHeader
+        eyebrow="Practice"
+        title="Affirmations"
+        subtitle={new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+      />
 
       {/* Practice hero */}
       <motion.div
@@ -727,14 +728,14 @@ export default function AffirmationsPage() {
         <p className="text-[10px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40 mb-3">
           Your affirmations
         </p>
-        <div className="rounded-2xl border border-border bg-card p-4 space-y-1">
+        <BentoCard className="space-y-1">
           {affirmations === undefined ? (
             <div className="space-y-2">
               {[0, 1, 2].map((i) => <Skeleton key={i} className="h-8 w-full" />)}
             </div>
           ) : sorted.length === 0 ? (
             <div className="py-6 text-center">
-              <Star className="w-7 h-7 text-amber-400 mx-auto mb-2" />
+              <Star className="w-7 h-7 text-primary mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">No affirmations yet</p>
               <p className="text-xs text-muted-foreground/60 mt-1">
                 Add one below or generate with AI
@@ -768,7 +769,7 @@ export default function AffirmationsPage() {
           <AddRow
             onAdd={(text) => addAffirmation({ userId: convexUserId, text, source: "manual" })}
           />
-        </div>
+        </BentoCard>
       </motion.section>
 
       {/* Generate with AI */}

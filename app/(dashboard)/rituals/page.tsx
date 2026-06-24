@@ -10,6 +10,8 @@ import { fadeUp } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Circle, Plus, Trash2, Pencil, X, Check } from "lucide-react";
 import { format } from "date-fns";
+import { PageHeader } from "@/components/bento/PageHeader";
+import { BentoCard } from "@/components/bento/BentoCard";
 
 function todayIso(): string {
   return new Date().toISOString().split("T")[0];
@@ -77,24 +79,20 @@ export default function RitualsPage() {
     return (
       <div className="max-w-md space-y-5">
         <Skeleton className="h-10 w-36" />
-        <Skeleton className="h-56 w-full rounded-2xl" />
+        <Skeleton className="h-56 w-full rounded-[1.75rem]" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-md space-y-6 pb-8">
-      <motion.div {...fadeUp(0)}>
-        <p className="text-xs text-muted-foreground font-medium tracking-wide mb-1 select-none">
-          {format(new Date(), "EEEE, MMMM d")}
-        </p>
-        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">
-          Rituals
-        </h1>
-      </motion.div>
+    <div className="max-w-md space-y-4 pb-8">
+      <PageHeader
+        eyebrow={`Practice · ${format(new Date(), "EEEE, MMMM d")}`}
+        title="Rituals"
+      />
 
       <motion.div {...fadeUp(1)}>
-        <div className="rounded-2xl border border-border bg-card overflow-hidden">
+        <BentoCard className="overflow-hidden !p-0">
 
           {/* Card header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-border/50">
@@ -136,7 +134,8 @@ export default function RitualsPage() {
           {totalCount > 0 && (
             <div className="h-0.5 bg-border">
               <motion.div
-                className={cn("h-full", allDone ? "bg-emerald-500" : "bg-primary/50")}
+                className={cn("h-full", allDone && "bg-emerald-500")}
+                style={allDone ? undefined : { background: "var(--execution)" }}
                 animate={{ width: `${progress * 100}%` }}
                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               />
@@ -286,7 +285,7 @@ export default function RitualsPage() {
               )}
             </div>
           )}
-        </div>
+        </BentoCard>
       </motion.div>
     </div>
   );
