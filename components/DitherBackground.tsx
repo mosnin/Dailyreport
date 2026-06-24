@@ -14,7 +14,7 @@ export function DitherBackground() {
     <div
       aria-hidden
       className="pointer-events-none fixed inset-0"
-      style={{ zIndex: 0, width: "100vw", height: "100dvh" }}
+      style={{ zIndex: 0, width: "100vw", height: "100dvh", isolation: "isolate" }}
     >
       <Dither
         waveColor={[0.1843137254901961, 0.3176470588235294, 0.615686274509804]}
@@ -25,6 +25,16 @@ export function DitherBackground() {
         waveAmplitude={0.27}
         waveFrequency={1.5}
         waveSpeed={0.07}
+      />
+      {/* Recolor the single-hue dither into a gradient (blend keeps the dither
+          texture, swaps the color across the screen). Component is untouched. */}
+      <div
+        className="absolute inset-0"
+        style={{
+          mixBlendMode: "color",
+          backgroundImage:
+            "linear-gradient(135deg, #3b5bff 0%, #7c4dff 38%, #2bb6c9 72%, #16c79a 100%)",
+        }}
       />
     </div>
   );
