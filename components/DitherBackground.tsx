@@ -17,14 +17,14 @@ export function DitherBackground() {
       style={{ zIndex: 0, width: "100vw", height: "100dvh" }}
     >
       <Dither
-        waveColor={[0.5372549019607843, 0.6941176470588235, 0.996078431372549]}
+        waveColor={[0.1843137254901961, 0.3176470588235294, 0.615686274509804]}
         disableAnimation={false}
         enableMouseInteraction
         mouseRadius={0.3}
-        colorNum={3.3}
-        waveAmplitude={0.3}
-        waveFrequency={3.2}
-        waveSpeed={0.4}
+        colorNum={7.2}
+        waveAmplitude={0.27}
+        waveFrequency={1.5}
+        waveSpeed={0.07}
       />
     </div>
   );
