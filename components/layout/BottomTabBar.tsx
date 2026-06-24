@@ -157,24 +157,23 @@ export function BottomTabBar() {
             const Icon = tab.icon;
             return (
               <li key={tab.href} className="flex-1 flex">
-                <motion.div whileTap={{ scale: 0.92 }} className="flex-1 flex">
-                  <Link
-                    href={tab.href}
-                    onClick={tabHaptic}
-                    className="relative flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[56px] pt-2 pb-1"
-                  >
-                    {active && (
-                      <motion.span layoutId="bottom-tab-indicator" className="absolute top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                <Link
+                  href={tab.href}
+                  onClick={tabHaptic}
+                  className="relative flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[56px] pt-2 pb-1 transition-transform active:scale-90"
+                  style={{ touchAction: "manipulation" }}
+                >
+                  {active && (
+                    <span className="absolute top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                  )}
+                  <div className="relative">
+                    <Icon className={cn("w-5 h-5 transition-colors", active ? "text-primary" : "text-muted-foreground/60")} />
+                    {dotFor(tab.status) && !active && (
+                      <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary" />
                     )}
-                    <div className="relative">
-                      <Icon className={cn("w-5 h-5 transition-colors", active ? "text-primary" : "text-muted-foreground/60")} />
-                      {dotFor(tab.status) && !active && (
-                        <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary" />
-                      )}
-                    </div>
-                    <span className={cn("text-[10px] font-medium", active ? "text-primary" : "text-muted-foreground/60")}>{tab.label}</span>
-                  </Link>
-                </motion.div>
+                  </div>
+                  <span className={cn("text-[10px] font-medium", active ? "text-primary" : "text-muted-foreground/60")}>{tab.label}</span>
+                </Link>
               </li>
             );
           })}
