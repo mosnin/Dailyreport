@@ -98,6 +98,36 @@ function currentScore(entries: any[], cadence: string, endMs: number) {
   return { score: Math.round(clamp(avg)), needsData: false };
 }
 
+// Consecutive-period logging streak ending at `endMs`. The current period can be
+// unlogged without breaking the streak yet (grace), so the count only drops once
+// a whole day/week is missed.
+function computeStreak(entries: any[], cadence: string, endMs: number) {
+  if (entries.length === 0) return 0;
+  const dates = new Set(entries.map((e) => e.date));
+  if (cadence === "weekly") {
+    const hasInWeek = (end: number) => {
+      for (let d = 0; d < 7; d++) if (dates.has(dayStr(end - d * DAY))) return true;
+      return false;
+    };
+    let streak = 0;
+    let windowEnd = endMs;
+    if (!hasInWeek(windowEnd)) windowEnd -= 7 * DAY;
+    while (hasInWeek(windowEnd)) {
+      streak++;
+      windowEnd -= 7 * DAY;
+    }
+    return streak;
+  }
+  let streak = 0;
+  let cursor = endMs;
+  if (!dates.has(dayStr(cursor))) cursor -= DAY;
+  while (dates.has(dayStr(cursor))) {
+    streak++;
+    cursor -= DAY;
+  }
+  return streak;
+}
+
 // ── CRUD ─────────────────────────────────────────────────────────────────
 
 export const list = query({
@@ -286,6 +316,7 @@ export const getOverview = query({
         score: cur.score,
         needsData: cur.needsData || !scored,
         trend: cur.needsData || prev.needsData ? 0 : cur.score - prev.score,
+        streak: computeStreak(entries, t.cadence, now),
         lastEntry,
         fieldCount: t.fields.length,
       });
@@ -311,13 +342,57 @@ export const getTodayChecklist = query({
     const trackers = (await ctx.db.query("trackers").withIndex("by_user", (q) => q.eq("userId", args.userId)).collect())
       .filter((t) => !t.archived && t.cadence === "daily")
       .sort((a, b) => a.order - b.order);
+    const now = Date.now();
+    const items = [];
+    for (const t of trackers) {
+      const entries = await ctx.db
+        .query("trackerEntries")
+        .withIndex("by_tracker_date", (q) => q.eq("trackerId", t._id))
+        .collect();
+      const entry = entries.find((e) => e.date === args.date);
+      items.push({
+        _id: t._id,
+        name: t.name,
+        emoji: t.emoji,
+        color: t.color,
+        done: entry != null,
+        score: entry?.score ?? null,
+        streak: computeStreak(entries, t.cadence, now),
+      });
+    }
+    return items;
+  },
+});
+
+// Full daily trackers (with fields + any values already logged today) for the
+// "Log today" stepper - one screen to fill every due tracker in seconds.
+export const getDueToday = query({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return [];
+    const trackers = (await ctx.db.query("trackers").withIndex("by_user", (q) => q.eq("userId", args.userId)).collect())
+      .filter((t) => !t.archived && t.cadence === "daily")
+      .sort((a, b) => a.order - b.order);
     const items = [];
     for (const t of trackers) {
       const entry = await ctx.db
         .query("trackerEntries")
         .withIndex("by_tracker_date", (q) => q.eq("trackerId", t._id).eq("date", args.date))
         .unique();
-      items.push({ _id: t._id, name: t.name, emoji: t.emoji, color: t.color, done: entry != null, score: entry?.score ?? null });
+      items.push({
+        _id: t._id,
+        name: t.name,
+        emoji: t.emoji,
+        color: t.color,
+        cadence: t.cadence,
+        fields: t.fields,
+        values: entry?.values ?? {},
+        score: entry?.score ?? null,
+        done: entry != null,
+      });
     }
     return items;
   },

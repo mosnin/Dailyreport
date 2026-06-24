@@ -12,6 +12,7 @@ import { LineTrend, RadarScores } from "@/components/charts/Charts";
 import { TimezoneModal } from "@/components/dashboard/TimezoneModal";
 import { TrackerCreator } from "@/components/trackers/TrackerCreator";
 import { trackerColor, scoreLabel } from "@/lib/trackers";
+import { Flame } from "lucide-react";
 import Link from "next/link";
 
 function creditLabel(credit: number): string {
@@ -113,7 +114,15 @@ export default function DashboardPage() {
                 {!t.needsData && <span className="text-xs text-muted-foreground">/ 100</span>}
               </div>
               <p className="text-sm font-medium mt-0.5 truncate">{t.name}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{t.needsData ? "No data yet" : scoreLabel(t.score)}</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-xs text-muted-foreground">{t.needsData ? "No data yet" : scoreLabel(t.score)}</p>
+                {t.streak > 1 && (
+                  <span className="flex items-center gap-0.5 text-xs text-muted-foreground numeral">
+                    <Flame className="h-3 w-3" style={{ color: trackerColor(t.color) }} />
+                    {t.streak}
+                  </span>
+                )}
+              </div>
             </div>
           </BentoCard>
         ))}

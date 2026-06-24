@@ -431,4 +431,16 @@ export default defineSchema({
     .index("by_tracker_date", ["trackerId", "date"])
     .index("by_user_date", ["userId", "date"]),
 
+  // Proactive AI coach insight, one cached card per user per day. Reads across
+  // every tracker and surfaces the single most useful nudge on the home screen.
+  trackerInsights: defineTable({
+    userId: v.id("users"),
+    date: v.string(),
+    headline: v.string(),
+    body: v.string(),
+    tone: v.optional(v.string()),            // "win" | "warn" | "nudge"
+    focusTrackerId: v.optional(v.id("trackers")),
+    generatedAt: v.number(),
+  }).index("by_user_date", ["userId", "date"]),
+
 });

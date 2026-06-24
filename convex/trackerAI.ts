@@ -1,4 +1,5 @@
-import { action } from "./_generated/server";
+import { action, query, internalMutation } from "./_generated/server";
+import { api, internal } from "./_generated/api";
 import { v } from "convex/values";
 import OpenAI from "openai";
 
@@ -100,6 +101,134 @@ Rules:
     } catch (e) {
       console.error("trackerAI.design failed", e);
       throw new Error("Could not design that tracker right now.");
+    }
+  },
+});
+
+// ── Proactive coach ─────────────────────────────────────────────────────────
+
+// Today's cached coach insight (null until generated). The home screen reads
+// this and triggers `coach` once per day if it's missing.
+export const getCoachInsight = query({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return null;
+    return ctx.db
+      .query("trackerInsights")
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId).eq("date", args.date))
+      .unique();
+  },
+});
+
+export const saveCoachInsight = internalMutation({
+  args: {
+    userId: v.id("users"),
+    date: v.string(),
+    headline: v.string(),
+    body: v.string(),
+    tone: v.optional(v.string()),
+    focusTrackerId: v.optional(v.id("trackers")),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("trackerInsights")
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId).eq("date", args.date))
+      .unique();
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        headline: args.headline,
+        body: args.body,
+        tone: args.tone,
+        focusTrackerId: args.focusTrackerId,
+        generatedAt: Date.now(),
+      });
+      return existing._id;
+    }
+    return ctx.db.insert("trackerInsights", {
+      userId: args.userId,
+      date: args.date,
+      headline: args.headline,
+      body: args.body,
+      tone: args.tone,
+      focusTrackerId: args.focusTrackerId,
+      generatedAt: Date.now(),
+    });
+  },
+});
+
+// Reads across every tracker (current score, 7-day trend, streak) and returns
+// the single most useful nudge - a win to celebrate or a drag to address.
+export const coach = action({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ headline: string; body: string; tone: string; focusTrackerId: string | null } | null> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const overview: any = await ctx.runQuery(api.trackers.getOverview, { userId: args.userId });
+    const trackers: any[] = overview?.trackers ?? [];
+    if (trackers.length === 0) return null;
+
+    const lines = trackers
+      .map((t) => {
+        const score = t.needsData ? "no data yet" : `${t.score}/100`;
+        const trend = t.trend > 0 ? `up ${t.trend}` : t.trend < 0 ? `down ${Math.abs(t.trend)}` : "flat";
+        const streak = t.streak > 0 ? `${t.streak}-day streak` : "no active streak";
+        return `- ${t.name} (id:${t._id}): ${score}, ${trend} vs prior window, ${streak}`;
+      })
+      .join("\n");
+
+    const system = `You are the proactive coach inside a life-analytics app. The user tracks several custom things, each scored 0-100. You get a snapshot and must surface the SINGLE most useful insight right now - either celebrate real momentum or flag the one thing dragging their overall score. Be specific, warm, and direct. No fluff, no lists, no emojis, no dashes.
+
+Return JSON in EXACTLY this shape:
+{
+  "headline": "<max 6 words, punchy>",
+  "body": "<1-2 sentences, specific to the data, naming the tracker>",
+  "tone": "win" | "warn" | "nudge",
+  "focusTrackerId": "<the id of the tracker this is about, or null>"
+}
+
+Pick "win" when celebrating a streak or rising score, "warn" when a tracker is dropping or neglected, "nudge" otherwise. Composite life score is ${overview?.hasScored ? overview.composite + "/100" : "not established yet"}.`;
+
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: `Today is ${args.date}. Tracker snapshot:\n${lines}` },
+        ],
+      });
+      const parsed = JSON.parse(completion.choices[0]?.message?.content ?? "{}");
+      const validIds = new Set(trackers.map((t) => String(t._id)));
+      const focusTrackerId =
+        typeof parsed.focusTrackerId === "string" && validIds.has(parsed.focusTrackerId)
+          ? parsed.focusTrackerId
+          : null;
+      const result = {
+        headline: String(parsed.headline ?? "Keep climbing").slice(0, 80),
+        body: String(parsed.body ?? "Log your trackers today to keep your score moving.").slice(0, 280),
+        tone: ["win", "warn", "nudge"].includes(parsed.tone) ? parsed.tone : "nudge",
+        focusTrackerId,
+      };
+      await ctx.runMutation(internal.trackerAI.saveCoachInsight, {
+        userId: args.userId,
+        date: args.date,
+        headline: result.headline,
+        body: result.body,
+        tone: result.tone,
+        focusTrackerId: focusTrackerId ? (focusTrackerId as any) : undefined,
+      });
+      return result;
+    } catch (e) {
+      console.error("trackerAI.coach failed", e);
+      return null;
     }
   },
 });

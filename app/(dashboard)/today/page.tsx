@@ -1,6 +1,7 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useEffect, useRef } from "react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { useUser } from "@clerk/nextjs";
@@ -12,7 +13,7 @@ import { ScoreRing } from "@/components/bento/ScoreRing";
 import { PageHeader } from "@/components/bento/PageHeader";
 import { TrackerCreator } from "@/components/trackers/TrackerCreator";
 import { trackerColor, scoreLabel } from "@/lib/trackers";
-import { Check } from "lucide-react";
+import { Check, Flame, PenLine } from "lucide-react";
 import Link from "next/link";
 
 function greet(name: string) {
@@ -31,9 +32,22 @@ export default function TodayPage() {
   const overview = useQuery(api.trackers.getOverview, convexUserId ? { userId: convexUserId } : "skip");
   const checklist = useQuery(api.trackers.getTodayChecklist, convexUserId ? { userId: convexUserId, date: today } : "skip");
   const brief = useQuery(api.aiInternal.getDailyBriefPublic, convexUserId ? { userId: convexUserId, date: today } : "skip");
+  const coach = useQuery(api.trackerAI.getCoachInsight, convexUserId ? { userId: convexUserId, date: today } : "skip");
+  const runCoach = useAction(api.trackerAI.coach);
   const rituals = useQuery(api.rituals.list, convexUserId ? { userId: convexUserId } : "skip") ?? [];
   const ritualLog = useQuery(api.rituals.getLog, convexUserId ? { userId: convexUserId, date: today } : "skip");
   const toggleRitual = useMutation(api.rituals.toggle);
+
+  // Proactive coach: generate today's insight once if it's missing and there's
+  // at least one scored tracker to talk about.
+  const coachKicked = useRef(false);
+  useEffect(() => {
+    if (coachKicked.current) return;
+    if (!convexUserId || coach === undefined || coach !== null) return;
+    if (!overview?.hasScored) return;
+    coachKicked.current = true;
+    runCoach({ userId: convexUserId, date: today }).catch(() => {});
+  }, [convexUserId, coach, overview?.hasScored, runCoach, today]);
 
   if (!convexUserId || overview === undefined || checklist === undefined) {
     return (
@@ -74,7 +88,43 @@ export default function TodayPage() {
         eyebrow={new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric" }).format(new Date())}
         title={greet(firstName)}
         subtitle="Your daily checklist - log these to keep every tracker climbing."
+        action={
+          total > 0 ? (
+            <Link
+              href="/log"
+              className="flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
+            >
+              <PenLine className="h-4 w-4" />
+              {doneCount >= total ? "Review today" : "Log today"}
+            </Link>
+          ) : undefined
+        }
       />
+
+      {/* Proactive AI coach */}
+      {coach && (
+        <BentoCard delay={0.01}>
+          <div className="flex items-start gap-3">
+            <span
+              className="mt-0.5 h-2 w-2 shrink-0 rounded-full"
+              style={{
+                background:
+                  coach.tone === "win" ? "var(--primary)" : coach.tone === "warn" ? "var(--rose, oklch(0.7 0.18 16))" : "var(--muted-foreground)",
+              }}
+            />
+            <div className="flex-1">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">Coach</span>
+                {coach.focusTrackerId && (
+                  <Link href={`/trackers/${coach.focusTrackerId}`} className="text-xs text-muted-foreground hover:text-foreground">Open</Link>
+                )}
+              </div>
+              <p className="mt-1 font-semibold leading-tight">{coach.headline}</p>
+              <p className="mt-1 text-sm text-muted-foreground leading-snug">{coach.body}</p>
+            </div>
+          </div>
+        </BentoCard>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Checklist */}
@@ -95,6 +145,12 @@ export default function TodayPage() {
                       {item.done ? <Check className="h-4 w-4 text-[oklch(0.16_0.02_264)]" strokeWidth={3} /> : item.emoji}
                     </span>
                     <span className={cn("flex-1 text-sm font-medium", item.done && "text-muted-foreground line-through decoration-1")}>{item.name}</span>
+                    {item.streak > 1 && (
+                      <span className="flex items-center gap-0.5 text-xs text-muted-foreground numeral">
+                        <Flame className="h-3.5 w-3.5" style={{ color: trackerColor(item.color) }} />
+                        {item.streak}
+                      </span>
+                    )}
                     {item.done && item.score != null && <span className="text-xs text-muted-foreground numeral">{item.score}</span>}
                   </Link>
                 ))}
@@ -130,7 +186,15 @@ export default function TodayPage() {
         <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
           {trackers.slice(0, 6).map((t: any, i: number) => (
             <BentoCard key={t._id} href={`/trackers/${t._id}`} className="!p-3.5 flex flex-col gap-2" delay={0.04 * i}>
-              <span className="text-lg leading-none">{t.emoji}</span>
+              <div className="flex items-center justify-between">
+                <span className="text-lg leading-none">{t.emoji}</span>
+                {t.streak > 1 && (
+                  <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground numeral">
+                    <Flame className="h-3 w-3" style={{ color: trackerColor(t.color) }} />
+                    {t.streak}
+                  </span>
+                )}
+              </div>
               <div>
                 <div className="text-lg font-bold numeral leading-none">{t.needsData ? "-" : t.score}</div>
                 <div className="text-[10px] text-muted-foreground mt-1 leading-tight truncate">{t.name}</div>

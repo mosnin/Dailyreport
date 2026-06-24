@@ -13,30 +13,25 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import {
-  HeartPulse,
-  GraduationCap,
-  FolderKanban,
   Search,
   SlidersHorizontal,
   Sparkles,
-  ArrowRight,
+  Plus,
+  PenLine,
 } from "lucide-react";
 import { NAV } from "@/lib/nav";
 
 const PAGES = [
   ...NAV.flatMap((s) => s.items.map((i) => ({ label: i.label, href: i.href, icon: i.icon }))),
-  { label: "Finances", href: "/finances", icon: Sparkles },
   { label: "Settings", href: "/settings", icon: SlidersHorizontal },
 ];
 
 const ACTIONS = [
-  { label: "Begin today's daily report",   href: "/reports/daily",      icon: ArrowRight },
-  { label: "Log health & wellness",        href: "/reports/health",     icon: HeartPulse },
-  { label: "Log a learning session",       href: "/reports/education",  icon: GraduationCap },
-  { label: "Update project progress",      href: "/reports/projects",   icon: FolderKanban },
-  { label: "Start affirmations practice",  href: "/affirmations",       icon: Sparkles },
-  { label: "Search reports",               href: "/search",             icon: Search },
-  { label: "Ask AI about your data",       href: "/chat",               icon: Sparkles },
+  { label: "Create a tracker",        href: "/trackers", icon: Plus },
+  { label: "Log today",               href: "/log",      icon: PenLine },
+  { label: "Start affirmations",      href: "/affirmations", icon: Sparkles },
+  { label: "Search",                  href: "/search",   icon: Search },
+  { label: "Ask AI about your data",  href: "/chat",     icon: Sparkles },
 ];
 
 export function CommandPalette() {

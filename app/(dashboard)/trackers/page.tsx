@@ -8,6 +8,7 @@ import { BentoCard } from "@/components/bento/BentoCard";
 import { PageHeader } from "@/components/bento/PageHeader";
 import { TrackerCreator } from "@/components/trackers/TrackerCreator";
 import { trackerColor, scoreLabel } from "@/lib/trackers";
+import { Flame } from "lucide-react";
 
 export default function TrackersPage() {
   const { convexUserId } = useConvexUser();
@@ -50,7 +51,15 @@ export default function TrackersPage() {
                     {!t.needsData && <span className="text-xs text-muted-foreground">/ 100</span>}
                   </div>
                   <p className="text-sm font-medium mt-0.5 truncate">{t.name}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{t.needsData ? "No data yet" : scoreLabel(t.score)}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-xs text-muted-foreground">{t.needsData ? "No data yet" : scoreLabel(t.score)}</p>
+                    {t.streak > 1 && (
+                      <span className="flex items-center gap-0.5 text-xs text-muted-foreground numeral">
+                        <Flame className="h-3 w-3" style={{ color }} />
+                        {t.streak}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </BentoCard>
             );

@@ -16,6 +16,7 @@ import { TrackerCreator } from "@/components/trackers/TrackerCreator";
 import { trackerColor, scoreLabel, contributions, type TrackerDraft } from "@/lib/trackers";
 import { todayString } from "@/lib/utils";
 import { toast } from "sonner";
+import { Flame } from "lucide-react";
 import Link from "next/link";
 
 export default function TrackerDetailPage() {
@@ -63,6 +64,19 @@ export default function TrackerDetailPage() {
   const cutoff = new Date(Date.now() - windowDays * 86400000).toISOString().split("T")[0];
   const recent = rows.filter((e: any) => e.date >= cutoff);
   const score = recent.length ? Math.round(recent.reduce((a: number, e: any) => a + e.score, 0) / recent.length) : null;
+
+  // Consecutive-day logging streak (grace for the current, possibly-unlogged day).
+  const dayStr = (ms: number) => new Date(ms).toISOString().split("T")[0];
+  const loggedDates = new Set(rows.map((e: any) => e.date));
+  let streak = 0;
+  {
+    let cursor = Date.now();
+    if (!loggedDates.has(dayStr(cursor))) cursor -= 86400000;
+    while (loggedDates.has(dayStr(cursor))) {
+      streak++;
+      cursor -= 86400000;
+    }
+  }
   const liveScore = breakdown.length
     ? Math.round(
         breakdown.reduce((a, b) => a + (b.score ?? 0) * (b.weightPct / 100), 0)
@@ -138,6 +152,12 @@ export default function TrackerDetailPage() {
             </div>
           </ScoreRing>
           <p className="text-xs text-muted-foreground mt-3">{score === null ? "Log to start scoring" : scoreLabel(score)}</p>
+          {streak > 1 && (
+            <p className="mt-2 flex items-center gap-1 text-xs font-medium text-muted-foreground">
+              <Flame className="h-3.5 w-3.5" style={{ color }} />
+              {streak}-day streak
+            </p>
+          )}
         </BentoCard>
 
         {/* Log form */}
