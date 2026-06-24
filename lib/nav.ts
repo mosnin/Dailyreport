@@ -7,6 +7,7 @@ import {
   Telescope,
   Lightbulb,
   PenLine,
+  NotebookPen,
   type LucideIcon,
 } from "lucide-react";
 
@@ -25,7 +26,8 @@ export const NAV: NavSection[] = [
     label: "Command",
     items: [
       { href: "/today", label: "Today", icon: ListChecks },
-      { href: "/log", label: "Log today", icon: PenLine },
+      { href: "/reports/daily", label: "Daily report", icon: NotebookPen, status: "report" },
+      { href: "/log", label: "Log trackers", icon: PenLine },
       { href: "/trackers", label: "Trackers", icon: LayoutGrid },
       { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
       { href: "/analytics", label: "Analytics", icon: LineChart },
@@ -44,7 +46,7 @@ export const NAV: NavSection[] = [
 // Mobile bottom-bar primary tabs
 export const BOTTOM_TABS: NavItem[] = [
   { href: "/today", label: "Today", icon: ListChecks },
+  { href: "/reports/daily", label: "Report", icon: NotebookPen, status: "report" },
   { href: "/trackers", label: "Trackers", icon: LayoutGrid },
-  { href: "/log", label: "Log", icon: PenLine },
   { href: "/dashboard", label: "Score", icon: LayoutDashboard },
 ];

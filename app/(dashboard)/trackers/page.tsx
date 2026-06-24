@@ -7,7 +7,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BentoCard } from "@/components/bento/BentoCard";
 import { PageHeader } from "@/components/bento/PageHeader";
 import { TrackerCreator } from "@/components/trackers/TrackerCreator";
-import { QuickStartDailyReport } from "@/components/trackers/QuickStart";
 import { TrackerMark } from "@/components/trackers/TrackerMark";
 import { trackerColor, scoreLabel } from "@/lib/trackers";
 import { Flame } from "lucide-react";
@@ -16,23 +15,14 @@ export default function TrackersPage() {
   const { convexUserId } = useConvexUser();
   const overview = useQuery(api.trackers.getOverview, convexUserId ? { userId: convexUserId } : "skip");
   const trackers = overview?.trackers ?? [];
-  const hasDailyReport = trackers.some((t: any) => t.name.toLowerCase() === "daily report");
 
   return (
     <div className="space-y-4 pb-6">
       <PageHeader
         eyebrow="Trackers"
         title="Measure anything"
-        subtitle="Describe what you want to track and AI builds the log, the scoring and the charts."
+        subtitle="Build on top of your daily report. Describe what you want to track and AI builds the log, the scoring and the charts."
       />
-
-      {convexUserId && !hasDailyReport && overview !== undefined && (
-        <BentoCard delay={0.015}>
-          <h2 className="font-semibold mb-1">Built in</h2>
-          <p className="text-sm text-muted-foreground mb-3">The Daily Report scores your day across mood, energy, focus and habits.</p>
-          <QuickStartDailyReport userId={convexUserId} />
-        </BentoCard>
-      )}
 
       <BentoCard delay={0.02}>
         <h2 className="font-semibold mb-1">Create a tracker</h2>

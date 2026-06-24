@@ -11,7 +11,6 @@ import { PageHeader } from "@/components/bento/PageHeader";
 import { LineTrend, AreaTrend, RadarScores } from "@/components/charts/Charts";
 import { TimezoneModal } from "@/components/dashboard/TimezoneModal";
 import { TrackerCreator } from "@/components/trackers/TrackerCreator";
-import { QuickStartDailyReport } from "@/components/trackers/QuickStart";
 import { TrackerMark } from "@/components/trackers/TrackerMark";
 import { trackerColor, scoreLabel } from "@/lib/trackers";
 import Link from "next/link";
@@ -51,14 +50,9 @@ export default function DashboardPage() {
     return (
       <div className="space-y-4 pb-6">
         <PageHeader eyebrow="Overview" title="Your Life Score" subtitle="Set up what you measure and your score appears here." />
-        <BentoCard delay={0.03}>
-          <h2 className="font-semibold mb-1">Start in one tap</h2>
-          <p className="text-sm text-muted-foreground mb-3">The built-in Daily Report gives you a score out of the box.</p>
-          {convexUserId && <QuickStartDailyReport userId={convexUserId} />}
-        </BentoCard>
-        <BentoCard delay={0.05}>
-          <h2 className="font-semibold mb-1">Or build your own</h2>
-          <p className="text-sm text-muted-foreground mb-3">Describe what you want to track. The AI designs it and this whole page organizes around it.</p>
+        <BentoCard delay={0.04}>
+          <h2 className="font-semibold mb-1">Build your dashboard</h2>
+          <p className="text-sm text-muted-foreground mb-3">Your <Link href="/reports/daily" className="text-primary">daily report</Link> is the foundation. Add trackers to score anything else over time. Describe what you want to track and the AI designs it.</p>
           {convexUserId && <TrackerCreator userId={convexUserId} />}
         </BentoCard>
         {convexUserId && <TimezoneModal userId={convexUserId} open={showTz} onClose={() => setShowTz(false)} />}

@@ -27,8 +27,9 @@ const PAGES = [
 ];
 
 const ACTIONS = [
+  { label: "Write today's report",    href: "/reports/daily", icon: PenLine },
   { label: "Create a tracker",        href: "/trackers", icon: Plus },
-  { label: "Log today",               href: "/log",      icon: PenLine },
+  { label: "Log trackers",            href: "/log",      icon: PenLine },
   { label: "Start affirmations",      href: "/affirmations", icon: Sparkles },
   { label: "Search",                  href: "/search",   icon: Search },
   { label: "Ask AI about your data",  href: "/chat",     icon: Sparkles },
