@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
-// GlassSurface is plain JS (no types) - imported as the universal card surface.
+// GlassSurface is plain JS (no types) - the universal card surface.
 import GlassSurface from "@/components/GlassSurface";
 
 type BentoCardProps = {
@@ -26,14 +26,24 @@ const Glass = GlassSurface as unknown as React.ComponentType<{
   blur?: number;
   displace?: number;
   distortionScale?: number;
-  brightness?: number;
-  opacity?: number;
   className?: string;
 }>;
 
+// Grid-placement classes must sit on the grid item (the outer wrapper); all
+// other classes (flex, padding, sizing, text) belong on the padded interior.
+function partition(className?: string) {
+  const grid: string[] = [];
+  const rest: string[] = [];
+  for (const c of (className ?? "").split(/\s+/).filter(Boolean)) {
+    if (/(^|:)(col-span|row-span|col-start|col-end|row-start|row-end|order)-/.test(c)) grid.push(c);
+    else rest.push(c);
+  }
+  return { grid: grid.join(" "), rest: rest.join(" ") };
+}
+
 /**
- * The universal card surface: a glass tile that floats over the animated
- * background. No icons, tints, or ornamental chrome live here - only content.
+ * The universal card surface: a glass tile over the animated background.
+ * No icons, tints, or ornamental chrome - only content.
  */
 export function BentoCard({
   children,
@@ -44,6 +54,7 @@ export function BentoCard({
   delay = 0,
 }: BentoCardProps) {
   const isInteractive = interactive ?? (!!href || !!onClick);
+  const { grid, rest } = partition(className);
 
   const inner = (
     <motion.div
@@ -60,28 +71,30 @@ export function BentoCard({
         blur={12}
         displace={1.2}
         distortionScale={-150}
-        className={cn("glass-card h-full w-full", className)}
+        className="glass-card h-full w-full"
       >
-        <div className="h-full w-full p-5">{children}</div>
+        <div className={cn("h-full w-full p-5", rest)}>{children}</div>
       </Glass>
     </motion.div>
   );
 
+  const itemClass = cn("relative block h-full min-h-0 w-full", grid);
+
   if (href) {
     return (
-      <Link href={href} className="block h-full">
+      <Link href={href} className={itemClass}>
         {inner}
       </Link>
     );
   }
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className="block h-full w-full text-left">
+      <button type="button" onClick={onClick} className={cn(itemClass, "text-left")}>
         {inner}
       </button>
     );
   }
-  return inner;
+  return <div className={itemClass}>{inner}</div>;
 }
 
 export function BentoGrid({
@@ -94,7 +107,7 @@ export function BentoGrid({
   return (
     <div
       className={cn(
-        "grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 auto-rows-[minmax(0,1fr)]",
+        "grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 auto-rows-[minmax(7rem,auto)]",
         className
       )}
     >

@@ -63,7 +63,8 @@
   --radius-3xl: calc(var(--radius) + 20px);
 }
 
-/* ── Dark (primary aesthetic) - deep slate, vibrant tiles ───────────────── */
+/* ── Dark-only palette (applies to :root and .dark) ─────────────────────── */
+:root,
 .dark {
   --background:           oklch(0.17 0.012 264);
   --foreground:           oklch(0.97 0.004 264);
@@ -102,50 +103,6 @@
   --sidebar-foreground:   oklch(0.97 0.004 264);
   --sidebar-accent:       oklch(0.26 0.015 264);
   --sidebar-border:       oklch(1 0 0 / 8%);
-  --brand-blue:           #89b1fe;
-
-  --radius: 1.25rem;
-}
-
-/* ── Light - soft warm canvas, same vibrant accents ─────────────────────── */
-:root {
-  --background:           oklch(0.975 0.006 95);
-  --foreground:           oklch(0.20 0.02 264);
-  --card:                 oklch(1 0 0);
-  --card-foreground:      oklch(0.20 0.02 264);
-  --popover:              oklch(1 0 0);
-  --popover-foreground:   oklch(0.20 0.02 264);
-  --primary:              oklch(0.78 0.16 75);
-  --primary-foreground:   oklch(0.22 0.03 80);
-  --secondary:            oklch(0.95 0.008 95);
-  --secondary-foreground: oklch(0.25 0.02 264);
-  --muted:                oklch(0.955 0.006 95);
-  --muted-foreground:     oklch(0.48 0.015 264);
-  --accent:               oklch(0.94 0.008 95);
-  --accent-foreground:    oklch(0.25 0.02 264);
-  --destructive:          oklch(0.58 0.22 27);
-  --border:               oklch(0.90 0.006 95);
-  --input:                oklch(0.90 0.006 95);
-  --ring:                 oklch(0.78 0.16 75 / 45%);
-
-  --health:               oklch(0.62 0.15 162);
-  --goals:                oklch(0.55 0.18 295);
-  --finance:              oklch(0.68 0.15 75);
-  --emotional:            oklch(0.62 0.19 12);
-  --progress:             oklch(0.58 0.15 230);
-  --execution:            oklch(0.65 0.18 50);
-
-  --chart-1: oklch(0.68 0.15 75);
-  --chart-2: oklch(0.58 0.15 230);
-  --chart-3: oklch(0.62 0.15 162);
-  --chart-4: oklch(0.55 0.18 295);
-  --chart-5: oklch(0.62 0.19 12);
-  --chart-6: oklch(0.65 0.18 50);
-
-  --sidebar:              oklch(0.99 0.004 95);
-  --sidebar-foreground:   oklch(0.20 0.02 264);
-  --sidebar-accent:       oklch(0.95 0.008 95);
-  --sidebar-border:       oklch(0.90 0.006 95);
   --brand-blue:           #89b1fe;
 
   --radius: 1.25rem;
@@ -285,14 +242,18 @@ html, body { overscroll-behavior-y: none; }
   justify-content: flex-start !important;
   padding: 0 !important;
 }
-/* Force the dark glass look regardless of OS color-scheme (app is dark-only) */
+/* Force the dark glass look regardless of OS color-scheme (app is dark-only).
+   iOS Safari / Firefox use this fallback (SVG backdrop-filter unsupported). */
 .glass-surface--fallback {
-  background: rgba(255, 255, 255, 0.06) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(1.6) brightness(1.1);
-  backdrop-filter: blur(14px) saturate(1.6) brightness(1.1);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(18, 20, 28, 0.42) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.5) !important;
+  backdrop-filter: blur(20px) saturate(1.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
   box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.10),
-    inset 0 -1px 0 0 rgba(255, 255, 255, 0.05),
-    0 18px 40px -24px rgba(0, 0, 0, 0.8) !important;
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+    0 18px 44px -26px rgba(0, 0, 0, 0.85) !important;
+}
+/* The SVG-displacement variant (desktop Chromium): add a readable dark frost. */
+.glass-surface--svg {
+  background: rgba(18, 20, 28, 0.30) !important;
 }

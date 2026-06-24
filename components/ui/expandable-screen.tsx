@@ -158,7 +158,7 @@ export function ExpandableScreenContent({
   return (
     <AnimatePresence initial={false}>
       {isExpanded && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Morphing background with shared layoutId */}
           <motion.div
             layoutId={layoutId}

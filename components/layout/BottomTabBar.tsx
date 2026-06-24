@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
-import { Menu, SlidersHorizontal, ShieldAlert, LogOut } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { useTodayStatus } from "@/hooks/useTodayStatus";
@@ -34,25 +34,28 @@ function MobileMenu() {
   const dotFor = (s?: string) => (s === "report" ? !reportDone : s === "affirm" ? !affirmDone : false);
 
   return (
-    <div className="flex min-h-full flex-col px-6 pt-7 pb-10 safe-top">
-      <div className="flex items-center gap-2.5 mb-6">
-        <span className="grid place-items-center w-9 h-9 rounded-xl bg-primary text-primary-foreground font-bold text-lg">A</span>
-        <span className="font-heading text-xl font-bold tracking-tight">Ascend</span>
+    <div
+      className="flex min-h-full flex-col px-6 pb-10 safe-x"
+      style={{ paddingTop: "calc(env(safe-area-inset-top) + 1.5rem)" }}
+    >
+      <div className="flex items-center gap-3 mb-8">
+        <span className="grid place-items-center w-10 h-10 rounded-2xl bg-primary text-primary-foreground font-bold text-xl">A</span>
+        <span className="font-heading text-2xl font-bold tracking-tight">Ascend</span>
       </div>
 
-      <nav className="flex-1 space-y-6">
+      <nav className="flex-1 space-y-7">
         {NAV.map((section) => (
           <div key={section.label}>
-            <p className="text-[11px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/60 mb-2">{section.label}</p>
-            <div className="grid grid-cols-1 gap-0.5">
+            <p className="px-1 text-[11px] font-semibold tracking-[0.18em] uppercase text-muted-foreground/50 mb-2.5">{section.label}</p>
+            <div className="flex flex-col gap-1">
               {section.items.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={collapse}
                   className={cn(
-                    "flex items-center justify-between rounded-2xl px-4 py-3 text-lg font-medium transition-colors",
-                    is(item.href) ? "bg-white/10 text-foreground" : "text-muted-foreground hover:text-foreground"
+                    "flex items-center justify-between rounded-2xl px-4 py-3.5 text-[17px] font-medium transition-colors",
+                    is(item.href) ? "bg-white/10 text-foreground" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
                   )}
                 >
                   <span>{item.label}</span>
@@ -64,18 +67,18 @@ function MobileMenu() {
         ))}
       </nav>
 
-      <div className="mt-6 space-y-1 border-t border-white/10 pt-4">
+      <div className="mt-8 space-y-1 border-t border-white/10 pt-5">
         {user && (
           <p className="px-4 pb-2 text-sm text-muted-foreground truncate">{user.fullName ?? user.primaryEmailAddress?.emailAddress}</p>
         )}
         {isAdmin && (
-          <Link href="/admin" onClick={collapse} className="flex items-center rounded-2xl px-4 py-3 text-base font-medium text-rose-400 hover:bg-white/5">Admin</Link>
+          <Link href="/admin" onClick={collapse} className="flex items-center rounded-2xl px-4 py-3.5 text-[17px] font-medium text-rose-400 hover:bg-white/5">Admin</Link>
         )}
-        <Link href="/settings" onClick={collapse} className="flex items-center gap-3 rounded-2xl px-4 py-3 text-base font-medium text-muted-foreground hover:text-foreground">
-          <SlidersHorizontal className="w-4 h-4" /> Settings
+        <Link href="/settings" onClick={collapse} className="flex items-center rounded-2xl px-4 py-3.5 text-[17px] font-medium text-muted-foreground hover:bg-white/5 hover:text-foreground">
+          Settings
         </Link>
-        <button onClick={() => { collapse(); setTimeout(() => signOut({ redirectUrl: "/" }), 150); }} className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-base font-medium text-muted-foreground hover:text-foreground">
-          <LogOut className="w-4 h-4" /> Sign out
+        <button onClick={() => { collapse(); setTimeout(() => signOut({ redirectUrl: "/" }), 150); }} className="flex w-full items-center rounded-2xl px-4 py-3.5 text-[17px] font-medium text-muted-foreground hover:bg-white/5 hover:text-foreground">
+          Sign out
         </button>
       </div>
     </div>
@@ -139,7 +142,7 @@ export function BottomTabBar() {
 
       <ExpandableScreenContent
         className="bg-background/95 backdrop-blur-2xl"
-        closeButtonClassName="text-foreground bg-white/10 hover:bg-white/20"
+        closeButtonClassName="text-foreground bg-white/10 hover:bg-white/20 !top-[calc(env(safe-area-inset-top)+0.75rem)] !right-5"
       >
         <MobileMenu />
       </ExpandableScreenContent>

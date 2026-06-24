@@ -27,8 +27,6 @@ export function DitherBackground() {
         waveFrequency={3.2}
         waveSpeed={0.06}
       />
-      {/* Soften so foreground text/cards stay legible over the animation */}
-      <div className="absolute inset-0 bg-background/55 dark:bg-background/60" />
     </div>
   );
 }
