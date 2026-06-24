@@ -11,9 +11,9 @@ export function Navbar() {
   const { totalDone, streak } = useTodayStatus(convexUserId);
 
   return (
-    <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-2 safe-top">
+    <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-1.5">
       <Link href="/today" className="flex items-center">
-        <Image src="/logo-dark.png" alt="Daily Report" width={1800} height={400} quality={100} priority className="h-6 w-auto" />
+        <Image src="/logo-dark.png" alt="Daily Report" width={1800} height={400} quality={100} priority className="h-5 w-auto" />
       </Link>
 
       {convexUserId && (
