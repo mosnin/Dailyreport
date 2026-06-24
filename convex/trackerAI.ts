@@ -29,7 +29,6 @@ Return JSON in EXACTLY this shape:
   "reply": "<1-2 friendly sentences explaining what you built or changed>",
   "tracker": {
     "name": "<short name>",
-    "emoji": "<a single emoji that represents it>",
     "color": "<one of: sky, emerald, violet, amber, rose, orange, blue, pink, lime, cyan, indigo, teal>",
     "description": "<one short sentence>",
     "cadence": "daily" | "weekly",
@@ -55,7 +54,8 @@ Rules:
 - For every scored field (weight > 0) set a sensible "direction" and, for number/duration, a realistic "target" (and min/max). "higher" = more is better, "lower" = less is better, "target" = closeness to a target is best, "boolean" = true is good.
 - Weights should sum to roughly 1 across scored fields. Always include at least one short "text" note field (weight 0).
 - If the user is refining an existing tracker (provided below), modify it rather than starting over.
-- Keep it specific to what the user actually asked for.`;
+- Keep it specific to what the user actually asked for.
+- Never use emojis or dashes anywhere in names, labels, descriptions or your reply.`;
 
     const userMsg = args.current
       ? `Current tracker draft:\n${JSON.stringify(args.current)}\n\nUser request: ${args.message}`
@@ -91,7 +91,6 @@ Rules:
       }));
       const tracker = {
         name: String(t.name ?? "My tracker").slice(0, 60),
-        emoji: typeof t.emoji === "string" ? t.emoji.slice(0, 4) : "✨",
         color: typeof t.color === "string" ? t.color : "sky",
         description: t.description ? String(t.description).slice(0, 200) : undefined,
         cadence: t.cadence === "weekly" ? "weekly" : "daily",

@@ -90,7 +90,6 @@ export default function TrackerDetailPage() {
 
   const draft: TrackerDraft = {
     name: tracker.name,
-    emoji: tracker.emoji,
     color: tracker.color,
     description: tracker.description,
     cadence: tracker.cadence,
@@ -114,7 +113,7 @@ export default function TrackerDetailPage() {
     <div className="space-y-4 pb-6">
       <PageHeader
         eyebrow={tracker.cadence === "weekly" ? "Weekly tracker" : "Daily tracker"}
-        title={`${tracker.emoji ?? ""} ${tracker.name}`.trim()}
+        title={tracker.name}
         subtitle={tracker.description}
         action={
           <div className="flex items-center gap-3">

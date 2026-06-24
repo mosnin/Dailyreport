@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useAction, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { trackerColor, type TrackerDraft, type TrackerField } from "@/lib/trackers";
+import { trackerColor, weightLabel, fieldMeaning, type TrackerDraft } from "@/lib/trackers";
 import { TRACKER_TEMPLATES } from "@/lib/trackerTemplates";
+import { TrackerMark } from "@/components/trackers/TrackerMark";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 
@@ -16,8 +17,11 @@ const PROMPTS = [
   "Learning Spanish: minutes studied, new words, confidence",
 ];
 
-const FIELD_TYPES: TrackerField["type"][] = ["number", "scale", "boolean", "duration", "text"];
-
+/**
+ * AI-only tracker builder. The user describes what they want; the AI designs the
+ * fields and the scoring. There is no manual field or weight editing - to change
+ * anything, you talk to the AI ("make sleep matter more", "add a meditation field").
+ */
 export function TrackerCreator({
   userId,
   mode = "create",
@@ -44,7 +48,7 @@ export function TrackerCreator({
   const [draft, setDraft] = useState<TrackerDraft | null>(initial ?? null);
 
   async function send(text: string) {
-    if (!text.trim()) return;
+    if (!text.trim() || loading) return;
     setLoading(true);
     try {
       const res = await design({ userId, message: text, current: draft ?? undefined });
@@ -58,18 +62,6 @@ export function TrackerCreator({
     }
   }
 
-  function patchField(i: number, patch: Partial<TrackerField>) {
-    setDraft((d) => (d ? { ...d, fields: d.fields.map((f, idx) => (idx === i ? { ...f, ...patch } : f)) } : d));
-  }
-  function removeField(i: number) {
-    setDraft((d) => (d ? { ...d, fields: d.fields.filter((_, idx) => idx !== i) } : d));
-  }
-  function addField() {
-    setDraft((d) =>
-      d ? { ...d, fields: [...d.fields, { key: `field${d.fields.length}`, label: "New field", type: "number", direction: "higher", weight: 0.2 }] } : d
-    );
-  }
-
   async function save() {
     if (!draft) return;
     setSaving(true);
@@ -78,7 +70,6 @@ export function TrackerCreator({
         await update({
           trackerId,
           name: draft.name,
-          emoji: draft.emoji,
           color: draft.color,
           description: draft.description,
           cadence: draft.cadence,
@@ -90,7 +81,6 @@ export function TrackerCreator({
         const id = await create({
           userId,
           name: draft.name,
-          emoji: draft.emoji,
           color: draft.color,
           description: draft.description,
           cadence: draft.cadence,
@@ -108,6 +98,8 @@ export function TrackerCreator({
     }
   }
 
+  const accent = draft ? trackerColor(draft.color) : "var(--primary)";
+
   return (
     <div>
       {/* Templates */}
@@ -118,10 +110,10 @@ export function TrackerCreator({
             {TRACKER_TEMPLATES.map((t) => (
               <button
                 key={t.name}
-                onClick={() => { setDraft(t); setReply(`Loaded the ${t.name} template - tweak it or save.`); }}
-                className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium hover:bg-white/5"
+                onClick={() => { setDraft(t); setReply(`Loaded ${t.name}. Save it, or tell me how to change it.`); }}
+                className="rounded-full border border-border px-3.5 py-1.5 text-xs font-medium hover:bg-white/5"
               >
-                <span>{t.emoji}</span> {t.name}
+                {t.name}
               </button>
             ))}
           </div>
@@ -145,57 +137,54 @@ export function TrackerCreator({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send(message)}
-          placeholder={draft ? "Refine with AI, e.g. add a meditation field" : "I want to track..."}
+          placeholder={draft ? "Tell the AI what to change..." : "Describe what you want to track..."}
           className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         />
         <button onClick={() => send(message)} disabled={loading || !message.trim()} className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
-          {loading ? "Thinking..." : "Send"}
+          {loading ? "Thinking..." : draft ? "Update" : "Build it"}
         </button>
       </div>
 
       {reply && <p className="mt-3 text-sm text-foreground/90">{reply}</p>}
 
-      {/* Draft preview + light manual editing */}
+      {/* Read-only draft preview - the AI owns the structure and scoring */}
       {draft && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-4 rounded-2xl border border-border bg-background/40 p-4">
-          <div className="mb-3 flex items-center gap-3">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl text-xl" style={{ background: trackerColor(draft.color) }}>{draft.emoji}</span>
-            <div className="flex-1">
-              <input
-                value={draft.name}
-                onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                className="w-full bg-transparent text-base font-semibold focus:outline-none"
-              />
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <button onClick={() => setDraft({ ...draft, cadence: draft.cadence === "daily" ? "weekly" : "daily" })} className="capitalize underline-offset-2 hover:underline">
-                  {draft.cadence}
-                </button>
-                <span>· {draft.fields.length} fields</span>
-              </div>
+          <div className="mb-4 flex items-center gap-3">
+            <TrackerMark name={draft.name} color={draft.color} size={44} />
+            <div className="flex-1 min-w-0">
+              <p className="truncate text-base font-semibold">{draft.name}</p>
+              <p className="text-xs text-muted-foreground capitalize">{draft.cadence} · {draft.fields.length} things to log</p>
             </div>
           </div>
 
+          {draft.description && <p className="mb-3 text-sm text-muted-foreground">{draft.description}</p>}
+
           <div className="space-y-2 mb-4">
-            {draft.fields.map((f, i) => (
-              <div key={i} className="rounded-xl border border-border/60 bg-background/40 p-2.5">
-                <div className="flex items-center gap-2">
-                  <input value={f.label} onChange={(e) => patchField(i, { label: e.target.value })} className="flex-1 bg-transparent text-sm font-medium focus:outline-none" />
-                  <select value={f.type} onChange={(e) => patchField(i, { type: e.target.value as TrackerField["type"] })} className="rounded-lg border border-border bg-background px-1.5 py-1 text-xs">
-                    {FIELD_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                  <button onClick={() => removeField(i)} className="text-xs text-muted-foreground/60 hover:text-rose-400 px-1">remove</button>
-                </div>
-                {f.type !== "text" && (
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className="text-[11px] text-muted-foreground w-14">weight</span>
-                    <input type="range" min={0} max={1} step={0.05} value={f.weight} onChange={(e) => patchField(i, { weight: Number(e.target.value) })} className="flex-1 accent-[var(--primary)]" />
-                    <span className="text-[11px] text-muted-foreground numeral w-8 text-right">{Math.round(f.weight * 100)}%</span>
+            {draft.fields.map((f, i) => {
+              const scored = (f.weight ?? 0) > 0 && f.type !== "text";
+              return (
+                <div key={i} className="flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-background/40 px-3 py-2.5">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{f.label}</p>
+                    <p className="text-xs text-muted-foreground">{fieldMeaning(f)}</p>
                   </div>
-                )}
-              </div>
-            ))}
-            <button onClick={addField} className="text-xs text-muted-foreground hover:text-foreground">+ Add field</button>
+                  <span
+                    className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold"
+                    style={
+                      scored
+                        ? { color: accent, background: `color-mix(in oklch, ${accent} 14%, transparent)` }
+                        : { color: "var(--muted-foreground)", background: "color-mix(in oklch, var(--muted-foreground) 12%, transparent)" }
+                    }
+                  >
+                    {weightLabel(f.weight)}
+                  </span>
+                </div>
+              );
+            })}
           </div>
+
+          <p className="mb-3 text-xs text-muted-foreground/70">Want it different? Just tell the AI above - it handles the structure and scoring for you.</p>
 
           <div className="flex gap-2">
             <button onClick={save} disabled={saving} className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">

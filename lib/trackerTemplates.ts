@@ -1,10 +1,28 @@
 import type { TrackerDraft } from "./trackers";
 
+// The built-in daily reflection - the classic "daily report" reborn as a scored
+// tracker. Every new user can add this in one tap to get scoring out of the box.
+export const DAILY_REPORT_TEMPLATE: TrackerDraft = {
+  name: "Daily Report",
+  color: "blue",
+  description: "Your end-of-day reflection, scored across mood, energy, focus and habits.",
+  cadence: "daily",
+  fields: [
+    { key: "mood", label: "Mood", type: "scale", min: 1, max: 10, direction: "higher", weight: 0.2 },
+    { key: "energy", label: "Energy", type: "scale", min: 1, max: 10, direction: "higher", weight: 0.15 },
+    { key: "productivity", label: "Productivity", type: "scale", min: 1, max: 10, direction: "higher", weight: 0.25 },
+    { key: "sleepHours", label: "Sleep", type: "number", unit: "hrs", min: 0, max: 12, target: 8, direction: "target", weight: 0.2 },
+    { key: "moved", label: "Moved my body", type: "boolean", direction: "boolean", weight: 0.2 },
+    { key: "win", label: "Today's win", type: "text", weight: 0 },
+    { key: "grateful", label: "Grateful for", type: "text", weight: 0 },
+  ],
+};
+
 // One-tap starting points for the cold start. The AI can refine any of them.
 export const TRACKER_TEMPLATES: TrackerDraft[] = [
+  DAILY_REPORT_TEMPLATE,
   {
     name: "Health",
-    emoji: "🫀",
     color: "emerald",
     description: "Sleep, movement, nutrition and energy.",
     cadence: "daily",
@@ -18,7 +36,6 @@ export const TRACKER_TEMPLATES: TrackerDraft[] = [
   },
   {
     name: "Money",
-    emoji: "💰",
     color: "amber",
     description: "Spending discipline and saving.",
     cadence: "daily",
@@ -31,7 +48,6 @@ export const TRACKER_TEMPLATES: TrackerDraft[] = [
   },
   {
     name: "Fitness",
-    emoji: "🏋️",
     color: "orange",
     description: "Training, protein and recovery.",
     cadence: "daily",
@@ -44,7 +60,6 @@ export const TRACKER_TEMPLATES: TrackerDraft[] = [
   },
   {
     name: "Mind",
-    emoji: "🧠",
     color: "violet",
     description: "Mood, stress and focus.",
     cadence: "daily",
@@ -57,7 +72,6 @@ export const TRACKER_TEMPLATES: TrackerDraft[] = [
   },
   {
     name: "Learning",
-    emoji: "📚",
     color: "sky",
     description: "Studying and mastering a skill.",
     cadence: "daily",
@@ -70,7 +84,6 @@ export const TRACKER_TEMPLATES: TrackerDraft[] = [
   },
   {
     name: "Startup",
-    emoji: "🚀",
     color: "rose",
     description: "Shipping, growth and revenue.",
     cadence: "daily",

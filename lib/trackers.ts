@@ -32,7 +32,6 @@ export type TrackerField = {
 
 export type TrackerDraft = {
   name: string;
-  emoji?: string;
   color: string;
   description?: string;
   cadence: "daily" | "weekly";
@@ -46,6 +45,36 @@ export function scoreLabel(score: number): string {
   if (score >= 40) return "Building";
   if (score >= 20) return "Needs work";
   return "Critical";
+}
+
+/** First letter of a tracker name, for the colored identity mark (no emojis). */
+export function trackerInitial(name?: string): string {
+  const c = (name ?? "").trim()[0];
+  return c ? c.toUpperCase() : "?";
+}
+
+/** How much a field counts toward the score, in plain words (no raw weights shown to users). */
+export function weightLabel(weight: number): string {
+  if (weight >= 0.3) return "Major";
+  if (weight >= 0.15) return "Moderate";
+  if (weight > 0) return "Minor";
+  return "Note only";
+}
+
+/** What "good" looks like for a field, in plain words (replaces direction/target jargon). */
+export function fieldMeaning(field: TrackerField): string {
+  if (field.type === "text" || (field.weight ?? 0) <= 0) return "kept as a note";
+  const unit = field.unit ? ` ${field.unit}` : "";
+  switch (field.direction) {
+    case "lower":
+      return field.target != null ? `aim for ${field.target}${unit} or less` : "less is better";
+    case "target":
+      return field.target != null ? `aim for ${field.target}${unit}` : "hit your target";
+    case "boolean":
+      return "yes counts";
+    default:
+      return field.target != null ? `aim for ${field.target}${unit} or more` : "more is better";
+  }
 }
 
 const clamp = (x: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, x));

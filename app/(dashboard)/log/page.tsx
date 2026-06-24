@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BentoCard } from "@/components/bento/BentoCard";
 import { PageHeader } from "@/components/bento/PageHeader";
 import { TrackerLogForm } from "@/components/trackers/TrackerLogForm";
+import { TrackerMark } from "@/components/trackers/TrackerMark";
 import { trackerColor, scoreField } from "@/lib/trackers";
 import { todayString } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -152,9 +153,7 @@ export default function LogTodayPage() {
           <BentoCard>
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-2xl text-xl" style={{ background: "color-mix(in oklch, " + color + " 16%, transparent)" }}>
-                  {tracker.emoji}
-                </span>
+                <TrackerMark name={tracker.name} color={tracker.color} size={40} />
                 <div>
                   <h2 className="font-semibold leading-tight">{tracker.name}</h2>
                   <p className="text-xs text-muted-foreground">

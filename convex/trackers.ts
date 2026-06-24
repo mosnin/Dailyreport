@@ -160,7 +160,6 @@ export const create = mutation({
   args: {
     userId: v.id("users"),
     name: v.string(),
-    emoji: v.optional(v.string()),
     color: v.string(),
     description: v.optional(v.string()),
     cadence: v.union(v.literal("daily"), v.literal("weekly")),
@@ -173,7 +172,6 @@ export const create = mutation({
     return ctx.db.insert("trackers", {
       userId: args.userId,
       name: args.name,
-      emoji: args.emoji,
       color: args.color,
       description: args.description,
       cadence: args.cadence,
@@ -189,7 +187,6 @@ export const update = mutation({
   args: {
     trackerId: v.id("trackers"),
     name: v.optional(v.string()),
-    emoji: v.optional(v.string()),
     color: v.optional(v.string()),
     description: v.optional(v.string()),
     cadence: v.optional(v.union(v.literal("daily"), v.literal("weekly"))),
@@ -310,7 +307,6 @@ export const getOverview = query({
       items.push({
         _id: t._id,
         name: t.name,
-        emoji: t.emoji,
         color: t.color,
         cadence: t.cadence,
         score: cur.score,
@@ -353,7 +349,6 @@ export const getTodayChecklist = query({
       items.push({
         _id: t._id,
         name: t.name,
-        emoji: t.emoji,
         color: t.color,
         done: entry != null,
         score: entry?.score ?? null,
@@ -385,7 +380,6 @@ export const getDueToday = query({
       items.push({
         _id: t._id,
         name: t.name,
-        emoji: t.emoji,
         color: t.color,
         cadence: t.cadence,
         fields: t.fields,

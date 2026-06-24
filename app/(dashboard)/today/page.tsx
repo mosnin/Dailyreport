@@ -12,7 +12,9 @@ import { BentoCard } from "@/components/bento/BentoCard";
 import { ScoreRing } from "@/components/bento/ScoreRing";
 import { PageHeader } from "@/components/bento/PageHeader";
 import { TrackerCreator } from "@/components/trackers/TrackerCreator";
-import { trackerColor, scoreLabel } from "@/lib/trackers";
+import { QuickStartDailyReport } from "@/components/trackers/QuickStart";
+import { TrackerMark } from "@/components/trackers/TrackerMark";
+import { trackerColor, scoreLabel, trackerInitial } from "@/lib/trackers";
 import { Check, Flame, PenLine } from "lucide-react";
 import Link from "next/link";
 
@@ -67,9 +69,14 @@ export default function TodayPage() {
     return (
       <div className="space-y-4 pb-6">
         <PageHeader eyebrow={new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric" }).format(new Date())} title={greet(firstName)} subtitle="Let's set up what you want to measure. This becomes your whole app." />
-        <BentoCard delay={0.04}>
-          <h2 className="font-semibold mb-1">What do you want to track?</h2>
-          <p className="text-sm text-muted-foreground mb-3">Pick a template or describe it. The AI builds the log, scoring and charts, and the rest of the app organizes around it.</p>
+        <BentoCard delay={0.03}>
+          <h2 className="font-semibold mb-1">Start in one tap</h2>
+          <p className="text-sm text-muted-foreground mb-3">The built-in Daily Report scores your day across mood, energy, focus and habits.</p>
+          {convexUserId && <QuickStartDailyReport userId={convexUserId} />}
+        </BentoCard>
+        <BentoCard delay={0.06}>
+          <h2 className="font-semibold mb-1">Or describe your own</h2>
+          <p className="text-sm text-muted-foreground mb-3">Tell the AI what you want to track. It designs the log and the scoring for you, and the rest of the app organizes around it.</p>
           {convexUserId && <TrackerCreator userId={convexUserId} />}
         </BentoCard>
       </div>
@@ -141,8 +148,15 @@ export default function TodayPage() {
               <div className="space-y-1.5">
                 {items.map((item: any) => (
                   <Link key={item._id} href={`/trackers/${item._id}`} className={cn("flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors", item.done ? "bg-white/5" : "hover:bg-white/5")}>
-                    <span className={cn("grid h-7 w-7 place-items-center rounded-xl text-sm shrink-0")} style={{ background: item.done ? trackerColor(item.color) : "transparent", border: item.done ? "none" : "1px solid var(--border)" }}>
-                      {item.done ? <Check className="h-4 w-4 text-[oklch(0.16_0.02_264)]" strokeWidth={3} /> : item.emoji}
+                    <span
+                      className="grid h-7 w-7 place-items-center rounded-xl text-xs font-semibold shrink-0"
+                      style={
+                        item.done
+                          ? { background: trackerColor(item.color), color: "oklch(0.16 0.02 264)" }
+                          : { color: trackerColor(item.color), background: `color-mix(in oklch, ${trackerColor(item.color)} 14%, transparent)`, border: `1px solid color-mix(in oklch, ${trackerColor(item.color)} 26%, transparent)` }
+                      }
+                    >
+                      {item.done ? <Check className="h-4 w-4" strokeWidth={3} /> : trackerInitial(item.name)}
                     </span>
                     <span className={cn("flex-1 text-sm font-medium", item.done && "text-muted-foreground line-through decoration-1")}>{item.name}</span>
                     {item.streak > 1 && (
@@ -187,7 +201,7 @@ export default function TodayPage() {
           {trackers.slice(0, 6).map((t: any, i: number) => (
             <BentoCard key={t._id} href={`/trackers/${t._id}`} className="!p-3.5 flex flex-col gap-2" delay={0.04 * i}>
               <div className="flex items-center justify-between">
-                <span className="text-lg leading-none">{t.emoji}</span>
+                <TrackerMark name={t.name} color={t.color} size={30} />
                 {t.streak > 1 && (
                   <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground numeral">
                     <Flame className="h-3 w-3" style={{ color: trackerColor(t.color) }} />
