@@ -178,7 +178,7 @@ export default function HealthAnalyticsPage() {
               <div className="my-3">
                 <ScoreRing value={healthArea.score} color={ACCENT} size={112}>
                   <div className="text-center">
-                    <p className="text-2xl font-bold numeral" style={{ color: ACCENT }}>
+                    <p className="text-2xl font-bold numeral text-foreground">
                       {Math.round(healthArea.score)}
                     </p>
                     <p className="text-[10px] text-muted-foreground">/ 100</p>

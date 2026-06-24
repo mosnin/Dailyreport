@@ -7,19 +7,6 @@ import { todayString } from "@/lib/utils";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Plus,
-  Trash2,
-  Sparkles,
-  ChevronLeft,
-  ChevronRight,
-  Flame,
-  Star,
-  X,
-  CheckCircle2,
-  Loader2,
-  Pencil,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
@@ -134,12 +121,12 @@ function AffirmationRow({
         whileTap={{ scale: 0.75 }}
         onClick={onTogglePin}
         className={cn(
-          "shrink-0 transition-colors",
-          isPinned ? "text-amber-400" : "text-muted-foreground/25 hover:text-muted-foreground/60"
+          "shrink-0 text-xs font-medium transition-colors",
+          isPinned ? "text-amber-400" : "text-muted-foreground/40 hover:text-muted-foreground/70"
         )}
         title={isPinned ? "Unpin" : "Pin to top"}
       >
-        <Star className={cn("w-4 h-4", isPinned && "fill-amber-400")} />
+        {isPinned ? "Pinned" : "Pin"}
       </motion.button>
 
       {editing ? (
@@ -174,19 +161,19 @@ function AffirmationRow({
           <motion.button
             whileTap={{ scale: 0.85 }}
             onClick={() => setEditing(true)}
-            className="p-1 text-muted-foreground/30 hover:text-foreground transition-colors"
+            className="p-1 text-xs text-muted-foreground/40 hover:text-foreground transition-colors"
             title="Edit"
           >
-            <Pencil className="w-3.5 h-3.5" />
+            Edit
           </motion.button>
         )}
         <motion.button
           whileTap={{ scale: 0.85 }}
           onClick={onRemove}
-          className="p-1 text-muted-foreground/40 hover:text-destructive transition-colors"
+          className="p-1 text-xs text-muted-foreground/40 hover:text-destructive transition-colors"
           title="Delete"
         >
-          <Trash2 className="w-3.5 h-3.5" />
+          Delete
         </motion.button>
       </div>
     </div>
@@ -257,7 +244,6 @@ function RoundSession({
           onClick={onCancel}
           className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          <X className="w-4 h-4" />
           Cancel round
         </motion.button>
         <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -292,9 +278,6 @@ function RoundSession({
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
             className="w-full max-w-md rounded-2xl border border-border bg-card p-8 sm:p-12 text-center"
           >
-            <div className="mb-6">
-              <Flame className="w-7 h-7 text-amber-400 mx-auto" />
-            </div>
             <p className="text-xl sm:text-2xl font-medium leading-relaxed text-foreground">
               {current?.text}
             </p>
@@ -307,9 +290,9 @@ function RoundSession({
           whileTap={{ scale: 0.9 }}
           onClick={goPrev}
           disabled={index === 0}
-          className="p-2.5 rounded-full border border-border hover:bg-accent transition-colors disabled:opacity-30"
+          className="px-5 py-2.5 rounded-full border border-border hover:bg-accent text-sm font-medium transition-colors disabled:opacity-30"
         >
-          <ChevronLeft className="w-5 h-5" />
+          Prev
         </motion.button>
 
         {isLast ? (
@@ -318,7 +301,6 @@ function RoundSession({
             onClick={onComplete}
             className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-900 font-medium text-sm transition-colors"
           >
-            <CheckCircle2 className="w-4 h-4" />
             Complete round
           </motion.button>
         ) : (
@@ -328,17 +310,12 @@ function RoundSession({
             className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-border hover:bg-accent text-sm font-medium transition-colors"
           >
             Next
-            <ChevronRight className="w-4 h-4" />
           </motion.button>
         )}
-
-        <button aria-hidden className="p-2.5 rounded-full opacity-0 pointer-events-none">
-          <ChevronRight className="w-5 h-5" />
-        </button>
       </div>
 
       <p className="text-center text-xs text-muted-foreground mt-6">
-        ← → arrow keys to navigate · Enter to advance · Esc to cancel
+        Arrow keys to navigate - Enter to advance - Esc to cancel
       </p>
     </div>
   );
@@ -349,13 +326,6 @@ function RoundSession({
 function RecapScreen({ onContinue }: { onContinue: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center text-center gap-6 max-w-sm mx-auto">
-      <motion.div
-        initial={{ scale: 0.6, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", damping: 14, stiffness: 100 }}
-      >
-        <Flame className="w-8 h-8 text-amber-400" />
-      </motion.div>
       <motion.p {...fadeUp(0.18)} className="font-heading italic text-2xl leading-relaxed text-foreground">
         Five rounds done.
       </motion.p>
@@ -401,14 +371,13 @@ function AddRow({
   if (adding) {
     return (
       <form onSubmit={handleSubmit} className="flex items-center gap-2 px-2 py-2.5">
-        <Plus className="w-4 h-4 shrink-0 text-muted-foreground/40" />
         <input
           ref={ref}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onBlur={() => { if (!text.trim()) setAdding(false); }}
           onKeyDown={(e) => { if (e.key === "Escape") { setAdding(false); setText(""); } }}
-          placeholder="I am… / I have… / I can…"
+          placeholder="I am... / I have... / I can..."
           className="flex-1 text-sm bg-transparent border-b border-primary focus:outline-none pb-0.5"
         />
         <button type="submit" disabled={!text.trim()} className="text-xs font-medium text-primary disabled:opacity-40">
@@ -427,7 +396,6 @@ function AddRow({
       onClick={() => setAdding(true)}
       className="flex items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-2.5 w-full"
     >
-      <Plus className="w-4 h-4" />
       Add affirmation
     </motion.button>
   );
@@ -691,7 +659,6 @@ export default function AffirmationsPage() {
             onClick={() => setShowRecap(true)}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm transition-colors"
           >
-            <CheckCircle2 className="w-4 h-4" />
             All done - view recap
           </motion.button>
         ) : sorted.length > 0 ? (
@@ -700,7 +667,6 @@ export default function AffirmationsPage() {
             onClick={() => setInRound(true)}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-background text-foreground hover:bg-background/90 font-semibold text-sm transition-colors"
           >
-            <Flame className="w-4 h-4" />
             {rounds === 0 ? "Begin practice" : `Start round ${rounds + 1}`}
           </motion.button>
         ) : (
@@ -735,7 +701,6 @@ export default function AffirmationsPage() {
             </div>
           ) : sorted.length === 0 ? (
             <div className="py-6 text-center">
-              <Star className="w-7 h-7 text-primary mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">No affirmations yet</p>
               <p className="text-xs text-muted-foreground/60 mt-1">
                 Add one below or generate with AI
@@ -780,8 +745,7 @@ export default function AffirmationsPage() {
           disabled={generating || staging.length > 0}
           className="flex items-center gap-1.5 mx-auto text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
         >
-          {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-          {generating ? "Generating…" : "Generate with AI"}
+          {generating ? "Generating..." : "Generate with AI"}
         </motion.button>
       </motion.div>
 
@@ -816,7 +780,6 @@ export default function AffirmationsPage() {
                     exit={{ opacity: 0 }}
                     className="flex items-center gap-1 text-xs text-emerald-500 font-medium"
                   >
-                    <CheckCircle2 className="w-3 h-3" />
                     {visionAdded} affirmation{visionAdded === 1 ? "" : "s"} added
                   </motion.span>
                 )}
@@ -827,8 +790,7 @@ export default function AffirmationsPage() {
                 disabled={!visionText.trim() || visionParsing}
                 className="flex items-center gap-1.5 text-xs font-semibold text-primary disabled:opacity-30 hover:opacity-80 transition-opacity"
               >
-                {visionParsing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                {visionParsing ? "Transforming…" : "Transform"}
+                {visionParsing ? "Transforming..." : "Transform"}
               </button>
             </div>
           </form>

@@ -12,15 +12,13 @@ import { LineTrend, RadarScores } from "@/components/charts/Charts";
 import { TimezoneModal } from "@/components/dashboard/TimezoneModal";
 import { AIPatterns } from "@/components/analytics/AIPatterns";
 import { AREAS, type AreaKey, scoreLabel, creditLabel } from "@/lib/areas";
-import { TrendingUp, TrendingDown, Minus, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 function Trend({ value }: { value: number }) {
-  if (value === 0) return <span className="inline-flex items-center gap-0.5 text-muted-foreground text-xs"><Minus className="w-3 h-3" /></span>;
+  if (value === 0) return <span className="text-muted-foreground text-xs">0</span>;
   const up = value > 0;
   return (
-    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${up ? "text-emerald-400" : "text-rose-400"}`}>
-      {up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+    <span className={`text-xs font-medium ${up ? "text-emerald-400" : "text-rose-400"}`}>
       {up ? "+" : ""}{value}
     </span>
   );
@@ -58,24 +56,24 @@ export default function DashboardPage() {
         subtitle="A weighted, credit-style score across all six dimensions of your life - last 14 days."
         action={
           <Link href="/analytics" className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium hover:bg-accent/70 transition-colors">
-            Full analytics <ArrowRight className="w-3.5 h-3.5" />
+            Full analytics
           </Link>
         }
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Composite credit score */}
-        <BentoCard tint="var(--primary)" className="col-span-2 flex items-center gap-5" delay={0.02}>
-          <ScoreRing value={score?.composite ?? 0} color="oklch(0.2 0.03 264)" size={120} stroke={11} track="oklch(0.2 0.03 264 / 20%)">
-            <div className="text-center">
+        <BentoCard className="col-span-2 flex items-center gap-5" delay={0.02}>
+          <ScoreRing value={score?.composite ?? 0} color="var(--primary)" size={120} stroke={11}>
+            <div className="text-center text-foreground">
               <div className="text-3xl font-bold numeral leading-none">{score?.credit ?? "-"}</div>
-              <div className="text-[10px] uppercase tracking-wide mt-1 opacity-70">/ 850</div>
+              <div className="text-[10px] uppercase tracking-wide mt-1 text-muted-foreground">/ 850</div>
             </div>
           </ScoreRing>
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-70">Composite</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Composite</p>
             <p className="text-2xl font-bold mt-0.5">{score ? creditLabel(score.credit) : ""}</p>
-            <p className="text-sm mt-1 opacity-80">
+            <p className="text-sm mt-1 text-muted-foreground">
               {score && score.compositeTrend !== 0 ? `${score.compositeTrend > 0 ? "+" : ""}${score.compositeTrend} pts vs prior 2 weeks` : "Holding steady"}
             </p>
           </div>
@@ -97,13 +95,9 @@ export default function DashboardPage() {
         {/* Area score tiles */}
         {areas.map((a: any, i: number) => {
           const meta = AREAS[a.key as AreaKey];
-          const Icon = meta.icon;
           return (
             <BentoCard key={a.key} href={meta.href} className="flex flex-col gap-3" delay={0.04 + i * 0.03}>
-              <div className="flex items-center justify-between">
-                <span className="grid place-items-center w-9 h-9 rounded-xl" style={{ background: `color-mix(in oklch, ${meta.color} 18%, transparent)` }}>
-                  <Icon className="w-[18px] h-[18px]" style={{ color: meta.color }} />
-                </span>
+              <div className="flex items-center justify-end">
                 {!a.needsData && <Trend value={a.trend} />}
               </div>
               <div>

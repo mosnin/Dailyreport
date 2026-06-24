@@ -12,7 +12,6 @@ import { ScoreRing } from "@/components/bento/ScoreRing";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { scoreLabel } from "@/lib/areas";
-import { Check } from "lucide-react";
 
 const ACCENT = "var(--health)";
 const SECTION_LABEL =
@@ -288,7 +287,7 @@ export default function HealthReportPage() {
               <div className="my-3">
                 <ScoreRing value={healthArea.score} color={ACCENT} size={120}>
                   <div className="text-center">
-                    <p className="text-2xl font-bold numeral" style={{ color: ACCENT }}>
+                    <p className="text-2xl font-bold numeral text-foreground">
                       {Math.round(healthArea.score)}
                     </p>
                     <p className="text-[10px] text-muted-foreground">/ 100</p>
@@ -368,8 +367,8 @@ export default function HealthReportPage() {
       {/* Footer save */}
       <div className="sticky bottom-3 z-10 flex items-center justify-end gap-3">
         {savedAt && (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-background/80 backdrop-blur border border-border px-3 py-1.5 text-xs font-medium" style={{ color: ACCENT }}>
-            <Check className="size-3.5" /> Saved
+          <span className="inline-flex items-center rounded-full bg-background/80 backdrop-blur border border-border px-3 py-1.5 text-xs font-medium" style={{ color: ACCENT }}>
+            Saved
           </span>
         )}
         <Button

@@ -6,15 +6,13 @@ import { useConvexUser } from "@/hooks/useConvexUser";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "motion/react";
 import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
-import { Users, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import Link from "next/link";
 import { PageHeader } from "@/components/bento/PageHeader";
 import { BentoCard } from "@/components/bento/BentoCard";
 
-function EmptyState({ icon: Icon, headline, body, cta }: {
-  icon: React.ComponentType<{ className?: string }>;
+function EmptyState({ headline, body, cta }: {
   headline: string;
   body: string;
   cta?: { label: string; href?: string };
@@ -26,9 +24,6 @@ function EmptyState({ icon: Icon, headline, body, cta }: {
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       className="py-16 flex flex-col items-center text-center gap-4"
     >
-      <div className="w-14 h-14 rounded-2xl bg-muted/60 flex items-center justify-center">
-        <Icon className="w-6 h-6 text-muted-foreground/50" />
-      </div>
       <div className="space-y-1.5 max-w-xs">
         <p className="font-semibold text-foreground">{headline}</p>
         <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
@@ -94,19 +89,13 @@ export default function PeoplePage() {
       {data && (
         <>
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <BentoCard delay={0.06} className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: "color-mix(in oklch, var(--emotional) 12%, transparent)" }}>
-                <Users className="w-4 h-4" style={{ color: "var(--emotional)" }} />
-              </div>
+            <BentoCard delay={0.06}>
               <div>
                 <p className="numeral text-2xl font-bold leading-none">{data.uniqueThisMonth}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">this month</p>
               </div>
             </BentoCard>
-            <BentoCard delay={0.1} className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
-                <Users className="w-4 h-4 text-emerald-500" />
-              </div>
+            <BentoCard delay={0.1}>
               <div>
                 <p className="numeral text-2xl font-bold leading-none">{data.totalUnique}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">total unique</p>
@@ -151,8 +140,7 @@ export default function PeoplePage() {
 
           {data.recentPeople.length > 0 && (
             <motion.section {...fadeUp(0.18)}>
-              <p className="text-[10px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40 mb-3 flex items-center gap-1.5">
-                <Clock className="w-3 h-3" />
+              <p className="text-[10px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40 mb-3">
                 Last 7 Days
               </p>
               <BentoCard delay={0.2} className="overflow-hidden !p-0">
@@ -186,7 +174,6 @@ export default function PeoplePage() {
 
           {data.allPeople.length === 0 && (
             <EmptyState
-              icon={Users}
               headline="Your network starts with your first report"
               body="People you mention in daily reports appear here. Complete a few reports to see your connection patterns."
               cta={{ label: "Write today's report", href: "/reports/daily" }}

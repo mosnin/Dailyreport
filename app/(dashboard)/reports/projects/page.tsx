@@ -143,7 +143,7 @@ function ProjectUpdateCard({
               className="w-full rounded-xl text-[oklch(0.2_0.03_264)] font-semibold"
               style={{ background: ACCENT }}
             >
-              {saving ? "Logging…" : "Log progress"}
+              {saving ? "Logging..." : "Log progress"}
             </Button>
           </div>
         </div>

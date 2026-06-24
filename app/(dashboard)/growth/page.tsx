@@ -7,7 +7,6 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { cn, formatDateLabel } from "@/lib/utils";
 import { toast } from "sonner";
-import { Trash2, Check, Plus, Sparkles, ShieldAlert } from "lucide-react";
 
 import { BentoCard } from "@/components/bento/BentoCard";
 import { PageHeader } from "@/components/bento/PageHeader";
@@ -60,12 +59,12 @@ function GrowthItem({
         </div>
         <Button
           variant="ghost"
-          size="icon-sm"
+          size="xs"
           onClick={onRemove}
           aria-label="Delete"
-          className="-mt-1 -mr-1"
+          className="-mt-1 -mr-1 text-muted-foreground"
         >
-          <Trash2 className="text-muted-foreground" />
+          Remove
         </Button>
       </div>
 
@@ -115,7 +114,6 @@ function GrowthItem({
             )
           }
         >
-          <Check />
           {achieved ? "Achieved" : "Mark achieved"}
         </Button>
       </div>
@@ -126,7 +124,6 @@ function GrowthItem({
 function Column({
   title,
   accent,
-  icon,
   items,
   emptyHint,
   onUpdate,
@@ -134,7 +131,6 @@ function Column({
 }: {
   title: string;
   accent: string;
-  icon: React.ReactNode;
   items: any[];
   emptyHint: string;
   onUpdate: (id: Id<"growthItems">, patch: Record<string, any>) => void;
@@ -146,10 +142,7 @@ function Column({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span style={{ color: accent }}>{icon}</span>
-          <p className={eyebrowCls}>{title}</p>
-        </div>
+        <p className={eyebrowCls}>{title}</p>
         <span className="text-xs text-muted-foreground numeral">
           {active} active · {achieved} done
         </span>
@@ -290,7 +283,6 @@ export default function GrowthPage() {
                 )}
                 style={selected ? { background: accent } : undefined}
               >
-                {t === "skill" ? <Sparkles className="size-3.5" /> : <ShieldAlert className="size-3.5" />}
                 {t === "skill" ? "Skill" : "Fear"}
               </button>
             );
@@ -331,8 +323,7 @@ export default function GrowthPage() {
             disabled={submitting}
             style={{ background: activeAccent, color: "var(--background)" }}
           >
-            <Plus />
-            {submitting ? "Adding…" : `Add ${type}`}
+            {submitting ? "Adding..." : `Add ${type}`}
           </Button>
         </div>
       </BentoCard>
@@ -342,7 +333,6 @@ export default function GrowthPage() {
         <Column
           title="Skills to build"
           accent={SKILL_ACCENT}
-          icon={<Sparkles className="size-4" />}
           items={skills}
           emptyHint="No skills yet - add one above and start leveling up."
           onUpdate={handleUpdate}
@@ -351,7 +341,6 @@ export default function GrowthPage() {
         <Column
           title="Fears to overcome"
           accent={FEAR_ACCENT}
-          icon={<ShieldAlert className="size-4" />}
           items={fears}
           emptyHint="No fears tracked - naming one is the first step to beating it."
           onUpdate={handleUpdate}
