@@ -10,7 +10,9 @@ import { motion } from "motion/react";
 import { BentoCard } from "@/components/bento/BentoCard";
 import { ScoreRing } from "@/components/bento/ScoreRing";
 import { PageHeader } from "@/components/bento/PageHeader";
-import { AREAS, type AreaKey, scoreLabel } from "@/lib/areas";
+import { TrackerCreator } from "@/components/trackers/TrackerCreator";
+import { trackerColor, scoreLabel } from "@/lib/trackers";
+import { Check } from "lucide-react";
 import Link from "next/link";
 
 function greet(name: string) {
@@ -26,14 +28,14 @@ export default function TodayPage() {
   const firstName = user?.firstName ?? user?.fullName?.split(" ")[0] ?? "there";
   const today = todayString();
 
-  const checklist = useQuery(api.checklist.getToday, convexUserId ? { userId: convexUserId, date: today } : "skip");
-  const score = useQuery(api.lifeScore.getCurrent, convexUserId ? { userId: convexUserId, windowDays: 14 } : "skip");
+  const overview = useQuery(api.trackers.getOverview, convexUserId ? { userId: convexUserId } : "skip");
+  const checklist = useQuery(api.trackers.getTodayChecklist, convexUserId ? { userId: convexUserId, date: today } : "skip");
   const brief = useQuery(api.aiInternal.getDailyBriefPublic, convexUserId ? { userId: convexUserId, date: today } : "skip");
   const rituals = useQuery(api.rituals.list, convexUserId ? { userId: convexUserId } : "skip") ?? [];
   const ritualLog = useQuery(api.rituals.getLog, convexUserId ? { userId: convexUserId, date: today } : "skip");
   const toggleRitual = useMutation(api.rituals.toggle);
 
-  if (!convexUserId || checklist === undefined || score === undefined) {
+  if (!convexUserId || overview === undefined || checklist === undefined) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-12 w-64" />
@@ -44,9 +46,25 @@ export default function TodayPage() {
     );
   }
 
-  const items = checklist?.items ?? [];
-  const doneCount = checklist?.doneCount ?? 0;
-  const total = checklist?.total ?? 0;
+  const trackers = overview?.trackers ?? [];
+
+  // First run: no trackers yet -> set the app up around the user.
+  if (trackers.length === 0) {
+    return (
+      <div className="space-y-4 pb-6">
+        <PageHeader eyebrow={new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric" }).format(new Date())} title={greet(firstName)} subtitle="Let's set up what you want to measure. This becomes your whole app." />
+        <BentoCard delay={0.04}>
+          <h2 className="font-semibold mb-1">What do you want to track?</h2>
+          <p className="text-sm text-muted-foreground mb-3">Pick a template or describe it. The AI builds the log, scoring and charts, and the rest of the app organizes around it.</p>
+          {convexUserId && <TrackerCreator userId={convexUserId} />}
+        </BentoCard>
+      </div>
+    );
+  }
+
+  const items = checklist ?? [];
+  const doneCount = items.filter((i: any) => i.done).length;
+  const total = items.length;
   const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
   const completedIds: string[] = ritualLog?.completedIds ?? [];
 
@@ -55,93 +73,79 @@ export default function TodayPage() {
       <PageHeader
         eyebrow={new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric" }).format(new Date())}
         title={greet(firstName)}
-        subtitle="Your daily checklist - knock these out to keep every area climbing."
+        subtitle="Your daily checklist - log these to keep every tracker climbing."
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* Checklist - spans wide */}
+        {/* Checklist */}
         <BentoCard className="col-span-2 lg:col-span-2 lg:row-span-2" delay={0.02}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold">Today&apos;s checklist</h2>
             <span className="text-sm font-semibold numeral text-muted-foreground">{doneCount}/{total}</span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden mb-4">
-            <motion.div className="h-full rounded-full bg-primary" initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} />
-          </div>
-          <div className="space-y-1.5">
-            {items.map((item: any, i: number) => {
-              return (
-                <Link
-                  key={item.key}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors group",
-                    item.done ? "bg-accent/40" : "hover:bg-accent/60"
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "w-6 h-6 rounded-full shrink-0 transition-colors",
-                      item.done ? "" : "border border-border"
-                    )}
-                    style={item.done ? { background: "var(--primary)" } : undefined}
-                  />
-                  <span className={cn("flex-1 text-sm font-medium", item.done && "text-muted-foreground line-through decoration-1")}>
-                    {item.label}
-                    {item.optional && <span className="ml-1.5 text-[10px] uppercase tracking-wide text-muted-foreground/50">optional</span>}
-                  </span>
-                  {item.progress && (
-                    <span className="text-xs text-muted-foreground numeral">{item.progress.done}/{item.progress.total}</span>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
+          {total > 0 ? (
+            <>
+              <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden mb-4">
+                <motion.div className="h-full rounded-full bg-primary" initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} />
+              </div>
+              <div className="space-y-1.5">
+                {items.map((item: any) => (
+                  <Link key={item._id} href={`/trackers/${item._id}`} className={cn("flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors", item.done ? "bg-white/5" : "hover:bg-white/5")}>
+                    <span className={cn("grid h-7 w-7 place-items-center rounded-xl text-sm shrink-0")} style={{ background: item.done ? trackerColor(item.color) : "transparent", border: item.done ? "none" : "1px solid var(--border)" }}>
+                      {item.done ? <Check className="h-4 w-4 text-[oklch(0.16_0.02_264)]" strokeWidth={3} /> : item.emoji}
+                    </span>
+                    <span className={cn("flex-1 text-sm font-medium", item.done && "text-muted-foreground line-through decoration-1")}>{item.name}</span>
+                    {item.done && item.score != null && <span className="text-xs text-muted-foreground numeral">{item.score}</span>}
+                  </Link>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">No daily trackers yet. <Link href="/trackers" className="text-primary">Create one</Link>.</p>
+          )}
         </BentoCard>
 
-        {/* Life score ring */}
+        {/* Life score */}
         <BentoCard href="/dashboard" className="flex flex-col items-center justify-center text-center" delay={0.06}>
-          <ScoreRing value={score?.composite ?? 0} color="var(--primary)" size={104}>
+          <ScoreRing value={overview?.composite ?? 0} color="var(--primary)" size={104}>
             <div>
-              <div className="text-2xl font-bold numeral leading-none">{score?.credit ?? "-"}</div>
+              <div className="text-2xl font-bold numeral leading-none">{overview?.hasScored ? overview.credit : "-"}</div>
               <div className="text-[10px] uppercase tracking-wide text-muted-foreground mt-1">Life score</div>
             </div>
           </ScoreRing>
-          <p className="text-xs text-muted-foreground mt-3">{score ? scoreLabel(score.composite) : "Start logging"}</p>
+          <p className="text-xs text-muted-foreground mt-3">{overview?.hasScored ? scoreLabel(overview.composite) : "Start logging"}</p>
         </BentoCard>
 
         {/* Morning brief */}
         <BentoCard className="flex flex-col justify-between min-h-[140px]" delay={0.1}>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.14em]">Morning brief</span>
-          </div>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.14em]">Morning brief</span>
           <p className="text-sm font-medium leading-snug mt-2">
             {brief?.content ?? "Your AI brief lands here at 8am - a focused nudge for the day ahead."}
           </p>
         </BentoCard>
       </div>
 
-      {/* Area mini-scores */}
-      <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
-        {(score?.areas ?? []).map((a: any, i: number) => {
-          const meta = AREAS[a.key as AreaKey];
-          return (
-            <BentoCard key={a.key} href={meta.href} className="!p-3.5 flex flex-col gap-2" delay={0.04 * i}>
+      {/* Tracker mini-scores */}
+      {trackers.length > 0 && (
+        <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
+          {trackers.slice(0, 6).map((t: any, i: number) => (
+            <BentoCard key={t._id} href={`/trackers/${t._id}`} className="!p-3.5 flex flex-col gap-2" delay={0.04 * i}>
+              <span className="text-lg leading-none">{t.emoji}</span>
               <div>
-                <div className="text-lg font-bold numeral leading-none">{a.needsData ? "-" : a.score}</div>
-                <div className="text-[10px] text-muted-foreground mt-1 leading-tight">{meta.label}</div>
+                <div className="text-lg font-bold numeral leading-none">{t.needsData ? "-" : t.score}</div>
+                <div className="text-[10px] text-muted-foreground mt-1 leading-tight truncate">{t.name}</div>
               </div>
             </BentoCard>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Rituals quick-toggle */}
       {rituals.length > 0 && (
         <BentoCard delay={0.12}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold">Daily rituals</h2>
-            <Link href="/rituals" className="text-xs text-muted-foreground hover:text-foreground">Manage →</Link>
+            <Link href="/rituals" className="text-xs text-muted-foreground hover:text-foreground">Manage</Link>
           </div>
           <div className="flex flex-wrap gap-2">
             {(rituals as any[]).map((r) => {
@@ -150,13 +154,9 @@ export default function TodayPage() {
                 <button
                   key={r._id}
                   onClick={() => convexUserId && toggleRitual({ userId: convexUserId, date: today, ritualId: r._id })}
-                  className={cn(
-                    "flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium border transition-colors",
-                    done ? "border-transparent bg-execution/15 text-foreground" : "border-border text-muted-foreground hover:text-foreground"
-                  )}
-                  style={done ? { background: "color-mix(in oklch, var(--execution) 18%, transparent)" } : undefined}
+                  className={cn("flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium border transition-colors", done ? "border-transparent text-foreground" : "border-border text-muted-foreground hover:text-foreground")}
+                  style={done ? { background: "color-mix(in oklch, var(--primary) 22%, transparent)" } : undefined}
                 >
-                  <span className={cn("w-4 h-4 rounded-full", done ? "" : "border border-border")} style={done ? { background: "var(--execution)" } : undefined} />
                   {r.title}
                 </button>
               );
