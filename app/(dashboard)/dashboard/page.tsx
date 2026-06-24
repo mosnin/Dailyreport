@@ -13,6 +13,8 @@ import { TimezoneModal } from "@/components/dashboard/TimezoneModal";
 import { AIPatterns } from "@/components/analytics/AIPatterns";
 import { AREAS, type AreaKey, scoreLabel, creditLabel } from "@/lib/areas";
 import Link from "next/link";
+// @ts-ignore
+import Counter from "@/components/Counter";
 
 function Trend({ value }: { value: number }) {
   if (value === 0) return <span className="text-muted-foreground text-xs">0</span>;
@@ -66,7 +68,11 @@ export default function DashboardPage() {
         <BentoCard className="col-span-2 flex items-center gap-5" delay={0.02}>
           <ScoreRing value={score?.composite ?? 0} color="var(--primary)" size={120} stroke={11}>
             <div className="text-center text-foreground">
-              <div className="text-3xl font-bold numeral leading-none">{score?.credit ?? "-"}</div>
+              <div className="text-3xl font-bold numeral leading-none">
+                  {score?.credit != null ? (
+                    <Counter value={score.credit} places={[1000, 100, 10, 1]} fontSize={30} padding={2} gap={1} horizontalPadding={0} textColor="currentColor" fontWeight="inherit" digitPlaceHolders={false} gradientHeight={0} />
+                  ) : "-"}
+                </div>
               <div className="text-[10px] uppercase tracking-wide mt-1 text-muted-foreground">/ 850</div>
             </div>
           </ScoreRing>
@@ -102,7 +108,13 @@ export default function DashboardPage() {
               </div>
               <div>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-bold numeral">{a.needsData ? "-" : a.score}</span>
+                  {a.needsData ? (
+                    <span className="text-2xl font-bold numeral">-</span>
+                  ) : (
+                    <span className="text-2xl font-bold numeral inline-flex items-center">
+                      <Counter value={a.score} places={[100, 10, 1]} fontSize={24} padding={2} gap={1} horizontalPadding={0} textColor="currentColor" fontWeight="inherit" digitPlaceHolders={false} gradientHeight={0} />
+                    </span>
+                  )}
                   {!a.needsData && <span className="text-xs text-muted-foreground">/ 100</span>}
                 </div>
                 <p className="text-sm font-medium mt-0.5">{meta.label}</p>

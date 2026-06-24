@@ -11,6 +11,10 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/bento/PageHeader";
 import { BentoCard } from "@/components/bento/BentoCard";
+// @ts-ignore
+import Counter from "@/components/Counter";
+// @ts-ignore
+import AnimatedList from "@/components/AnimatedList";
 
 function todayIso(): string {
   return new Date().toISOString().split("T")[0];
@@ -116,7 +120,12 @@ export default function RitualsPage() {
                 >
                   {totalCount === 0
                     ? "No rituals yet"
-                    : `${completedCount} of ${totalCount} today`}
+                    : (
+                      <span className="inline-flex items-center gap-1">
+                        <Counter value={completedCount} places={[10, 1]} fontSize={14} padding={1} gap={0} horizontalPadding={0} textColor="currentColor" fontWeight="inherit" digitPlaceHolders={false} gradientHeight={0} />
+                        <span>of {totalCount} today</span>
+                      </span>
+                    )}
                 </motion.span>
               )}
             </AnimatePresence>
@@ -149,13 +158,11 @@ export default function RitualsPage() {
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-border/60">
-              <AnimatePresence initial={false}>
-                {rituals.map((ritual) => {
-                  const done = completedIds.has(ritual._id);
-
-                  if (editing) {
-                    return (
+            <div>
+              {editing ? (
+                <div className="divide-y divide-border/60">
+                  <AnimatePresence initial={false}>
+                    {rituals.map((ritual) => (
                       <motion.div
                         key={ritual._id}
                         layout
@@ -200,46 +207,53 @@ export default function RitualsPage() {
                           </>
                         )}
                       </motion.div>
-                    );
-                  }
-
-                  return (
-                    <motion.button
-                      key={ritual._id}
-                      layout
-                      onClick={() => handleToggle(ritual._id)}
-                      whileTap={{ scale: 0.98 }}
-                      transition={{ duration: 0.12 }}
-                      className={cn(
-                        "w-full flex items-center gap-4 px-5 py-4 text-left transition-colors",
-                        done ? "bg-emerald-500/[0.05]" : "hover:bg-muted/20"
-                      )}
-                    >
-                      <motion.div
-                        animate={{ scale: done ? [1, 1.18, 1] : 1 }}
-                        transition={{ duration: 0.25 }}
-                        className="shrink-0 text-xs font-medium w-10"
-                      >
-                        {done ? (
-                          <span className="text-emerald-500">Done</span>
-                        ) : (
-                          <span className="text-muted-foreground/40">Mark</span>
-                        )}
-                      </motion.div>
-                      <span
+                    ))}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <AnimatedList
+                  items={rituals}
+                  showGradients={false}
+                  enableArrowNavigation={false}
+                  displayScrollbar={false}
+                  renderItem={(ritual: any) => {
+                    const done = completedIds.has(ritual._id);
+                    return (
+                      <motion.button
+                        onClick={() => handleToggle(ritual._id)}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ duration: 0.12 }}
                         className={cn(
-                          "text-sm font-medium flex-1 min-w-0 transition-colors",
-                          done ? "text-muted-foreground/60" : "text-foreground"
+                          "w-full flex items-center gap-4 px-5 py-4 text-left transition-colors border-b border-border/60 last:border-0",
+                          done ? "bg-emerald-500/[0.05]" : "hover:bg-muted/20"
                         )}
                       >
-                        {ritual.title}
-                      </span>
-                    </motion.button>
-                  );
-                })}
-              </AnimatePresence>
+                        <motion.div
+                          animate={{ scale: done ? [1, 1.18, 1] : 1 }}
+                          transition={{ duration: 0.25 }}
+                          className="shrink-0 text-xs font-medium w-10"
+                        >
+                          {done ? (
+                            <span className="text-emerald-500">Done</span>
+                          ) : (
+                            <span className="text-muted-foreground/40">Mark</span>
+                          )}
+                        </motion.div>
+                        <span
+                          className={cn(
+                            "text-sm font-medium flex-1 min-w-0 transition-colors",
+                            done ? "text-muted-foreground/60" : "text-foreground"
+                          )}
+                        >
+                          {ritual.title}
+                        </span>
+                      </motion.button>
+                    );
+                  }}
+                />
+              )}
 
-              {/* Add row - only in edit mode */}
+              {/* Add row — only in edit mode */}
               {editing && (
                 <div className="border-t border-border/60">
                   <AnimatePresence mode="wait">

@@ -12,6 +12,8 @@ import { ScoreRing } from "@/components/bento/ScoreRing";
 import { PageHeader } from "@/components/bento/PageHeader";
 import { AREAS, type AreaKey, scoreLabel } from "@/lib/areas";
 import Link from "next/link";
+// @ts-ignore
+import Counter from "@/components/Counter";
 
 function greet(name: string) {
   const h = new Date().getHours();
@@ -63,7 +65,10 @@ export default function TodayPage() {
         <BentoCard className="col-span-2 lg:col-span-2 lg:row-span-2" delay={0.02}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold">Today&apos;s checklist</h2>
-            <span className="text-sm font-semibold numeral text-muted-foreground">{doneCount}/{total}</span>
+            <span className="text-sm font-semibold numeral text-muted-foreground inline-flex items-center gap-0">
+              <Counter value={doneCount} places={[10, 1]} fontSize={14} padding={1} gap={0} horizontalPadding={0} textColor="currentColor" fontWeight="inherit" digitPlaceHolders={false} gradientHeight={0} />
+              /{total}
+            </span>
           </div>
           <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden mb-4">
             <motion.div className="h-full rounded-full bg-primary" initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} />
@@ -103,7 +108,11 @@ export default function TodayPage() {
         <BentoCard href="/dashboard" className="flex flex-col items-center justify-center text-center" delay={0.06}>
           <ScoreRing value={score?.composite ?? 0} color="var(--primary)" size={104}>
             <div>
-              <div className="text-2xl font-bold numeral leading-none">{score?.credit ?? "-"}</div>
+              <div className="text-2xl font-bold numeral leading-none">
+                {score?.credit != null ? (
+                  <Counter value={score.credit} places={[1000, 100, 10, 1]} fontSize={22} padding={2} gap={1} horizontalPadding={0} textColor="currentColor" fontWeight="inherit" digitPlaceHolders={false} gradientHeight={0} />
+                ) : "-"}
+              </div>
               <div className="text-[10px] uppercase tracking-wide text-muted-foreground mt-1">Life score</div>
             </div>
           </ScoreRing>
@@ -128,7 +137,11 @@ export default function TodayPage() {
           return (
             <BentoCard key={a.key} href={meta.href} className="!p-3.5 flex flex-col gap-2" delay={0.04 * i}>
               <div>
-                <div className="text-lg font-bold numeral leading-none">{a.needsData ? "-" : a.score}</div>
+                <div className="text-lg font-bold numeral leading-none">
+                  {a.needsData ? "-" : (
+                    <Counter value={a.score} places={[100, 10, 1]} fontSize={18} padding={1} gap={1} horizontalPadding={0} textColor="currentColor" fontWeight="inherit" digitPlaceHolders={false} gradientHeight={0} />
+                  )}
+                </div>
                 <div className="text-[10px] text-muted-foreground mt-1 leading-tight">{meta.label}</div>
               </div>
             </BentoCard>

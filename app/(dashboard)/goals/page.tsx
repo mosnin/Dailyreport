@@ -14,6 +14,8 @@ import { ScoreRing } from "@/components/bento/ScoreRing";
 import { PageHeader } from "@/components/bento/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+// @ts-ignore
+import Counter from "@/components/Counter";
 
 const GOALS = "var(--goals)";
 
@@ -43,8 +45,8 @@ function OverviewRing({
   return (
     <BentoCard className="flex flex-col items-center justify-center gap-3 text-center">
       <ScoreRing value={pct} color={GOALS} size={72} stroke={7}>
-        <span className="numeral text-sm font-bold leading-none">
-          {completed}
+        <span className="numeral text-sm font-bold leading-none inline-flex items-center gap-0">
+          <Counter value={completed} places={[10, 1]} fontSize={14} padding={1} gap={0} horizontalPadding={0} textColor="currentColor" fontWeight="inherit" digitPlaceHolders={false} gradientHeight={0} />
           <span className="text-muted-foreground/60">/{total}</span>
         </span>
       </ScoreRing>
@@ -192,8 +194,9 @@ function GoalList({ category, label }: { category: GoalCategory; label: string }
             {periodLabel(category, periodKey)}
           </p>
         </div>
-        <span className="numeral shrink-0 text-sm font-semibold text-muted-foreground">
-          {completed}/{total}
+        <span className="numeral shrink-0 text-sm font-semibold text-muted-foreground inline-flex items-center gap-0">
+          <Counter value={completed} places={[10, 1]} fontSize={14} padding={1} gap={0} horizontalPadding={0} textColor="currentColor" fontWeight="inherit" digitPlaceHolders={false} gradientHeight={0} />
+          /{total}
         </span>
       </div>
 
