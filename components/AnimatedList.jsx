@@ -21,8 +21,8 @@ const AnimatedItem = ({ children, delay = 0, index, onMouseEnter, onClick }) => 
 };
 
 const AnimatedList = ({
-  items = [],
-  onItemSelect,
+  items = /** @type {any[]} */ ([]),
+  onItemSelect = undefined,
   showGradients = true,
   enableArrowNavigation = true,
   className = '',

@@ -212,7 +212,7 @@ export default function RitualsPage() {
                 </div>
               ) : (
                 <AnimatedList
-                  items={rituals}
+                  items={rituals as any[]}
                   showGradients={false}
                   enableArrowNavigation={false}
                   displayScrollbar={false}

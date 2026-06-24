@@ -68,14 +68,14 @@ export default function Counter({
   textColor = 'inherit',
   fontWeight = 'inherit',
   digitPlaceHolders = true,
-  containerStyle,
-  counterStyle,
-  digitStyle,
+  containerStyle = undefined,
+  counterStyle = undefined,
+  digitStyle = undefined,
   gradientHeight = 16,
   gradientFrom = 'black',
   gradientTo = 'transparent',
-  topGradientStyle,
-  bottomGradientStyle,
+  topGradientStyle = undefined,
+  bottomGradientStyle = undefined,
 }) {
   const height = fontSize + padding;
 
