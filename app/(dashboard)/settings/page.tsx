@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { useClerk } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import { Check, Sun, Moon, Monitor, CalendarDays, Mail } from "lucide-react";
+import { Check, Sun, Moon, Monitor, CalendarDays, Mail, FolderKanban } from "lucide-react";
 import { motion } from "motion/react";
 import { fadeUp } from "@/lib/motion";
 import Image from "next/image";
@@ -91,6 +91,8 @@ export default function SettingsPage() {
   ) ?? [];
   const gcalConnected = (integrations as any[]).some((i: any) => i.platform === "googlecalendar");
   const gmailConnected = (integrations as any[]).some((i: any) => i.platform === "gmail");
+  const clickupConnected = (integrations as any[]).some((i: any) => i.platform === "clickup");
+  const trelloConnected = (integrations as any[]).some((i: any) => i.platform === "trello");
 
   const [profileName, setProfileName] = useState("");
   const [profileBio, setProfileBio] = useState("");
@@ -124,7 +126,11 @@ export default function SettingsPage() {
     const params = new URLSearchParams(window.location.search);
     const platform = params.get("platform");
     const connectionId = params.get("connectionId");
-    if (!platform || !["googlecalendar", "gmail"].includes(platform)) return;
+    const PLATFORM_NAMES: Record<string, string> = {
+      googlecalendar: "Google Calendar", gmail: "Gmail", clickup: "ClickUp",
+      trello: "Trello", slack: "Slack", notion: "Notion", asana: "Asana",
+    };
+    if (!platform || !PLATFORM_NAMES[platform]) return;
     // Prefer URL param, fall back to sessionStorage
     const storedId = connectionId || (typeof sessionStorage !== "undefined" ? sessionStorage.getItem(`connection_${platform}`) : null);
     if (!storedId) return;
@@ -132,10 +138,7 @@ export default function SettingsPage() {
     if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(`connection_${platform}`);
     window.history.replaceState({}, "", "/settings");
     saveIntegration({ userId: convexUserId, platform: platform as any, composioConnectionId: storedId })
-      .then(() => {
-        const name = platform === "googlecalendar" ? "Google Calendar" : "Gmail";
-        toast.success(`${name} connected!`);
-      })
+      .then(() => toast.success(`${PLATFORM_NAMES[platform]} connected!`))
       .catch(() => toast.error("Failed to save connection."));
   }, [convexUserId]);
 
@@ -156,8 +159,10 @@ export default function SettingsPage() {
   async function handleDisconnect(platform: string) {
     if (!convexUserId) return;
     await removeIntegration({ userId: convexUserId, platform: platform as any });
-    const name = platform === "googlecalendar" ? "Google Calendar" : "Gmail";
-    toast.success(`${name} disconnected.`);
+    const names: Record<string, string> = {
+      googlecalendar: "Google Calendar", gmail: "Gmail", clickup: "ClickUp", trello: "Trello",
+    };
+    toast.success(`${names[platform] ?? "Integration"} disconnected.`);
   }
 
   useEffect(() => {
@@ -406,19 +411,35 @@ export default function SettingsPage() {
             <div className="flex items-center gap-2">
               <Mail className={cn("w-3.5 h-3.5 shrink-0", gmailConnected ? "text-[#EA4335]" : "text-muted-foreground/30")} />
               {gmailConnected ? (
-                <button
-                  onClick={() => void handleDisconnect("gmail")}
-                  className="text-xs text-muted-foreground/60 hover:text-destructive transition-colors"
-                >
-                  Disconnect
-                </button>
+                <button onClick={() => void handleDisconnect("gmail")} className="text-xs text-muted-foreground/60 hover:text-destructive transition-colors">Disconnect</button>
               ) : (
-                <button
-                  onClick={() => void handleConnect("gmail")}
-                  className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
-                >
-                  Connect
-                </button>
+                <button onClick={() => void handleConnect("gmail")} className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">Connect</button>
+              )}
+            </div>
+          </Row>
+          <Row
+            label="ClickUp"
+            sub={clickupConnected ? "Connected — sync projects on the Projects page" : "Sync your ClickUp projects into Ascend"}
+          >
+            <div className="flex items-center gap-2">
+              <FolderKanban className={cn("w-3.5 h-3.5 shrink-0", clickupConnected ? "text-[#7B68EE]" : "text-muted-foreground/30")} />
+              {clickupConnected ? (
+                <button onClick={() => void handleDisconnect("clickup")} className="text-xs text-muted-foreground/60 hover:text-destructive transition-colors">Disconnect</button>
+              ) : (
+                <button onClick={() => void handleConnect("clickup")} className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">Connect</button>
+              )}
+            </div>
+          </Row>
+          <Row
+            label="Trello"
+            sub={trelloConnected ? "Connected — sync boards on the Projects page" : "Sync your Trello boards into Ascend"}
+          >
+            <div className="flex items-center gap-2">
+              <FolderKanban className={cn("w-3.5 h-3.5 shrink-0", trelloConnected ? "text-[#0079BF]" : "text-muted-foreground/30")} />
+              {trelloConnected ? (
+                <button onClick={() => void handleDisconnect("trello")} className="text-xs text-muted-foreground/60 hover:text-destructive transition-colors">Disconnect</button>
+              ) : (
+                <button onClick={() => void handleConnect("trello")} className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">Connect</button>
               )}
             </div>
           </Row>
