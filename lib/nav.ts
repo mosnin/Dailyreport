@@ -17,6 +17,7 @@ import {
   Brain,
   CalendarDays,
   Activity,
+  LayoutGrid,
   type LucideIcon,
 } from "lucide-react";
 
@@ -36,6 +37,7 @@ export const NAV: NavSection[] = [
     items: [
       { href: "/today", label: "Today", icon: ListChecks },
       { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+      { href: "/trackers", label: "Trackers", icon: LayoutGrid },
       { href: "/analytics", label: "Analytics", icon: LineChart },
     ],
   },

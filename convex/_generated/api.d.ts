@@ -39,6 +39,8 @@ import type * as projects from "../projects.js";
 import type * as lifeScore from "../lifeScore.js";
 import type * as checklist from "../checklist.js";
 import type * as lifePatterns from "../lifePatterns.js";
+import type * as trackers from "../trackers.js";
+import type * as trackerAI from "../trackerAI.js";
 
 import type {
   ApiFromModules,
@@ -78,6 +80,8 @@ declare const fullApi: ApiFromModules<{
   lifeScore: typeof lifeScore;
   checklist: typeof checklist;
   lifePatterns: typeof lifePatterns;
+  trackers: typeof trackers;
+  trackerAI: typeof trackerAI;
 }>;
 
 /**

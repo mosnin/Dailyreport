@@ -382,4 +382,53 @@ export default defineSchema({
     computedAt: v.number(),
   }).index("by_user_date", ["userId", "date"]),
 
+  // ── Dynamic, user-defined trackers (AI-designed) ─────────────────────────
+  // A tracker is a custom thing the user measures (fitness, sobriety, a
+  // business metric, learning a language...). Its fields + scoring drive
+  // dynamically-rendered log forms, score rings and charts.
+  trackers: defineTable({
+    userId: v.id("users"),
+    name: v.string(),
+    emoji: v.optional(v.string()),
+    color: v.string(),                       // palette key (see lib/trackers.ts)
+    description: v.optional(v.string()),
+    cadence: v.union(v.literal("daily"), v.literal("weekly")),
+    fields: v.array(
+      v.object({
+        key: v.string(),
+        label: v.string(),
+        type: v.union(
+          v.literal("number"),
+          v.literal("scale"),
+          v.literal("boolean"),
+          v.literal("duration"),
+          v.literal("text")
+        ),
+        unit: v.optional(v.string()),
+        min: v.optional(v.number()),
+        max: v.optional(v.number()),
+        target: v.optional(v.number()),
+        direction: v.optional(
+          v.union(v.literal("higher"), v.literal("lower"), v.literal("target"), v.literal("boolean"))
+        ),
+        weight: v.number(),                  // 0 = logged but not scored
+      })
+    ),
+    archived: v.optional(v.boolean()),
+    order: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_user", ["userId"]),
+
+  trackerEntries: defineTable({
+    userId: v.id("users"),
+    trackerId: v.id("trackers"),
+    date: v.string(),
+    values: v.any(),                         // { [fieldKey]: number|boolean|string }
+    score: v.number(),                       // computed 0-100 for this entry
+    createdAt: v.number(),
+  })
+    .index("by_tracker_date", ["trackerId", "date"])
+    .index("by_user_date", ["userId", "date"]),
+
 });
