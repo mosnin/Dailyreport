@@ -47,3 +47,53 @@ export function scoreLabel(score: number): string {
   if (score >= 20) return "Needs work";
   return "Critical";
 }
+
+const clamp = (x: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, x));
+
+// Pure mirror of convex/trackers.ts scoreField, for legible UI breakdowns.
+export function scoreField(field: TrackerField, value: any): number | null {
+  if (value === undefined || value === null || value === "") return null;
+  if ((field.weight ?? 0) <= 0 || field.type === "text") return null;
+  if (field.type === "boolean") {
+    const on = value === true || value === "true";
+    return field.direction === "lower" ? (on ? 0 : 100) : on ? 100 : 0;
+  }
+  const num = Number(value);
+  if (Number.isNaN(num)) return null;
+  if (field.type === "scale") {
+    const min = field.min ?? 1;
+    const max = field.max ?? 10;
+    const t = (num - min) / Math.max(max - min, 1);
+    return clamp((field.direction === "lower" ? 1 - t : t) * 100);
+  }
+  const dir = field.direction ?? "higher";
+  if (dir === "lower") {
+    const target = field.target ?? 0;
+    if (num <= target) return 100;
+    const ref = (field.max ?? target * 2) - target || 1;
+    return clamp(100 - ((num - target) / ref) * 100);
+  }
+  if (dir === "target") {
+    const target = field.target ?? num;
+    const range = (field.max ?? target * 1.5) - (field.min ?? 0) || 1;
+    return clamp(100 - (Math.abs(num - target) / range) * 100);
+  }
+  const target = field.target ?? field.max ?? num;
+  if (target <= 0) return num > 0 ? 100 : 0;
+  return clamp((num / target) * 100);
+}
+
+/** Per-field contribution breakdown for a single entry's values. */
+export function contributions(fields: TrackerField[], values: Record<string, any>) {
+  const scored = fields.filter((f) => (f.weight ?? 0) > 0);
+  const wsum = scored.reduce((a, f) => a + (f.weight ?? 0), 0) || 1;
+  return scored.map((f) => {
+    const s = scoreField(f, values?.[f.key]);
+    return {
+      key: f.key,
+      label: f.label,
+      score: s,
+      weightPct: Math.round(((f.weight ?? 0) / wsum) * 100),
+    };
+  });
+}

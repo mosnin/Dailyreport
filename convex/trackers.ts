@@ -299,3 +299,71 @@ export const getOverview = query({
     };
   },
 });
+
+// Today's daily trackers with a done flag - powers the home checklist.
+export const getTodayChecklist = query({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return [];
+    const trackers = (await ctx.db.query("trackers").withIndex("by_user", (q) => q.eq("userId", args.userId)).collect())
+      .filter((t) => !t.archived && t.cadence === "daily")
+      .sort((a, b) => a.order - b.order);
+    const items = [];
+    for (const t of trackers) {
+      const entry = await ctx.db
+        .query("trackerEntries")
+        .withIndex("by_tracker_date", (q) => q.eq("trackerId", t._id).eq("date", args.date))
+        .unique();
+      items.push({ _id: t._id, name: t.name, emoji: t.emoji, color: t.color, done: entry != null, score: entry?.score ?? null });
+    }
+    return items;
+  },
+});
+
+// Composite + per-tracker score time series for charts.
+export const getSeries = query({
+  args: { userId: v.id("users"), days: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return { series: [], trackers: [] };
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return { series: [], trackers: [] };
+
+    const days = Math.min(args.days ?? 30, 120);
+    const trackers = (await ctx.db.query("trackers").withIndex("by_user", (q) => q.eq("userId", args.userId)).collect())
+      .filter((t) => !t.archived && t.fields.some((f) => (f.weight ?? 0) > 0))
+      .sort((a, b) => a.order - b.order);
+
+    const entriesByTracker: Record<string, any[]> = {};
+    for (const t of trackers) {
+      entriesByTracker[t._id] = await ctx.db
+        .query("trackerEntries")
+        .withIndex("by_tracker_date", (q) => q.eq("trackerId", t._id))
+        .collect();
+    }
+
+    const now = Date.now();
+    const series: any[] = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const endMs = now - i * DAY;
+      const row: any = {
+        date: dayStr(endMs),
+        label: new Date(endMs).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      };
+      const present: number[] = [];
+      for (const t of trackers) {
+        const cur = currentScore(entriesByTracker[t._id], t.cadence, endMs);
+        if (!cur.needsData) {
+          row[t._id] = cur.score;
+          present.push(cur.score);
+        }
+      }
+      row.composite = present.length ? Math.round(present.reduce((a, b) => a + b, 0) / present.length) : 0;
+      series.push(row);
+    }
+    return { series, trackers: trackers.map((t) => ({ id: t._id, name: t.name, color: t.color })) };
+  },
+});
