@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
-import { Menu } from "lucide-react";
+import { Menu, Settings, LogOut, ShieldAlert } from "lucide-react";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { useTodayStatus } from "@/hooks/useTodayStatus";
@@ -22,69 +23,116 @@ function tabHaptic() {
   }
 }
 
+const TILE_COLORS = [
+  "var(--progress)",
+  "var(--health)",
+  "var(--goals)",
+  "var(--finance)",
+  "var(--emotional)",
+  "var(--execution)",
+  "var(--primary)",
+];
+
+/** A single iOS-style app icon. */
+function AppIcon({
+  href,
+  label,
+  icon: Icon,
+  color,
+  dot,
+  onTap,
+}: {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  color: string;
+  dot?: boolean;
+  onTap: () => void;
+}) {
+  return (
+    <Link href={href} onClick={onTap} className="flex flex-col items-center gap-2">
+      <motion.span
+        whileTap={{ scale: 0.9 }}
+        className="relative grid aspect-square w-full place-items-center rounded-[26%] shadow-lg shadow-black/40"
+        style={{ backgroundImage: `linear-gradient(150deg, ${color}, color-mix(in oklch, ${color} 62%, black))` }}
+      >
+        <Icon className="h-7 w-7" style={{ color: "oklch(0.16 0.02 264)" }} />
+        {dot && <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-background bg-primary" />}
+      </motion.span>
+      <span className="w-full truncate text-center text-[11px] font-medium text-foreground/85">{label}</span>
+    </Link>
+  );
+}
+
 function MobileMenu() {
   const { collapse } = useExpandableScreen();
-  const pathname = usePathname();
   const { signOut } = useClerk();
   const { user } = useUser();
   const { convexUserId, convexUser } = useConvexUser();
   const { reportDone, affirmDone } = useTodayStatus(convexUserId);
   const isAdmin = (convexUser as { role?: string } | null | undefined)?.role === "admin";
-  const is = (href: string) => pathname === href;
   const dotFor = (s?: string) => (s === "report" ? !reportDone : s === "affirm" ? !affirmDone : false);
+
+  let colorIdx = 0;
+  const nextColor = () => TILE_COLORS[colorIdx++ % TILE_COLORS.length];
 
   return (
     <div
-      className="flex min-h-full flex-col px-7 pb-12"
+      className="flex min-h-full flex-col"
       style={{
-        paddingTop: "calc(env(safe-area-inset-top) + 1.5rem)",
-        paddingLeft: "calc(env(safe-area-inset-left) + 1.75rem)",
-        paddingRight: "calc(env(safe-area-inset-right) + 1.75rem)",
+        paddingTop: "calc(env(safe-area-inset-top) + 1.25rem)",
+        paddingBottom: "calc(env(safe-area-inset-bottom) + 2.5rem)",
+        paddingLeft: "calc(env(safe-area-inset-left) + 1.5rem)",
+        paddingRight: "calc(env(safe-area-inset-right) + 1.5rem)",
       }}
     >
-      <div className="flex items-center gap-3 mb-8">
-        <span className="grid place-items-center w-10 h-10 rounded-2xl bg-primary text-primary-foreground font-bold text-xl">A</span>
-        <span className="font-heading text-2xl font-bold tracking-tight">Ascend</span>
+      {/* Header */}
+      <div className="mb-7 flex items-center justify-between">
+        <Image src="/logo-dark.png" alt="Daily Report" width={1800} height={400} quality={100} className="h-6 w-auto" />
       </div>
 
-      <nav className="flex-1 space-y-7">
+      {/* App grid */}
+      <div className="flex-1 space-y-7">
         {NAV.map((section) => (
           <div key={section.label}>
-            <p className="px-1 text-[11px] font-semibold tracking-[0.18em] uppercase text-muted-foreground/50 mb-2.5">{section.label}</p>
-            <div className="flex flex-col gap-1">
+            <p className="mb-3 px-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/50">
+              {section.label}
+            </p>
+            <div className="grid grid-cols-4 gap-x-4 gap-y-5">
               {section.items.map((item) => (
-                <Link
+                <AppIcon
                   key={item.href}
                   href={item.href}
-                  onClick={collapse}
-                  className={cn(
-                    "flex items-center justify-between rounded-2xl px-4 py-3.5 text-[17px] font-medium transition-colors",
-                    is(item.href) ? "bg-white/10 text-foreground" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
-                  )}
-                >
-                  <span>{item.label}</span>
-                  {dotFor(item.status) && <span className="w-2 h-2 rounded-full bg-primary" />}
-                </Link>
+                  label={item.label}
+                  icon={item.icon}
+                  color={nextColor()}
+                  dot={dotFor(item.status)}
+                  onTap={collapse}
+                />
               ))}
             </div>
           </div>
         ))}
-      </nav>
 
-      <div className="mt-8 space-y-1 border-t border-white/10 pt-5">
-        {user && (
-          <p className="px-4 pb-2 text-sm text-muted-foreground truncate">{user.fullName ?? user.primaryEmailAddress?.emailAddress}</p>
-        )}
-        {isAdmin && (
-          <Link href="/admin" onClick={collapse} className="flex items-center rounded-2xl px-4 py-3.5 text-[17px] font-medium text-rose-400 hover:bg-white/5">Admin</Link>
-        )}
-        <Link href="/settings" onClick={collapse} className="flex items-center rounded-2xl px-4 py-3.5 text-[17px] font-medium text-muted-foreground hover:bg-white/5 hover:text-foreground">
-          Settings
-        </Link>
-        <button onClick={() => { collapse(); setTimeout(() => signOut({ redirectUrl: "/" }), 150); }} className="flex w-full items-center rounded-2xl px-4 py-3.5 text-[17px] font-medium text-muted-foreground hover:bg-white/5 hover:text-foreground">
-          Sign out
-        </button>
+        {/* System */}
+        <div>
+          <p className="mb-3 px-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/50">System</p>
+          <div className="grid grid-cols-4 gap-x-4 gap-y-5">
+            <AppIcon href="/settings" label="Settings" icon={Settings} color={nextColor()} onTap={collapse} />
+            {isAdmin && <AppIcon href="/admin" label="Admin" icon={ShieldAlert} color="var(--emotional)" onTap={collapse} />}
+            <button onClick={() => { collapse(); setTimeout(() => signOut({ redirectUrl: "/" }), 150); }} className="flex flex-col items-center gap-2">
+              <motion.span whileTap={{ scale: 0.9 }} className="grid aspect-square w-full place-items-center rounded-[26%] bg-white/8 shadow-lg shadow-black/40">
+                <LogOut className="h-7 w-7 text-foreground/80" />
+              </motion.span>
+              <span className="w-full truncate text-center text-[11px] font-medium text-foreground/85">Sign out</span>
+            </button>
+          </div>
+        </div>
       </div>
+
+      {user && (
+        <p className="mt-8 text-center text-xs text-muted-foreground">{user.fullName ?? user.primaryEmailAddress?.emailAddress}</p>
+      )}
     </div>
   );
 }
@@ -145,7 +193,7 @@ export function BottomTabBar() {
       </nav>
 
       <ExpandableScreenContent
-        className="bg-background/95 backdrop-blur-2xl"
+        className="bg-background/95 backdrop-blur-2xl overflow-y-auto"
         closeButtonClassName="text-foreground bg-white/10 hover:bg-white/20 !top-[calc(env(safe-area-inset-top)+0.75rem)] !right-5"
       >
         <MobileMenu />

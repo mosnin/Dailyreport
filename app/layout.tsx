@@ -11,8 +11,8 @@ const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Ascend - Life Analytics",
-  description: "Measure every dimension of your life. Track, score, and find the patterns that move you forward.",
+  title: "Daily Report",
+  description: "Track, score, and find the patterns across every dimension of your life.",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/favicon.png" }],
   },
-  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Ascend" },
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Daily Report" },
 };
 
 export const viewport: Viewport = {

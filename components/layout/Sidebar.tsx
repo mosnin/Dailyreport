@@ -71,12 +71,9 @@ export function Sidebar() {
   return (
     <aside className="hidden lg:flex flex-col shrink-0 w-60 border-r border-sidebar-border bg-sidebar/55 backdrop-blur-xl sticky top-0 h-screen">
       {/* Wordmark */}
-      <div className="flex items-center gap-2.5 px-5 h-16 shrink-0">
-        <Link href="/today" className="flex items-center gap-2.5">
-          <span className="grid place-items-center w-8 h-8 rounded-xl bg-primary text-primary-foreground font-bold text-lg">
-            A
-          </span>
-          <span className="font-heading text-lg font-bold tracking-tight">Ascend</span>
+      <div className="flex items-center px-5 h-16 shrink-0">
+        <Link href="/today" className="flex items-center">
+          <Image src="/logo-dark.png" alt="Daily Report" width={1800} height={400} quality={100} className="h-7 w-auto" />
         </Link>
       </div>
 
