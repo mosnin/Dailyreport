@@ -31,7 +31,7 @@ const AFFIRMATION_STYLES: StyleOption[] = [
     key: "power",
     label: "Power Declaration",
     description: "Short, commanding, and direct. Bold statements that own the reality without softness.",
-    example: "I run a seven-figure business. Every decision I make compounds my success. I am built for this — and this is built for me.",
+    example: "I run a seven-figure business. Every decision I make compounds my success. I am built for this - and this is built for me.",
   },
   {
     key: "spiritual",
@@ -43,13 +43,13 @@ const AFFIRMATION_STYLES: StyleOption[] = [
     key: "poetic",
     label: "Poetic",
     description: "Lyrical, metaphorical language. Evocative imagery rooted specifically in your dreams.",
-    example: "Like a river that carves through stone with patient certainty, I have carved my path — and wealth now flows to me as naturally as water finds the sea.",
+    example: "Like a river that carves through stone with patient certainty, I have carved my path - and wealth now flows to me as naturally as water finds the sea.",
   },
   {
     key: "identity",
     label: "Identity-Based",
     description: "Focuses on who you ARE, not just what you have. Deep identity statements.",
-    example: "I am the kind of person who builds extraordinary things. Creating wealth is not something I chase — it is simply who I am at my core.",
+    example: "I am the kind of person who builds extraordinary things. Creating wealth is not something I chase - it is simply who I am at my core.",
   },
   {
     key: "custom",
@@ -63,32 +63,32 @@ const VISUALIZATION_STYLES: StyleOption[] = [
   {
     key: "cinematic",
     label: "Cinematic",
-    description: "Full-sensory movie scenes. You are inside the moment — sight, sound, body, emotion.",
-    example: "You are seated at your desk, laptop glowing in the quiet room, the number on your screen impossible to misread: $1,000,000. Your breath catches. The weight of it — real, solid, undeniable — settles into your chest like something that was always supposed to be there.",
+    description: "Full-sensory movie scenes. You are inside the moment - sight, sound, body, emotion.",
+    example: "You are seated at your desk, laptop glowing in the quiet room, the number on your screen impossible to misread: $1,000,000. Your breath catches. The weight of it - real, solid, undeniable - settles into your chest like something that was always supposed to be there.",
   },
   {
     key: "meditative",
     label: "Meditative",
-    description: "Slow, peaceful, breath-anchored awareness. No drama — just deep knowing that it has arrived.",
-    example: "Breathe in slowly. Feel the warmth spreading across your chest. Beneath the noise of ordinary life you sense it — the deep, unshakeable knowing that everything you worked for has arrived. There is no urgency here. Only stillness, and a quiet, permanent peace.",
+    description: "Slow, peaceful, breath-anchored awareness. No drama - just deep knowing that it has arrived.",
+    example: "Breathe in slowly. Feel the warmth spreading across your chest. Beneath the noise of ordinary life you sense it - the deep, unshakeable knowing that everything you worked for has arrived. There is no urgency here. Only stillness, and a quiet, permanent peace.",
   },
   {
     key: "athletic",
     label: "Peak Performance",
     description: "Adrenaline, physical power, warrior energy. You are fully dialed in at the moment of victory.",
-    example: "The number hits your screen and your entire nervous system fires at once. Chest tight, jaw set, every nerve alive. This is what you trained for — not some distant dream but this exact moment. You exhale slowly, and the power in that exhale says everything.",
+    example: "The number hits your screen and your entire nervous system fires at once. Chest tight, jaw set, every nerve alive. This is what you trained for - not some distant dream but this exact moment. You exhale slowly, and the power in that exhale says everything.",
   },
   {
     key: "spiritual",
     label: "Spiritual",
     description: "Light, energy, divine presence. Your higher self witnessing the dream fulfilled.",
-    example: "Feel the light expanding from your heart center, reaching outward in all directions. Your higher self observes this moment with quiet certainty — this was always the destination, written into your path long before you could see it. The universe kept its promise. You kept yours.",
+    example: "Feel the light expanding from your heart center, reaching outward in all directions. Your higher self observes this moment with quiet certainty - this was always the destination, written into your path long before you could see it. The universe kept its promise. You kept yours.",
   },
   {
     key: "narrative",
     label: "Narrative Arc",
     description: "Story with a before and after. The contrast between who you were and who you are now.",
-    example: "There was a time you weren't sure you had it in you — those 3am moments when the gap between where you were and where you wanted to be felt infinite. Now you sit in the light of what you built. That version of you needed this moment. You gave it to them.",
+    example: "There was a time you weren't sure you had it in you - those 3am moments when the gap between where you were and where you wanted to be felt infinite. Now you sit in the light of what you built. That version of you needed this moment. You gave it to them.",
   },
   {
     key: "custom",
@@ -323,7 +323,7 @@ export default function CustomizePage() {
       {/* Save */}
       <div className="flex items-center justify-between pt-2 pb-8">
         <p className="text-xs text-muted-foreground">
-          Changes apply to new generations only — existing affirmations are unaffected.
+          Changes apply to new generations only - existing affirmations are unaffected.
         </p>
         <motion.button
           whileTap={{ scale: 0.97 }}

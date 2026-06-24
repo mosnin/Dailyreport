@@ -358,7 +358,7 @@ export const addProblemToToday = mutation({
   },
 });
 
-// No auth check — protected at HTTP route level by MODAL_AGENT_SECRET
+// No auth check - protected at HTTP route level by MODAL_AGENT_SECRET
 export const getRecentReportsForAgent = query({
   args: { userId: v.id("users"), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {

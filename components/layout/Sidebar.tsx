@@ -26,7 +26,7 @@ function NavLink({
 }: {
   href: string;
   label: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   active: boolean;
   dot?: boolean | null;
 }) {
@@ -69,7 +69,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden lg:flex flex-col shrink-0 w-60 border-r border-sidebar-border bg-sidebar sticky top-0 h-screen">
+    <aside className="hidden lg:flex flex-col shrink-0 w-60 border-r border-sidebar-border bg-sidebar/55 backdrop-blur-xl sticky top-0 h-screen">
       {/* Wordmark */}
       <div className="flex items-center gap-2.5 px-5 h-16 shrink-0">
         <Link href="/today" className="flex items-center gap-2.5">

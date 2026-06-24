@@ -171,7 +171,7 @@ export function useRealtimeAgent(handlers: ToolHandlers) {
   }
 
   const connect = useCallback(async () => {
-    // Use ref to avoid stale closure — state may have changed since callback was created
+    // Use ref to avoid stale closure - state may have changed since callback was created
     const cur = stateRef.current;
     if (cur === "connecting" || cur === "listening" || cur === "speaking") return;
     setAgentState("connecting");
@@ -287,7 +287,7 @@ export function useRealtimeAgent(handlers: ToolHandlers) {
       cleanup();
       setAgentState("error");
     }
-  // stateRef ensures we always read current state — no dependency on `state` needed
+  // stateRef ensures we always read current state - no dependency on `state` needed
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

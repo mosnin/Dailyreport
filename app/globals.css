@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ─────────────────────────────────────────────────────────────────────────
-   ASCEND — Bento analytics design system
+   ASCEND - Bento analytics design system
    A complete reset of the old "notebook" aesthetic. Dark-first, vibrant,
    tile-based. Type is geometric sans. Surfaces are deep; accents are loud.
    ───────────────────────────────────────────────────────────────────────── */
@@ -33,8 +33,9 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-brand-blue: var(--brand-blue);
 
-  /* Domain accents — one hue per scored life area. Used everywhere. */
+  /* Domain accents - one hue per scored life area. Used everywhere. */
   --color-health: var(--health);
   --color-goals: var(--goals);
   --color-finance: var(--finance);
@@ -62,7 +63,7 @@
   --radius-3xl: calc(var(--radius) + 20px);
 }
 
-/* ── Dark (primary aesthetic) — deep slate, vibrant tiles ───────────────── */
+/* ── Dark (primary aesthetic) - deep slate, vibrant tiles ───────────────── */
 .dark {
   --background:           oklch(0.17 0.012 264);
   --foreground:           oklch(0.97 0.004 264);
@@ -101,11 +102,12 @@
   --sidebar-foreground:   oklch(0.97 0.004 264);
   --sidebar-accent:       oklch(0.26 0.015 264);
   --sidebar-border:       oklch(1 0 0 / 8%);
+  --brand-blue:           #89b1fe;
 
   --radius: 1.25rem;
 }
 
-/* ── Light — soft warm canvas, same vibrant accents ─────────────────────── */
+/* ── Light - soft warm canvas, same vibrant accents ─────────────────────── */
 :root {
   --background:           oklch(0.975 0.006 95);
   --foreground:           oklch(0.20 0.02 264);
@@ -144,9 +146,13 @@
   --sidebar-foreground:   oklch(0.20 0.02 264);
   --sidebar-accent:       oklch(0.95 0.008 95);
   --sidebar-border:       oklch(0.90 0.006 95);
+  --brand-blue:           #89b1fe;
 
   --radius: 1.25rem;
 }
+
+/* App is dark-only */
+:root { color-scheme: dark; }
 
 @layer base {
   * {
@@ -198,7 +204,7 @@
   transform: translateY(-2px);
 }
 
-/* Tinted tiles — a vibrant solid surface keyed to a domain color */
+/* Tinted tiles - a vibrant solid surface keyed to a domain color */
 .tile-tint {
   color: oklch(0.20 0.03 264);
   border-color: transparent;
@@ -270,3 +276,23 @@ html, body { overscroll-behavior-y: none; }
 
 /* ── Marquee (kept for landing) ─────────────────────────────────────────── */
 .notebook-lines, .writing-lines { background-image: none; }
+
+/* ── GlassSurface integration ───────────────────────────────────────────────
+   Cards are GlassSurface tiles. Override the component's default centered,
+   padded content box so our own layout/padding controls the card interior. */
+.glass-surface__content {
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  padding: 0 !important;
+}
+/* Force the dark glass look regardless of OS color-scheme (app is dark-only) */
+.glass-surface--fallback {
+  background: rgba(255, 255, 255, 0.06) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.6) brightness(1.1);
+  backdrop-filter: blur(14px) saturate(1.6) brightness(1.1);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.10),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.05),
+    0 18px 40px -24px rgba(0, 0, 0, 0.8) !important;
+}

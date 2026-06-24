@@ -2,11 +2,11 @@ import { query } from "./_generated/server";
 import { v } from "convex/values";
 
 /* ───────────────────────────────────────────────────────────────────────────
-   Life Score — a weighted, credit-score-style measurement across six areas:
+   Life Score - a weighted, credit-score-style measurement across six areas:
    Health · Goals · Finance · Emotional · Progress · Execution.
 
-   Every area is scored 0–100 from the underlying logs over a trailing window.
-   The composite is mapped onto a 300–850 "credit score" scale for flair.
+   Every area is scored 0-100 from the underlying logs over a trailing window.
+   The composite is mapped onto a 300-850 "credit score" scale for flair.
    All scoring is deterministic so it renders without an AI round-trip.
    ─────────────────────────────────────────────────────────────────────────── */
 

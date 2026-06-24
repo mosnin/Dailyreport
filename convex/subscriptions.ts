@@ -2,7 +2,7 @@ import { mutation } from "./_generated/server";
 import { v } from "convex/values";
 
 // Called from /api/webhooks/creem after signature verification.
-// These are intentionally auth-free — security lives in the webhook signature check.
+// These are intentionally auth-free - security lives in the webhook signature check.
 
 export const activateProPlan = mutation({
   args: {

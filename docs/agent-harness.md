@@ -9,10 +9,10 @@
 
 The agent harness is the infrastructure layer that runs agent jobs. It consists of:
 
-- **Modal** — Python sandbox execution environment (cold-start, pay-per-use)
-- **`modal_agent/`** — Python package: orchestrator, client, types, app
-- **Convex `agentJobs` table** — job lifecycle tracking (real-time, queried by the UI)
-- **Next.js API routes** — bridge between Convex/browser and Modal
+- **Modal** - Python sandbox execution environment (cold-start, pay-per-use)
+- **`modal_agent/`** - Python package: orchestrator, client, types, app
+- **Convex `agentJobs` table** - job lifecycle tracking (real-time, queried by the UI)
+- **Next.js API routes** - bridge between Convex/browser and Modal
 
 ```
 Browser / Cron
@@ -113,14 +113,14 @@ agent_secrets = modal.Secret.from_name("dailyreport-agent")
 ```
 
 **Key settings:**
-- `min_containers=0` — no warm instances; cold start accepted to save cost
-- `scaledown_window=2` — container shuts down ~immediately after use (Modal v1.0 requires > 0)
-- `timeout=300` — 5-minute max per job (adequate for multi-step briefings with slow Composio calls)
-- `retries=0` — no automatic Modal retries; failure is surfaced immediately to the user
+- `min_containers=0` - no warm instances; cold start accepted to save cost
+- `scaledown_window=2` - container shuts down ~immediately after use (Modal v1.0 requires > 0)
+- `timeout=300` - 5-minute max per job (adequate for multi-step briefings with slow Composio calls)
+- `retries=0` - no automatic Modal retries; failure is surfaced immediately to the user
 
 **Two functions:**
-1. `run_agent_job(request_dict: dict)` — the actual agent runner (spawned async)
-2. `fastapi_app()` — ASGI app serving the `/run` and `/health` HTTP endpoints
+1. `run_agent_job(request_dict: dict)` - the actual agent runner (spawned async)
+2. `fastapi_app()` - ASGI app serving the `/run` and `/health` HTTP endpoints
 
 The FastAPI app authenticates via `Authorization: Bearer {MODAL_AGENT_SECRET}` before spawning jobs.
 
@@ -156,9 +156,9 @@ All requests authenticated with `Authorization: Bearer {MODAL_AGENT_SECRET}`.
 | `sync_tasks(user_id, tasks)` | POST `/api/agent/sync-tasks` | `syncTasks` | No |
 | `get_data(user_id, type)` | GET `/api/agent/data` | (query) | No |
 
-**`_post_with_retry(url, json_data, timeout, retries=2)`** — used by `complete_job` and `fail_job`. Raises after `retries+1` failed attempts, which causes the outer exception handler to call `fail_job` (or propagate the error if `fail_job` itself failed).
+**`_post_with_retry(url, json_data, timeout, retries=2)`** - used by `complete_job` and `fail_job`. Raises after `retries+1` failed attempts, which causes the outer exception handler to call `fail_job` (or propagate the error if `fail_job` itself failed).
 
-**`post_progress` is fire-and-forget** — exceptions are swallowed. A failed progress update is acceptable; a failed completion/failure update is not.
+**`post_progress` is fire-and-forget** - exceptions are swallowed. A failed progress update is acceptable; a failed completion/failure update is not.
 
 ---
 
@@ -208,7 +208,7 @@ Calls `api.externalTasks.syncTasks`. Errors logged, returns 500.
 ### `GET /api/agent/data`
 **Auth:** `Bearer MODAL_AGENT_SECRET`
 
-Accepts `?userId={convexUserId}&type=report|goals`. Returns report or goal data from Convex. Protected only by the Modal secret — no user session required (Modal acts on behalf of the user).
+Accepts `?userId={convexUserId}&type=report|goals`. Returns report or goal data from Convex. Protected only by the Modal secret - no user session required (Modal acts on behalf of the user).
 
 ---
 
@@ -217,7 +217,7 @@ Accepts `?userId={convexUserId}&type=report|goals`. Returns report or goal data 
 Triggered by `convex/crons.ts` hourly cron when user's local hour is 8.
 
 ```typescript
-// convex/agentScheduler.ts — "use node" runtime
+// convex/agentScheduler.ts - "use node" runtime
 export const triggerMorningBriefing = internalAction({
   args: { userId: v.id("users"), clerkId: v.string() },
   handler: async (ctx, args) => {
@@ -243,7 +243,7 @@ export const triggerMorningBriefing = internalAction({
 | `/api/agent/trigger` | Clerk session | Ensures only authenticated users can dispatch jobs |
 | `/api/agent/progress`, `/complete`, `/fail`, `/sync-tasks`, `/data` | `MODAL_AGENT_SECRET` bearer token | Ensures only the Modal container (acting as the agent) can update job state |
 | Convex mutations `completeJob`, `failJob`, `appendProgress` | Called via `ConvexHttpClient` (no auth) | Protected upstream by the route-level secret check |
-| Convex `syncTasks` | `userId` arg | No ownership check on upsert — trusted because only Modal (with secret) can reach this endpoint |
+| Convex `syncTasks` | `userId` arg | No ownership check on upsert - trusted because only Modal (with secret) can reach this endpoint |
 
 **Ownership check added in `markTaskComplete`:** When a user manually marks a task done from the UI, the mutation verifies `task.userId === args.userId` before patching.
 
@@ -258,11 +258,11 @@ export const triggerMorningBriefing = internalAction({
 ### One-time setup
 
 ```bash
-# 1. CI auth — generate a Modal API token, then add as GitHub repo secrets
+# 1. CI auth - generate a Modal API token, then add as GitHub repo secrets
 #    (MODAL_TOKEN_ID, MODAL_TOKEN_SECRET)
 modal token new --source github
 
-# 2. Runtime secrets — create the Modal Secret the agent reads at runtime
+# 2. Runtime secrets - create the Modal Secret the agent reads at runtime
 modal secret create dailyreport-agent \
   OPENAI_API_KEY=sk-... \
   COMPOSIO_API_KEY=... \

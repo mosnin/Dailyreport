@@ -71,7 +71,7 @@ function EnergyHeatmap({ dayScores }: { dayScores: DayScore[] }) {
             className="rounded-xl border border-border/50 bg-card px-3 py-2 w-fit text-xs"
           >
             <span className={cn("font-semibold", scoreText(tooltip.score))}>
-              {tooltip.dateStr} — {tooltip.score}/10
+              {tooltip.dateStr} - {tooltip.score}/10
             </span>
             {tooltip.keywords.length > 0 && (
               <span className="ml-2 text-muted-foreground">{tooltip.keywords.join(", ")}</span>
@@ -83,9 +83,9 @@ function EnergyHeatmap({ dayScores }: { dayScores: DayScore[] }) {
       <div className="flex flex-wrap items-center gap-4 pt-1">
         <span className="text-xs text-muted-foreground/50">Scale:</span>
         {[
-          { color: "bg-rose-500", label: "1–3 Drained" },
-          { color: "bg-amber-400", label: "4–6 Neutral" },
-          { color: "bg-emerald-500", label: "7–10 Energized" },
+          { color: "bg-rose-500", label: "1-3 Drained" },
+          { color: "bg-amber-400", label: "4-6 Neutral" },
+          { color: "bg-emerald-500", label: "7-10 Energized" },
           { color: "bg-muted/40 border border-border/30", label: "No data" },
         ].map(({ color, label }) => (
           <span key={label} className="flex items-center gap-1.5">

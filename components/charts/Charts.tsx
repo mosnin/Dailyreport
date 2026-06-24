@@ -124,7 +124,7 @@ export function AreaTrend({
   );
 }
 
-/** Scatter plot — correlate two metrics (e.g. sleep vs mood). */
+/** Scatter plot - correlate two metrics (e.g. sleep vs mood). */
 export function ScatterPlot({
   data,
   xKey,

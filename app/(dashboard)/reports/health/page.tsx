@@ -12,7 +12,6 @@ import { ScoreRing } from "@/components/bento/ScoreRing";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { scoreLabel } from "@/lib/areas";
-import { Check } from "lucide-react";
 
 const ACCENT = "var(--health)";
 const SECTION_LABEL =
@@ -20,7 +19,7 @@ const SECTION_LABEL =
 const INPUT =
   "w-full bg-background border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
 
-/** Reusable 1–10 selector. Selected button filled with the section accent. */
+/** Reusable 1-10 selector. Selected button filled with the section accent. */
 function Scale({
   value,
   onChange,
@@ -265,14 +264,14 @@ export default function HealthReportPage() {
                 min={0}
                 value={form.weight}
                 onChange={(e) => set("weight", e.target.value)}
-                placeholder="—"
+                placeholder="-"
                 className={INPUT}
               />
             </Field>
           </div>
 
           <div className="mt-5 space-y-2">
-            <span className="text-xs text-muted-foreground">Nutrition (1–10)</span>
+            <span className="text-xs text-muted-foreground">Nutrition (1-10)</span>
             <Scale
               value={form.nutrition}
               onChange={(v) => set("nutrition", v)}
@@ -288,7 +287,7 @@ export default function HealthReportPage() {
               <div className="my-3">
                 <ScoreRing value={healthArea.score} color={ACCENT} size={120}>
                   <div className="text-center">
-                    <p className="text-2xl font-bold numeral" style={{ color: ACCENT }}>
+                    <p className="text-2xl font-bold numeral text-foreground">
                       {Math.round(healthArea.score)}
                     </p>
                     <p className="text-[10px] text-muted-foreground">/ 100</p>
@@ -313,16 +312,16 @@ export default function HealthReportPage() {
           <h2 className="font-semibold mt-1 mb-4">Tune in to how you feel</h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             <div className="space-y-2">
-              <span className="text-xs text-muted-foreground">Energy (1–10)</span>
+              <span className="text-xs text-muted-foreground">Energy (1-10)</span>
               <Scale value={form.energy} onChange={(v) => set("energy", v)} />
             </div>
             <div className="space-y-2">
-              <span className="text-xs text-muted-foreground">Mood (1–10)</span>
+              <span className="text-xs text-muted-foreground">Mood (1-10)</span>
               <Scale value={form.mood} onChange={(v) => set("mood", v)} />
             </div>
             <div className="space-y-2">
               <span className="text-xs text-muted-foreground">
-                Stress (1–10, higher is worse)
+                Stress (1-10, higher is worse)
               </span>
               <Scale value={form.stress} onChange={(v) => set("stress", v)} />
             </div>
@@ -368,8 +367,8 @@ export default function HealthReportPage() {
       {/* Footer save */}
       <div className="sticky bottom-3 z-10 flex items-center justify-end gap-3">
         {savedAt && (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-background/80 backdrop-blur border border-border px-3 py-1.5 text-xs font-medium" style={{ color: ACCENT }}>
-            <Check className="size-3.5" /> Saved
+          <span className="inline-flex items-center rounded-full bg-background/80 backdrop-blur border border-border px-3 py-1.5 text-xs font-medium" style={{ color: ACCENT }}>
+            Saved
           </span>
         )}
         <Button

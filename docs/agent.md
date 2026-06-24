@@ -30,14 +30,14 @@ The Convex hourly cron (`convex/crons.ts`) runs every hour. For each user whose 
 User types a command on `/today` or `/agent`, clicks Send:
 1. `createJob` mutation creates a queued `agentJobs` record
 2. Client POSTs to `/api/agent/trigger` with `{ jobId, intent, convexUserId, connectedPlatforms, userName, userTimezone }`
-3. Trigger route calls Modal's `/run` endpoint (fire-and-forget — does not await)
+3. Trigger route calls Modal's `/run` endpoint (fire-and-forget - does not await)
 4. Returns `{ ok: true }` immediately; the UI polls via real-time Convex subscription
 
 ---
 
 ## System Prompt
 
-The system prompt is **dynamic** — built fresh for each invocation by `build_system_prompt(request)` in `modal_agent/orchestrator.py`. It injects:
+The system prompt is **dynamic** - built fresh for each invocation by `build_system_prompt(request)` in `modal_agent/orchestrator.py`. It injects:
 
 | Variable | Source | Purpose |
 |---|---|---|
@@ -70,12 +70,12 @@ This prevents the agent from, e.g., deleting a Trello card because the user said
 **Intent pattern:** starts with `"Morning briefing for {name} on {date}:"`
 
 Steps the agent should follow:
-1. `think()` — plan the briefing approach
+1. `think()` - plan the briefing approach
 2. `post_progress("Fetching your recent reports…")`
-3. `get_user_report()` — last 7 daily reports
-4. `get_user_goals()` — completion rates by period
+3. `get_user_report()` - last 7 daily reports
+4. `get_user_goals()` - completion rates by period
 5. If Google Calendar connected: fetch today's events via Composio tool
-6. `think()` — synthesize what matters most
+6. `think()` - synthesize what matters most
 7. `complete_job({"briefing": "...", "priorities": ["...", "...", "..."], "taskCount": N})`
 
 The briefing must be **specific**: actual goal category names, actual task counts, actual calendar events. Generic platitudes ("stay focused!") are explicitly prohibited by the system prompt.
@@ -84,20 +84,20 @@ The briefing must be **specific**: actual goal category names, actual task count
 **Intent pattern:** "pull my tasks", "what's overdue", "sync my Asana"
 
 Steps:
-1. `think()` — which platform, what filter
+1. `think()` - which platform, what filter
 2. `post_progress("Fetching tasks from Trello…")`
-3. Platform tool (Composio) — list cards/tasks
-4. `think()` — filter to open, relevant tasks (max 50)
-5. `sync_tasks_to_app(tasks_json)` — persists to `externalTasks` table; user sees them in `/today`
+3. Platform tool (Composio) - list cards/tasks
+4. `think()` - filter to open, relevant tasks (max 50)
+5. `sync_tasks_to_app(tasks_json)` - persists to `externalTasks` table; user sees them in `/today`
 6. `complete_job({"summary": "...", "actions": ["Synced 12 tasks from Trello, 3 overdue"]})`
 
 ### Create / Update / Delete
 **Intent pattern:** "add a task", "create a calendar event", "move that card to Done"
 
 Steps:
-1. `think()` — confirm all fields, verify intent, check reversibility
+1. `think()` - confirm all fields, verify intent, check reversibility
 2. `post_progress("Creating Trello card…")`
-3. Composio tool — execute the action
+3. Composio tool - execute the action
 4. `complete_job({"summary": "Done.", "actions": ["Created card 'Q2 Report' in Trello"]})`
 
 ### Failure Recovery
@@ -169,7 +169,7 @@ This guarantees the job never stays in `"running"` state due to a turn-limit iss
 
 | Invocation | Display location |
 |---|---|
-| Morning briefing | `/today` — "Morning briefing" card (filtered by intent prefix) |
-| User command from `/today` | `/today` — conversation thread |
-| User command from `/agent` | `/agent` — active job panel + briefing card |
+| Morning briefing | `/today` - "Morning briefing" card (filtered by intent prefix) |
+| User command from `/today` | `/today` - conversation thread |
+| User command from `/agent` | `/agent` - active job panel + briefing card |
 | Any completed job | Accessible via `listRecentJobs` anywhere in the app |

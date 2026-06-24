@@ -158,7 +158,7 @@ export function ProgressDashboard({ userId }: { userId: Id<"users"> }) {
       {chartData.length >= 2 && (
         <div>
           <p className="text-[10px] font-semibold tracking-[0.15em] uppercase text-muted-foreground/50 mb-2">
-            Momentum — {chartData.length}-week trend
+            Momentum - {chartData.length}-week trend
           </p>
           <ResponsiveContainer width="100%" height={72}>
             <LineChart data={chartData} margin={{ top: 4, right: 4, bottom: 4, left: 4 }}>

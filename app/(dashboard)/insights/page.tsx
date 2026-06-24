@@ -142,7 +142,7 @@ export default function InsightsPage() {
       <motion.div {...fadeUp(0)}>
         <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Progress</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Your direction at a glance — ask anything about your patterns.
+          Your direction at a glance - ask anything about your patterns.
         </p>
       </motion.div>
 

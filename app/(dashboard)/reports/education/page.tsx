@@ -7,7 +7,6 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { todayString, cn, formatDateLabel } from "@/lib/utils";
 import { toast } from "sonner";
-import { Trash2, BookOpen } from "lucide-react";
 
 import { BentoCard } from "@/components/bento/BentoCard";
 import { ScoreRing } from "@/components/bento/ScoreRing";
@@ -178,7 +177,7 @@ export default function EducationReportPage() {
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs text-muted-foreground">Mastery</label>
               <span className="text-xs font-semibold numeral" style={{ color: ACCENT }}>
-                {mastery.trim() ? `${Math.max(0, Math.min(100, Number(mastery)))}%` : "—"}
+                {mastery.trim() ? `${Math.max(0, Math.min(100, Number(mastery)))}%` : "-"}
               </span>
             </div>
             <input
@@ -233,7 +232,6 @@ export default function EducationReportPage() {
 
           {(todaySessions ?? []).length === 0 ? (
             <div className="flex flex-col items-center justify-center text-center py-8 text-muted-foreground">
-              <BookOpen className="size-6 mb-2 opacity-50" />
               <p className="text-sm">No sessions yet today.</p>
               <p className="text-xs text-muted-foreground/70 mt-1">
                 Log your first learning block.
@@ -255,11 +253,12 @@ export default function EducationReportPage() {
                   </div>
                   <Button
                     variant="ghost"
-                    size="icon-sm"
+                    size="sm"
                     onClick={() => handleRemove(s._id)}
                     aria-label="Remove session"
+                    className="text-xs text-muted-foreground"
                   >
-                    <Trash2 className="text-muted-foreground" />
+                    Remove
                   </Button>
                 </li>
               ))}

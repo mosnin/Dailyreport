@@ -174,11 +174,11 @@ export function WeeklyReportForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!r.weekActivity.trim()) {
-      toast.error("Q1 is required — describe how you spent your week.");
+      toast.error("Q1 is required - describe how you spent your week.");
       return;
     }
     if (!r.nextWeekPlan.trim()) {
-      toast.error("Q8 is required — write your plan for next week.");
+      toast.error("Q8 is required - write your plan for next week.");
       return;
     }
     setSaving(true);
@@ -306,7 +306,7 @@ export function WeeklyReportForm({
           </div>
         </div>
 
-        {/* Q1 — This week in brief */}
+        {/* Q1 - This week in brief */}
         <JournalSection number={1} title="This week in brief">
           <div>
             <NoteTextarea
@@ -322,7 +322,7 @@ export function WeeklyReportForm({
           </div>
         </JournalSection>
 
-        {/* Q2 — Who you connected with */}
+        {/* Q2 - Who you connected with */}
         <JournalSection number={2} title="Who you connected with">
           <div className="space-y-6">
             {/* People */}
@@ -392,7 +392,7 @@ export function WeeklyReportForm({
           </div>
         </JournalSection>
 
-        {/* Q3 — What you set out to accomplish */}
+        {/* Q3 - What you set out to accomplish */}
         <JournalSection number={3} title="What you set out to accomplish">
           <div className="space-y-2">
             {r.weeklyGoals.map((goal, i) => (
@@ -424,7 +424,7 @@ export function WeeklyReportForm({
           </div>
         </JournalSection>
 
-        {/* Q4 — What drained you */}
+        {/* Q4 - What drained you */}
         <JournalSection number={4} title="What drained you">
           <NoteTextarea
             value={r.emotionalDrain}
@@ -434,7 +434,7 @@ export function WeeklyReportForm({
           />
         </JournalSection>
 
-        {/* Q5 — Problems you're still carrying */}
+        {/* Q5 - Problems you're still carrying */}
         <JournalSection number={5} title="Problems you're still carrying">
           <div className="space-y-4">
             {r.problemsToSolve.map((problem, i) => (
@@ -474,7 +474,7 @@ export function WeeklyReportForm({
           </div>
         </JournalSection>
 
-        {/* Q6 — What you resolved */}
+        {/* Q6 - What you resolved */}
         <JournalSection number={6} title="What you resolved">
           <div className="space-y-2">
             {r.problemsSolvedThisWeek.map((item, i) => (
@@ -506,7 +506,7 @@ export function WeeklyReportForm({
           </div>
         </JournalSection>
 
-        {/* Q7 — Your practice this week */}
+        {/* Q7 - Your practice this week */}
         <JournalSection number={7} title="Your practice this week">
           <div className="flex gap-3">
             <button
@@ -538,7 +538,7 @@ export function WeeklyReportForm({
           </div>
         </JournalSection>
 
-        {/* Q8 — Into next week */}
+        {/* Q8 - Into next week */}
         <JournalSection number={8} title="Into next week">
           <div>
             <NoteTextarea

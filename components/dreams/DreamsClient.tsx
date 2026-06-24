@@ -10,7 +10,6 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CheckCircle2, Eye, RefreshCw, Play, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { todayString } from "@/lib/utils";
 import { DreamsManagement } from "./DreamsManagement";
@@ -75,16 +74,13 @@ function ScenarioCard({
         <span className="numeral text-xs font-semibold text-primary">
           {String(index + 1).padStart(2, "0")}
         </span>
-        {completed && (
-          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-        )}
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-1.5 leading-snug">
+        <h3 className="text-sm font-semibold text-foreground mb-1.5 leading-snug">
           {title}
         </h3>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
+        <p className="text-xs text-muted-foreground leading-relaxed">
           {description}
         </p>
       </div>
@@ -99,7 +95,6 @@ function ScenarioCard({
             onClick={onStart}
             className="flex items-center gap-1.5 text-xs font-medium text-primary hover:opacity-80 transition-opacity"
           >
-            <Play className="w-3 h-3" />
             Start 60s
           </button>
         )}
@@ -211,9 +206,8 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
         <div>
           <PageHeader eyebrow="Practice" title="Today's Visualizations" />
           <div className="flex flex-col items-center justify-center py-16 gap-4">
-            <Loader2 className="w-6 h-6 text-primary animate-spin" />
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              Generating your visualizations&hellip;
+            <p className="text-sm text-muted-foreground">
+              Generating your visualizations...
             </p>
           </div>
         </div>
@@ -253,7 +247,6 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
               disabled={generating}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-neutral-200 dark:border-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
             >
-              <RefreshCw className={cn("w-3 h-3", generating && "animate-spin")} />
               Regenerate
             </button>
           </div>
@@ -287,7 +280,6 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
       {/* ── All done state ── */}
       {allDone && (
         <div className="mb-8 rounded-2xl border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/20 p-6 text-center">
-          <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-3" />
           <p className="font-semibold text-emerald-800 dark:text-emerald-300">
             All 10 visualizations complete.
           </p>
@@ -329,7 +321,6 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
           {/* Header bar */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">
-              <Eye className="w-4 h-4 text-sky-500" />
               <span className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
                 Visualization {activeIdx !== null ? activeIdx + 1 : ""} of {totalCount}
               </span>
@@ -358,7 +349,6 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
                       onClick={startTimer}
                       className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-sky-500 hover:bg-sky-400 text-white text-sm font-medium transition-colors"
                     >
-                      <Play className="w-4 h-4" />
                       Begin 60 seconds
                     </button>
                   </div>
@@ -383,9 +373,6 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
                 {/* Phase: done */}
                 {phase === "done" && (
                   <div className="flex flex-col items-center gap-4 pt-2">
-                    <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center">
-                      <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-                    </div>
                     <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                       Visualization complete.
                     </p>
@@ -406,7 +393,6 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
                           className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-sky-500 hover:bg-sky-400 text-white text-sm font-medium transition-colors"
                         >
                           Next
-                          <ChevronRight className="w-3.5 h-3.5" />
                         </button>
                       )}
                     </div>

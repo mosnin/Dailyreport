@@ -43,7 +43,7 @@ export const getDigestData = internalQuery({
     const user = await ctx.db.get(args.userId);
     if (!user) return null;
 
-    // Build date strings for Mon–Sun
+    // Build date strings for Mon-Sun
     const monday = new Date(args.weekStartDate);
     const dates: string[] = [];
     for (let i = 0; i < 7; i++) {

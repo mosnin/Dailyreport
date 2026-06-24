@@ -18,6 +18,7 @@ function TrendBadge({ trend }: { trend?: number }) {
   if (trend == null || Number.isNaN(trend)) return null;
   const up = trend > 0;
   const flat = Math.abs(trend) < 0.5;
+  const rounded = Math.round(trend);
   return (
     <span
       className={cn(
@@ -25,11 +26,11 @@ function TrendBadge({ trend }: { trend?: number }) {
         flat
           ? "text-muted-foreground/60"
           : up
-          ? "text-emerald-500"
-          : "text-rose-500"
+          ? "text-emerald-400"
+          : "text-rose-400"
       )}
     >
-      {flat ? "→" : up ? "▲" : "▼"} {Math.abs(Math.round(trend))}
+      {flat ? "0" : `${up ? "+" : ""}${rounded}`}
     </span>
   );
 }
@@ -58,7 +59,7 @@ export default function AnalyticsPage() {
     convexUserId ? { userId: convexUserId, days: 90 } : "skip"
   ) as any[] | undefined;
 
-  // Loading state — wait for user + main series query.
+  // Loading state - wait for user + main series query.
   if (!convexUserId || series === undefined) {
     return (
       <div className="space-y-4 pb-6">
@@ -84,7 +85,7 @@ export default function AnalyticsPage() {
   const areasByKey: Record<string, any> = {};
   for (const a of current?.areas ?? []) areasByKey[a.key] = a;
 
-  // Radar — areas with data, only if >= 3.
+  // Radar - areas with data, only if >= 3.
   const radarData = (current?.areas ?? [])
     .filter((a: any) => !a.needsData && AREAS[a.key as AreaKey])
     .map((a: any) => ({ area: AREAS[a.key as AreaKey].label, score: a.score }));
@@ -209,21 +210,17 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {AREA_ORDER.map((key, i) => {
             const meta = AREAS[key];
-            const Icon = meta.icon;
             const area = areasByKey[key];
             const score = area?.score;
             return (
               <BentoCard key={key} href={meta.href} delay={0.04 * i}>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Icon className="h-4 w-4" style={{ color: meta.color }} />
-                    <span className="text-sm font-semibold">{meta.label}</span>
-                  </div>
+                  <span className="text-sm font-semibold">{meta.label}</span>
                   <TrendBadge trend={area?.trend} />
                 </div>
                 <div className="mt-1 flex items-baseline gap-2">
                   <span className="text-2xl font-bold tabular-nums">
-                    {score != null ? Math.round(score) : "—"}
+                    {score != null ? Math.round(score) : "-"}
                   </span>
                   {score != null && (
                     <span className="text-[11px] text-muted-foreground">

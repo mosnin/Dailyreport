@@ -69,7 +69,7 @@ export function TestimonialMarquee() {
               &ldquo;{t.quote}&rdquo;
             </p>
             <span className="text-xs text-neutral-400 dark:text-neutral-500 font-medium mt-auto">
-              — {t.name}
+              - {t.name}
             </span>
           </div>
         ))}

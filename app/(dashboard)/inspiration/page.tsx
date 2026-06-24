@@ -6,7 +6,6 @@ import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, todayString } from "@/lib/utils";
-import { Lightbulb, RefreshCw, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
@@ -77,12 +76,7 @@ function StoryCard({
             </div>
             <p className="font-medium text-sm leading-snug">{story.title}</p>
           </div>
-          <motion.div
-            animate={{ rotate: expanded ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <ChevronDown className="w-4 h-4 text-muted-foreground/50 shrink-0" />
-          </motion.div>
+          <span className="text-xs text-muted-foreground/50 shrink-0">{expanded ? "Hide" : "Read"}</span>
         </div>
       </button>
 
@@ -221,8 +215,7 @@ export default function InspirationPage() {
               generating && "opacity-50 cursor-not-allowed"
             )}
           >
-            <RefreshCw className={cn("w-3.5 h-3.5", generating && "animate-spin")} />
-            {generating ? "Generating…" : "Regenerate"}
+            {generating ? "Generating..." : "Regenerate"}
           </button>
         }
       />
@@ -231,7 +224,7 @@ export default function InspirationPage() {
       {showSkeletons ? (
         <>
           <div className="text-sm text-muted-foreground animate-pulse text-center py-2">
-            Crafting your wisdom stories…
+            Crafting your wisdom stories...
           </div>
           {[0, 1, 2, 3, 4].map((i) => <StorySkeleton key={i} index={i} />)}
         </>
@@ -262,9 +255,6 @@ export default function InspirationPage() {
         </motion.div>
       ) : !generating ? (
         <motion.div {...fadeUp(0.1)} className="text-center py-16 space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
-            <Lightbulb className="w-7 h-7 text-primary" />
-          </div>
           <div>
             <p className="font-semibold">No stories yet</p>
             <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
@@ -275,7 +265,6 @@ export default function InspirationPage() {
             onClick={handleRegenerate}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
           >
-            <Lightbulb className="w-4 h-4" />
             Generate stories
           </button>
         </motion.div>

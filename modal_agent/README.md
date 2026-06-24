@@ -1,4 +1,4 @@
-# DailyReport Agent — Modal Service
+# DailyReport Agent - Modal Service
 
 This Python service runs on Modal and orchestrates the DailyReport AI agent using the OpenAI Agents SDK and Composio platform integrations.
 

@@ -110,7 +110,7 @@ function CompactRow({
   bg,
   delay = 0,
 }: {
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
   color: string;
@@ -139,7 +139,7 @@ function StatCard({
   bg,
   delay = 0,
 }: {
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
   color: string;

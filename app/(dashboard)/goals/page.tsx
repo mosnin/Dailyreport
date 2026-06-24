@@ -14,7 +14,6 @@ import { ScoreRing } from "@/components/bento/ScoreRing";
 import { PageHeader } from "@/components/bento/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Check, Plus, Pencil, Trash2 } from "lucide-react";
 
 const GOALS = "var(--goals)";
 
@@ -91,13 +90,11 @@ function GoalRow({ goal }: { goal: any }) {
         className={cn(
           "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors",
           goal.completed
-            ? "border-transparent text-[oklch(0.2_0.03_264)]"
-            : "border-border text-transparent hover:border-[var(--goals)]"
+            ? "border-transparent"
+            : "border-border hover:border-[var(--goals)]"
         )}
         style={goal.completed ? { background: GOALS } : undefined}
-      >
-        <Check className="h-3 w-3" strokeWidth={3} />
-      </button>
+      />
 
       {editing ? (
         <input
@@ -134,9 +131,9 @@ function GoalRow({ goal }: { goal: any }) {
               setEditing(true);
             }}
             aria-label="Edit goal"
-            className="rounded-md p-1 text-muted-foreground/70 hover:text-foreground hover:bg-muted/60"
+            className="text-xs font-medium text-muted-foreground/70 hover:text-foreground"
           >
-            <Pencil className="h-3.5 w-3.5" />
+            Edit
           </button>
           <button
             type="button"
@@ -145,9 +142,9 @@ function GoalRow({ goal }: { goal: any }) {
               toast.success("Goal removed");
             }}
             aria-label="Delete goal"
-            className="rounded-md p-1 text-muted-foreground/70 hover:text-red-500 hover:bg-muted/60"
+            className="text-xs font-medium text-muted-foreground/70 hover:text-red-500"
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            Remove
           </button>
         </div>
       )}
@@ -208,7 +205,7 @@ function GoalList({ category, label }: { category: GoalCategory; label: string }
           </div>
         ) : total === 0 ? (
           <p className="py-3 text-sm text-muted-foreground/50">
-            No goals yet — add one below.
+            No goals yet - add one below.
           </p>
         ) : (
           <div className="divide-y divide-border/40">
@@ -228,12 +225,11 @@ function GoalList({ category, label }: { category: GoalCategory; label: string }
         />
         <Button
           type="submit"
-          size="icon"
           disabled={!input.trim()}
-          className="shrink-0"
+          className="shrink-0 font-semibold"
           style={{ background: GOALS, color: "oklch(0.2 0.03 264)" }}
         >
-          <Plus className="h-4 w-4" strokeWidth={2.5} />
+          Add
         </Button>
       </form>
     </BentoCard>
@@ -277,7 +273,7 @@ export default function GoalsPage() {
       <PageHeader
         eyebrow="Life domain"
         title="Goals"
-        subtitle="Your ambitions across every horizon — short, mid and long-term."
+        subtitle="Your ambitions across every horizon - short, mid and long-term."
         action={
           <Link
             href="/projects"

@@ -5,8 +5,6 @@ import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { BentoCard } from "@/components/bento/BentoCard";
-import { AREAS, type AreaKey } from "@/lib/areas";
-import { Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 
@@ -31,28 +29,22 @@ export function AIPatterns({ userId }: { userId: Id<"users"> }) {
     }
   }
 
-  const colorFor = (area: string) => (AREAS[area as AreaKey]?.color ?? "var(--primary)");
-
   return (
     <BentoCard delay={0.12}>
       <div className="flex items-center justify-between gap-3 mb-3">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-primary" />
-          <h2 className="font-semibold">AI patterns</h2>
-        </div>
+        <h2 className="font-semibold">AI patterns</h2>
         <button
           onClick={run}
           disabled={loading}
           className="inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-4 py-1.5 text-sm font-semibold disabled:opacity-60"
         >
-          {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-          {loading ? "Analyzing…" : patterns ? "Re-run" : "Find patterns"}
+          {loading ? "Analyzing..." : patterns ? "Re-run" : "Find patterns"}
         </button>
       </div>
 
       {!patterns && !loading && (
         <p className="text-sm text-muted-foreground">
-          Let AI scan every area together — sleep, mood, money, execution, projects — and surface the cross-domain
+          Let AI scan every area together - sleep, mood, money, execution, projects - and surface the cross-domain
           patterns moving your Life Score.
         </p>
       )}
@@ -67,9 +59,8 @@ export function AIPatterns({ userId }: { userId: Id<"users"> }) {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="rounded-2xl border border-border bg-background/40 p-3.5 flex gap-3"
+              className="rounded-2xl border border-border bg-background/40 p-3.5"
             >
-              <span className="mt-1.5 w-2 h-2 rounded-full shrink-0" style={{ background: colorFor(p.area) }} />
               <div className="min-w-0">
                 <p className="text-sm font-semibold">{p.title}</p>
                 <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{p.detail}</p>

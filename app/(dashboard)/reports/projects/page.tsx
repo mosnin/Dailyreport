@@ -143,7 +143,7 @@ function ProjectUpdateCard({
               className="w-full rounded-xl text-[oklch(0.2_0.03_264)] font-semibold"
               style={{ background: ACCENT }}
             >
-              {saving ? "Logging…" : "Log progress"}
+              {saving ? "Logging..." : "Log progress"}
             </Button>
           </div>
         </div>
@@ -247,7 +247,7 @@ export default function ProjectProgressReportPage() {
           </div>
         ) : (updates as any[]).length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No updates yet — log progress on a project above.
+            No updates yet - log progress on a project above.
           </p>
         ) : (
           <ul className="divide-y divide-border">

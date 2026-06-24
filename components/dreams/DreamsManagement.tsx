@@ -257,7 +257,7 @@ export function DreamsManagement({ userId }: { userId: Id<"users"> }) {
       <motion.div {...fadeUp(0)}>
         <h2 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">My Dreams</h2>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Your big life visions — the foundation everything else is built on.
+          Your big life visions - the foundation everything else is built on.
         </p>
       </motion.div>
       <motion.div

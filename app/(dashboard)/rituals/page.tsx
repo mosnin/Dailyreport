@@ -8,7 +8,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "motion/react";
 import { fadeUp } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, Circle, Plus, Trash2, Pencil, X, Check } from "lucide-react";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/bento/PageHeader";
 import { BentoCard } from "@/components/bento/BentoCard";
@@ -176,11 +175,11 @@ export default function RitualsPage() {
                               onChange={(e) => setEditingTitle(e.target.value)}
                               className="flex-1 text-sm bg-transparent focus:outline-none border-b border-primary pb-0.5"
                             />
-                            <button type="submit" className="text-primary shrink-0">
-                              <Check className="w-4 h-4" />
+                            <button type="submit" className="text-xs font-medium text-primary shrink-0">
+                              Save
                             </button>
-                            <button type="button" onClick={() => setEditingId(null)} className="text-muted-foreground shrink-0">
-                              <X className="w-3.5 h-3.5" />
+                            <button type="button" onClick={() => setEditingId(null)} className="text-xs text-muted-foreground shrink-0">
+                              Cancel
                             </button>
                           </form>
                         ) : (
@@ -188,15 +187,15 @@ export default function RitualsPage() {
                             <span className="flex-1 text-sm">{ritual.title}</span>
                             <button
                               onClick={() => { setEditingId(ritual._id); setEditingTitle(ritual.title); }}
-                              className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground/50 hover:text-foreground p-1 shrink-0"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-muted-foreground/50 hover:text-foreground p-1 shrink-0"
                             >
-                              <Pencil className="w-3.5 h-3.5" />
+                              Edit
                             </button>
                             <button
                               onClick={() => removeRitual({ ritualId: ritual._id as any })}
-                              className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground/50 hover:text-destructive p-1 shrink-0"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-muted-foreground/50 hover:text-destructive p-1 shrink-0"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              Delete
                             </button>
                           </>
                         )}
@@ -219,12 +218,12 @@ export default function RitualsPage() {
                       <motion.div
                         animate={{ scale: done ? [1, 1.18, 1] : 1 }}
                         transition={{ duration: 0.25 }}
-                        className="shrink-0"
+                        className="shrink-0 text-xs font-medium w-10"
                       >
                         {done ? (
-                          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                          <span className="text-emerald-500">Done</span>
                         ) : (
-                          <Circle className="w-5 h-5 text-muted-foreground/25" />
+                          <span className="text-muted-foreground/40">Mark</span>
                         )}
                       </motion.div>
                       <span
@@ -240,7 +239,7 @@ export default function RitualsPage() {
                 })}
               </AnimatePresence>
 
-              {/* Add row — only in edit mode */}
+              {/* Add row - only in edit mode */}
               {editing && (
                 <div className="border-t border-border/60">
                   <AnimatePresence mode="wait">
@@ -260,11 +259,11 @@ export default function RitualsPage() {
                           placeholder="What will you do every day?"
                           className="flex-1 text-sm bg-transparent focus:outline-none placeholder:text-muted-foreground/35"
                         />
-                        <button type="submit" disabled={!newTitle.trim()} className="text-primary disabled:opacity-30 shrink-0">
-                          <Check className="w-4 h-4" />
+                        <button type="submit" disabled={!newTitle.trim()} className="text-xs font-medium text-primary disabled:opacity-30 shrink-0">
+                          Save
                         </button>
-                        <button type="button" onClick={() => { setAdding(false); setNewTitle(""); }} className="text-muted-foreground shrink-0">
-                          <X className="w-3.5 h-3.5" />
+                        <button type="button" onClick={() => { setAdding(false); setNewTitle(""); }} className="text-xs text-muted-foreground shrink-0">
+                          Cancel
                         </button>
                       </motion.form>
                     ) : (
@@ -276,7 +275,6 @@ export default function RitualsPage() {
                         onClick={() => setAdding(true)}
                         className="w-full flex items-center gap-3 px-5 py-3.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
                       >
-                        <Plus className="w-4 h-4 shrink-0" />
                         Add ritual
                       </motion.button>
                     )}

@@ -13,14 +13,6 @@ import { BentoCard } from "@/components/bento/BentoCard";
 import { ScoreRing } from "@/components/bento/ScoreRing";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  FolderKanban,
-  ExternalLink,
-  Archive,
-  Trash2,
-  RefreshCw,
-  Plus,
-} from "lucide-react";
 
 const ACCENT = "var(--progress)";
 const SECTION_LABEL =
@@ -118,7 +110,7 @@ function ConnectorRow({
         projects: data.projects ?? [],
       });
       toast.success(
-        `${label} synced — ${result.created} created, ${result.updated} updated`
+        `${label} synced - ${result.created} created, ${result.updated} updated`
       );
     } catch {
       toast.error(`Could not sync ${label}`);
@@ -130,7 +122,6 @@ function ConnectorRow({
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2.5">
       <div className="flex items-center gap-2 min-w-0">
-        <FolderKanban className="size-4 text-muted-foreground shrink-0" />
         <span className="text-sm font-medium truncate">{label}</span>
         {connected && (
           <span
@@ -147,10 +138,9 @@ function ConnectorRow({
           size="sm"
           onClick={handleSync}
           disabled={busy}
-          className="rounded-lg gap-1.5"
+          className="rounded-lg"
         >
-          <RefreshCw className={cn("size-3.5", busy && "animate-spin")} />
-          {busy ? "Syncing…" : "Sync now"}
+          {busy ? "Syncing..." : "Sync now"}
         </Button>
       ) : (
         <Button
@@ -160,7 +150,7 @@ function ConnectorRow({
           className="rounded-lg text-[oklch(0.2_0.03_264)] font-semibold"
           style={{ background: ACCENT }}
         >
-          {busy ? "…" : "Connect"}
+          {busy ? "..." : "Connect"}
         </Button>
       )}
     </div>
@@ -254,11 +244,10 @@ function CreateProjectCard({ userId }: { userId: Id<"users"> }) {
         <Button
           onClick={handleCreate}
           disabled={saving}
-          className="w-full rounded-xl gap-1.5 text-[oklch(0.2_0.03_264)] font-semibold"
+          className="w-full rounded-xl text-[oklch(0.2_0.03_264)] font-semibold"
           style={{ background: ACCENT }}
         >
-          <Plus className="size-4" />
-          {saving ? "Creating…" : "Create"}
+          {saving ? "Creating..." : "Create"}
         </Button>
       </div>
     </BentoCard>
@@ -303,42 +292,39 @@ function ProjectTile({
     <BentoCard className="col-span-2 lg:col-span-1" delay={delay}>
       <div className="flex items-start justify-between gap-2">
         <SourceChip source={project.source} />
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           {project.externalUrl && (
             <a
               href={project.externalUrl}
               target="_blank"
               rel="noreferrer"
-              className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              title="Open externally"
+              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              <ExternalLink className="size-3.5" />
+              Open
             </a>
           )}
           <button
             type="button"
             onClick={handleArchive}
             disabled={busy}
-            className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
-            title="Archive"
+            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
           >
-            <Archive className="size-3.5" />
+            Archive
           </button>
           <button
             type="button"
             onClick={handleDelete}
             disabled={busy}
-            className="rounded-md p-1.5 text-muted-foreground hover:text-destructive hover:bg-muted transition-colors disabled:opacity-50"
-            title="Delete"
+            className="text-xs font-medium text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
           >
-            <Trash2 className="size-3.5" />
+            Remove
           </button>
         </div>
       </div>
 
       <div className="flex items-center justify-center my-3">
         <ScoreRing value={project.progress ?? 0} color={ACCENT} size={64} stroke={7}>
-          <span className="text-xs font-bold numeral" style={{ color: ACCENT }}>
+          <span className="text-xs font-bold numeral text-foreground">
             {Math.round(project.progress ?? 0)}%
           </span>
         </ScoreRing>
@@ -385,7 +371,7 @@ export default function ProjectsPage() {
         <PageHeader
           eyebrow="Life domain"
           title="Projects"
-          subtitle="Everything you're building — synced or tracked by hand."
+          subtitle="Everything you're building - synced or tracked by hand."
           action={action}
         />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -408,7 +394,7 @@ export default function ProjectsPage() {
       <PageHeader
         eyebrow="Life domain"
         title="Projects"
-        subtitle="Everything you're building — synced or tracked by hand."
+        subtitle="Everything you're building - synced or tracked by hand."
         action={action}
       />
 
@@ -445,7 +431,6 @@ export default function ProjectsPage() {
         {/* Projects grid */}
         {visibleProjects.length === 0 ? (
           <BentoCard className="col-span-2 lg:col-span-4 flex flex-col items-center justify-center text-center py-12">
-            <FolderKanban className="size-7 text-muted-foreground mb-3" />
             <p className={SECTION_LABEL}>No projects yet</p>
             <p className="text-sm text-muted-foreground mt-2">
               Connect a tool above or create your first project by hand.

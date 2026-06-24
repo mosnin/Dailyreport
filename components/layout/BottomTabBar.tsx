@@ -2,16 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import { motion } from "motion/react";
 import { Menu, SlidersHorizontal, ShieldAlert, LogOut } from "lucide-react";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { useTodayStatus } from "@/hooks/useTodayStatus";
 import { useConvexUser } from "@/hooks/useConvexUser";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { NAV, BOTTOM_TABS } from "@/lib/nav";
+import {
+  ExpandableScreen,
+  ExpandableScreenTrigger,
+  ExpandableScreenContent,
+  useExpandableScreen,
+} from "@/components/ui/expandable-screen";
 
 function tabHaptic() {
   if (typeof navigator !== "undefined" && "vibrate" in navigator) {
@@ -19,24 +22,78 @@ function tabHaptic() {
   }
 }
 
-export function BottomTabBar() {
+function MobileMenu() {
+  const { collapse } = useExpandableScreen();
   const pathname = usePathname();
   const { signOut } = useClerk();
   const { user } = useUser();
   const { convexUserId, convexUser } = useConvexUser();
   const { reportDone, affirmDone } = useTodayStatus(convexUserId);
   const isAdmin = (convexUser as { role?: string } | null | undefined)?.role === "admin";
-
-  const [open, setOpen] = useState(false);
-  const close = () => setOpen(false);
   const is = (href: string) => pathname === href;
   const dotFor = (s?: string) => (s === "report" ? !reportDone : s === "affirm" ? !affirmDone : false);
 
   return (
-    <>
+    <div className="flex min-h-full flex-col px-6 pt-7 pb-10 safe-top">
+      <div className="flex items-center gap-2.5 mb-6">
+        <span className="grid place-items-center w-9 h-9 rounded-xl bg-primary text-primary-foreground font-bold text-lg">A</span>
+        <span className="font-heading text-xl font-bold tracking-tight">Ascend</span>
+      </div>
+
+      <nav className="flex-1 space-y-6">
+        {NAV.map((section) => (
+          <div key={section.label}>
+            <p className="text-[11px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/60 mb-2">{section.label}</p>
+            <div className="grid grid-cols-1 gap-0.5">
+              {section.items.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={collapse}
+                  className={cn(
+                    "flex items-center justify-between rounded-2xl px-4 py-3 text-lg font-medium transition-colors",
+                    is(item.href) ? "bg-white/10 text-foreground" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <span>{item.label}</span>
+                  {dotFor(item.status) && <span className="w-2 h-2 rounded-full bg-primary" />}
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      <div className="mt-6 space-y-1 border-t border-white/10 pt-4">
+        {user && (
+          <p className="px-4 pb-2 text-sm text-muted-foreground truncate">{user.fullName ?? user.primaryEmailAddress?.emailAddress}</p>
+        )}
+        {isAdmin && (
+          <Link href="/admin" onClick={collapse} className="flex items-center rounded-2xl px-4 py-3 text-base font-medium text-rose-400 hover:bg-white/5">Admin</Link>
+        )}
+        <Link href="/settings" onClick={collapse} className="flex items-center gap-3 rounded-2xl px-4 py-3 text-base font-medium text-muted-foreground hover:text-foreground">
+          <SlidersHorizontal className="w-4 h-4" /> Settings
+        </Link>
+        <button onClick={() => { collapse(); setTimeout(() => signOut({ redirectUrl: "/" }), 150); }} className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-base font-medium text-muted-foreground hover:text-foreground">
+          <LogOut className="w-4 h-4" /> Sign out
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function BottomTabBar() {
+  const pathname = usePathname();
+  const { convexUserId } = useConvexUser();
+  const { reportDone, affirmDone } = useTodayStatus(convexUserId);
+  const is = (href: string) => pathname === href;
+  const dotFor = (s?: string) => (s === "report" ? !reportDone : s === "affirm" ? !affirmDone : false);
+
+  return (
+    <ExpandableScreen layoutId="mobile-nav" triggerRadius="9999px" contentRadius="0px" animationDuration={0.35}>
       <nav
         aria-label="Primary"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/85 backdrop-blur-xl border-t border-border/50"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/70 backdrop-blur-xl border-t border-white/10"
         style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
       >
         <ul className="flex items-stretch px-1 pt-1">
@@ -67,77 +124,25 @@ export function BottomTabBar() {
             );
           })}
           <li className="flex-1 flex">
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.92 }}
-              onClick={() => { tabHaptic(); setOpen(true); }}
-              className="relative flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[56px] pt-2 pb-1"
-            >
-              <Menu className={cn("w-5 h-5", open ? "text-primary" : "text-muted-foreground/60")} />
-              <span className={cn("text-[10px] font-medium", open ? "text-primary" : "text-muted-foreground/60")}>More</span>
-            </motion.button>
+            <ExpandableScreenTrigger className="flex-1 flex">
+              <div
+                onClick={tabHaptic}
+                className="flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[56px] pt-2 pb-1 text-muted-foreground/60"
+              >
+                <Menu className="w-5 h-5" />
+                <span className="text-[10px] font-medium">More</span>
+              </div>
+            </ExpandableScreenTrigger>
           </li>
         </ul>
       </nav>
 
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="w-72 p-0 flex flex-col">
-          <div className="flex items-center gap-2.5 px-5 h-16 border-b border-border shrink-0">
-            <span className="grid place-items-center w-8 h-8 rounded-xl bg-primary text-primary-foreground font-bold text-lg">A</span>
-            <span className="font-heading text-lg font-bold tracking-tight">Ascend</span>
-          </div>
-
-          <ScrollArea className="flex-1 min-h-0">
-            <nav className="flex flex-col p-3 space-y-3">
-              {NAV.map((section) => (
-                <div key={section.label}>
-                  <p className="px-3 pt-1 pb-1 text-[10px] font-semibold tracking-[0.14em] uppercase text-muted-foreground/50">{section.label}</p>
-                  <div className="space-y-0.5">
-                    {section.items.map((item) => {
-                      const Icon = item.icon;
-                      const active = is(item.href);
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={close}
-                          className={cn("relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors", active ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground")}
-                        >
-                          <Icon className={cn("w-[18px] h-[18px] shrink-0", active && "text-primary")} />
-                          <span className="flex-1">{item.label}</span>
-                          {dotFor(item.status) && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </nav>
-          </ScrollArea>
-
-          <div className="shrink-0 border-t border-border p-3 space-y-1 bg-card">
-            {user && (
-              <div className="flex items-center gap-3 px-2 py-2 mb-1">
-                <div className="w-7 h-7 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
-                  {(user.firstName?.[0] ?? "U").toUpperCase()}
-                </div>
-                <span className="text-sm font-medium truncate">{user.fullName ?? user.primaryEmailAddress?.emailAddress}</span>
-              </div>
-            )}
-            {isAdmin && (
-              <Link href="/admin" onClick={close} className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-rose-500 hover:bg-rose-500/10 w-full">
-                <ShieldAlert className="w-4 h-4 shrink-0" /> Admin
-              </Link>
-            )}
-            <Link href="/settings" onClick={close} className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground w-full">
-              <SlidersHorizontal className="w-4 h-4 shrink-0" /> Settings
-            </Link>
-            <button onClick={() => { close(); setTimeout(() => signOut({ redirectUrl: "/" }), 200); }} className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground w-full">
-              <LogOut className="w-4 h-4 shrink-0" /> Sign out
-            </button>
-          </div>
-        </SheetContent>
-      </Sheet>
-    </>
+      <ExpandableScreenContent
+        className="bg-background/95 backdrop-blur-2xl"
+        closeButtonClassName="text-foreground bg-white/10 hover:bg-white/20"
+      >
+        <MobileMenu />
+      </ExpandableScreenContent>
+    </ExpandableScreen>
   );
 }
