@@ -22,9 +22,9 @@ export function DitherBackground() {
         enableMouseInteraction
         mouseRadius={0.3}
         colorNum={3.3}
-        waveAmplitude={0}
+        waveAmplitude={0.3}
         waveFrequency={3.2}
-        waveSpeed={0.06}
+        waveSpeed={0.4}
       />
     </div>
   );
