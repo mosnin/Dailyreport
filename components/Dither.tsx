@@ -176,6 +176,7 @@ function DitheredWaves(props: WaveProps) {
   const mesh = useRef<THREE.Mesh>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const { size, gl } = useThree();
+  const invalidate = useThree((s) => s.invalidate);
 
   const waveUniformsRef = useRef({
     time: new THREE.Uniform(0),
@@ -212,6 +213,19 @@ function DitheredWaves(props: WaveProps) {
     window.addEventListener("pointermove", onMove);
     return () => window.removeEventListener("pointermove", onMove);
   }, [enableMouseInteraction, gl]);
+
+  // Drive a continuous render loop explicitly. This guarantees the animation
+  // runs regardless of how the EffectComposer interacts with r3f's frameloop.
+  useEffect(() => {
+    if (disableAnimation) return;
+    let raf = 0;
+    const tick = () => {
+      invalidate();
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [invalidate, disableAnimation]);
 
   useFrame(({ clock }) => {
     const u = waveUniformsRef.current;
@@ -276,7 +290,7 @@ export default function Dither({
       className="dither-container"
       camera={{ position: [0, 0, 6] }}
       dpr={[1, 2]}
-      frameloop="always"
+      frameloop="demand"
       resize={{ scroll: false, offsetSize: true }}
       style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }}
       gl={{ antialias: true, preserveDrawingBuffer: true }}
