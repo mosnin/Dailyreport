@@ -11,7 +11,7 @@ const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Ascend — Life Analytics",
+  title: "Ascend - Life Analytics",
   description: "Measure every dimension of your life. Track, score, and find the patterns that move you forward.",
   manifest: "/manifest.json",
   icons: {
@@ -36,7 +36,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
-      <html lang="en" className={`${geist.variable} ${geistMono.variable} h-full antialiased`} suppressHydrationWarning>
+      <html lang="en" className={`dark ${geist.variable} ${geistMono.variable} h-full antialiased`} style={{ colorScheme: "dark" }} suppressHydrationWarning>
         <body className="min-h-full bg-background text-foreground">
           <ThemeProvider>
             <ConvexWithClerkProvider>

@@ -58,7 +58,7 @@ export default function AnalyticsPage() {
     convexUserId ? { userId: convexUserId, days: 90 } : "skip"
   ) as any[] | undefined;
 
-  // Loading state — wait for user + main series query.
+  // Loading state - wait for user + main series query.
   if (!convexUserId || series === undefined) {
     return (
       <div className="space-y-4 pb-6">
@@ -84,7 +84,7 @@ export default function AnalyticsPage() {
   const areasByKey: Record<string, any> = {};
   for (const a of current?.areas ?? []) areasByKey[a.key] = a;
 
-  // Radar — areas with data, only if >= 3.
+  // Radar - areas with data, only if >= 3.
   const radarData = (current?.areas ?? [])
     .filter((a: any) => !a.needsData && AREAS[a.key as AreaKey])
     .map((a: any) => ({ area: AREAS[a.key as AreaKey].label, score: a.score }));
@@ -223,7 +223,7 @@ export default function AnalyticsPage() {
                 </div>
                 <div className="mt-1 flex items-baseline gap-2">
                   <span className="text-2xl font-bold tabular-nums">
-                    {score != null ? Math.round(score) : "—"}
+                    {score != null ? Math.round(score) : "-"}
                   </span>
                   {score != null && (
                     <span className="text-[11px] text-muted-foreground">

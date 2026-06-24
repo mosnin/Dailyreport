@@ -178,7 +178,7 @@ export default function EducationReportPage() {
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs text-muted-foreground">Mastery</label>
               <span className="text-xs font-semibold numeral" style={{ color: ACCENT }}>
-                {mastery.trim() ? `${Math.max(0, Math.min(100, Number(mastery)))}%` : "—"}
+                {mastery.trim() ? `${Math.max(0, Math.min(100, Number(mastery)))}%` : "-"}
               </span>
             </div>
             <input

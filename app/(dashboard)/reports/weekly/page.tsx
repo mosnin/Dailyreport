@@ -131,7 +131,7 @@ export default function WeeklyReportPage() {
           <div className="space-y-2">
             <p className="font-heading text-xl font-semibold">The week isn&apos;t over yet</p>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              The weekly review opens on Sunday — a moment to close the week with intention.
+              The weekly review opens on Sunday - a moment to close the week with intention.
               Your next window is{" "}
               <span className="font-medium text-foreground">{format(next, "EEEE, MMMM d")}</span>.
             </p>
@@ -150,7 +150,7 @@ export default function WeeklyReportPage() {
     <div className="max-w-3xl">
       <PageHeader
         eyebrow="Weekly review"
-        title={`${format(parseISO(weekStart + "T00:00:00"), "MMM d")} — ${format(new Date(), "MMM d, yyyy")}`}
+        title={`${format(parseISO(weekStart + "T00:00:00"), "MMM d")} - ${format(new Date(), "MMM d, yyyy")}`}
         subtitle="Seven days to account for."
         action={existing ? (
           <span className="flex items-center gap-1 text-xs font-medium text-emerald-400"><CheckCircle2 className="w-3.5 h-3.5" /> Saved</span>

@@ -5,7 +5,7 @@ import OpenAI from "openai";
 
 /**
  * Cross-domain AI pattern detection. Pulls a compact snapshot from every life
- * area — scores, health, finances, learning, projects, goals, recent reports —
+ * area - scores, health, finances, learning, projects, goals, recent reports -
  * and asks the model to surface non-obvious patterns and correlations the
  * deterministic scoring can't see (e.g. "spending spikes follow low-sleep weeks").
  */

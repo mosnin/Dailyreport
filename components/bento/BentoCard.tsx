@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
+// GlassSurface is plain JS (no types) - imported as the universal card surface.
+import GlassSurface from "@/components/GlassSurface";
 
 type BentoCardProps = {
   children: React.ReactNode;
   className?: string;
-  /** Solid vibrant tint keyed to a CSS color var (e.g. "var(--health)") */
+  /** accepted for backwards-compat; cards are uniform glass, so this is ignored */
   tint?: string;
   href?: string;
   onClick?: () => void;
@@ -15,38 +17,53 @@ type BentoCardProps = {
   delay?: number;
 };
 
+const Glass = GlassSurface as unknown as React.ComponentType<{
+  children: React.ReactNode;
+  width?: number | string;
+  height?: number | string;
+  borderRadius?: number;
+  backgroundOpacity?: number;
+  blur?: number;
+  displace?: number;
+  distortionScale?: number;
+  brightness?: number;
+  opacity?: number;
+  className?: string;
+}>;
+
 /**
- * The atomic bento surface. Either a plain card or a vibrant tinted tile.
- * Becomes a link or button when href/onClick provided.
+ * The universal card surface: a glass tile that floats over the animated
+ * background. No icons, tints, or ornamental chrome live here - only content.
  */
 export function BentoCard({
   children,
   className,
-  tint,
   href,
   onClick,
   interactive,
   delay = 0,
 }: BentoCardProps) {
   const isInteractive = interactive ?? (!!href || !!onClick);
-  const style = tint
-    ? ({ background: tint, borderColor: "transparent" } as React.CSSProperties)
-    : undefined;
 
   const inner = (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1], delay }}
-      className={cn(
-        "bento p-5 h-full",
-        tint && "tile-tint",
-        isInteractive && "bento-hover cursor-pointer",
-        className
-      )}
-      style={style}
+      className={cn("h-full w-full", isInteractive && "bento-hover")}
     >
-      {children}
+      <Glass
+        width="100%"
+        height="100%"
+        borderRadius={28}
+        backgroundOpacity={0.4}
+        blur={12}
+        displace={1.2}
+        distortionScale={-150}
+        className={cn("glass-card h-full w-full", className)}
+      >
+        <div className="h-full w-full p-5">{children}</div>
+      </Glass>
     </motion.div>
   );
 

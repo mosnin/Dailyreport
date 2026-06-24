@@ -111,7 +111,7 @@ export const remove = mutation({
   },
 });
 
-// Project progress report — log an update and advance project progress
+// Project progress report - log an update and advance project progress
 export const addUpdate = mutation({
   args: {
     userId: v.id("users"),

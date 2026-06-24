@@ -208,7 +208,7 @@ function GoalList({ category, label }: { category: GoalCategory; label: string }
           </div>
         ) : total === 0 ? (
           <p className="py-3 text-sm text-muted-foreground/50">
-            No goals yet — add one below.
+            No goals yet - add one below.
           </p>
         ) : (
           <div className="divide-y divide-border/40">
@@ -277,7 +277,7 @@ export default function GoalsPage() {
       <PageHeader
         eyebrow="Life domain"
         title="Goals"
-        subtitle="Your ambitions across every horizon — short, mid and long-term."
+        subtitle="Your ambitions across every horizon - short, mid and long-term."
         action={
           <Link
             href="/projects"

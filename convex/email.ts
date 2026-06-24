@@ -63,20 +63,20 @@ function weeklyDigestHtml(data: {
   weekLabel: string;
 }) {
   const reportScore = `${data.reportsThisWeek}/7`;
-  const goalScore = data.goalsTotal > 0 ? `${data.goalsCompleted}/${data.goalsTotal}` : "—";
+  const goalScore = data.goalsTotal > 0 ? `${data.goalsCompleted}/${data.goalsTotal}` : "-";
   const streakLabel = data.streak === 1 ? "day streak" : "day streak";
 
   let message = "";
   if (data.reportsThisWeek === 7) {
-    message = "Perfect week — you logged every single day. That kind of consistency is rare. Keep going.";
+    message = "Perfect week - you logged every single day. That kind of consistency is rare. Keep going.";
   } else if (data.reportsThisWeek >= 5) {
     message = `Strong week, ${data.name}. ${data.reportsThisWeek} out of 7 days logged. You're building something real here.`;
   } else if (data.reportsThisWeek >= 3) {
-    message = `${data.reportsThisWeek} days logged this week. Not your best, but you showed up — and that counts. Let's push harder next week.`;
+    message = `${data.reportsThisWeek} days logged this week. Not your best, but you showed up - and that counts. Let's push harder next week.`;
   } else if (data.reportsThisWeek > 0) {
     message = `You logged ${data.reportsThisWeek} day${data.reportsThisWeek > 1 ? "s" : ""} this week. The gap between where you are and where you want to be closes one report at a time.`;
   } else {
-    message = `It was a quiet week, ${data.name}. No reports logged — but you're still here. This week is a fresh start.`;
+    message = `It was a quiet week, ${data.name}. No reports logged - but you're still here. This week is a fresh start.`;
   }
 
   const weeklyCtaNote = !data.weeklyReportDone
@@ -138,13 +138,13 @@ export const sendWeeklyDigestToUser = internalAction({
     sunday.setDate(sunday.getDate() + 6);
     const fmt = (d: Date) =>
       d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    const weekLabel = `${fmt(monday)} – ${fmt(sunday)}`;
+    const weekLabel = `${fmt(monday)} - ${fmt(sunday)}`;
 
     const resend = getResend();
     await resend.emails.send({
       from: fromAddress(),
       to: data.email,
-      subject: `Your week in review — ${weekLabel}`,
+      subject: `Your week in review - ${weekLabel}`,
       html: weeklyDigestHtml({ ...data, weekLabel }),
     });
 
@@ -161,7 +161,7 @@ export const sendWeeklyReminderToUser = internalAction({
   handler: async (ctx, args) => {
     const user = await ctx.runQuery(internal.emailInternal.getDigestData, {
       userId: args.userId,
-      weekStartDate: args.date, // won't actually be used for stats — just need name/email
+      weekStartDate: args.date, // won't actually be used for stats - just need name/email
     });
     if (!user) return;
 
@@ -187,7 +187,7 @@ export const sendWeeklyReminderToUser = internalAction({
 export const sendWeeklyDigestToAll = internalAction({
   args: {},
   handler: async (ctx) => {
-    // Called Monday morning — digest covers the week just finished (Mon–Sun).
+    // Called Monday morning - digest covers the week just finished (Mon-Sun).
     // weekStartDate = the Monday that just passed = today (since we run Monday).
     const today = new Date();
     const day = today.getUTCDay(); // 1 = Monday
@@ -220,7 +220,7 @@ export const sendWeeklyDigestToAll = internalAction({
 export const sendWeeklyRemindersToAll = internalAction({
   args: {},
   handler: async (ctx) => {
-    // Called Sunday evening UTC — remind users who haven't submitted weekly report
+    // Called Sunday evening UTC - remind users who haven't submitted weekly report
     const today = new Date();
     // Monday of current week
     const day = today.getUTCDay();

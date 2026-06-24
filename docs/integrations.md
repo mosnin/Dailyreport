@@ -7,7 +7,7 @@
 
 ## Overview
 
-Integrations connect the agent to the user's external work tools. All OAuth connections are managed through **Composio** — the app never handles OAuth tokens directly. When connected, the agent can read and write to these platforms during agent jobs.
+Integrations connect the agent to the user's external work tools. All OAuth connections are managed through **Composio** - the app never handles OAuth tokens directly. When connected, the agent can read and write to these platforms during agent jobs.
 
 ---
 
@@ -22,7 +22,7 @@ Integrations connect the agent to the user's external work tools. All OAuth conn
 | ClickUp | `clickup` | `App.CLICKUP` | List/create/update tasks, lists, priorities |
 | Trello | `trello` | `App.TRELLO` | Manage boards, cards, lists, due dates |
 
-> **Google Calendar is first** in the UI (integrations page PLATFORMS array) because calendar is the ground truth of someone's day — it should be connected before anything else.
+> **Google Calendar is first** in the UI (integrations page PLATFORMS array) because calendar is the ground truth of someone's day - it should be connected before anything else.
 
 ---
 
@@ -42,13 +42,13 @@ integrations: {
 // Indexes: by_user, by_user_platform
 ```
 
-**Key constraint:** `by_user_platform` is unique — one active connection per platform per user. `saveIntegration` upserts rather than inserting duplicates.
+**Key constraint:** `by_user_platform` is unique - one active connection per platform per user. `saveIntegration` upserts rather than inserting duplicates.
 
 ---
 
 ## Connect Flow
 
-### Step 1 — User clicks "Connect" on `/integrations`
+### Step 1 - User clicks "Connect" on `/integrations`
 
 ```typescript
 // app/(dashboard)/integrations/page.tsx
@@ -59,7 +59,7 @@ async function handleConnect(platform: string) {
 }
 ```
 
-### Step 2 — Next.js API route calls Composio
+### Step 2 - Next.js API route calls Composio
 
 **Route:** `GET /api/integrations/connect?platform=TRELLO`
 
@@ -71,24 +71,24 @@ const res = await fetch("https://backend.composio.dev/api/v1/connectedAccounts",
   body: JSON.stringify({
     integrationId: platform,          // e.g. "TRELLO"
     redirectUri: `${appUrl}/integrations`,
-    userUuid: userId,                  // Clerk userId — Composio entity identifier
+    userUuid: userId,                  // Clerk userId - Composio entity identifier
     data: { redirectParams: `platform=${platform.toLowerCase()}` },
   }),
 });
 // Returns { redirectUrl: "https://composio.dev/oauth/..." }
 ```
 
-**Error handling:** Non-2xx responses from Composio are caught, logged with `console.error`, and returned as `{ error: "Composio connection failed", status: 502 }` — the client shows nothing in the UI (connect button stays visible).
+**Error handling:** Non-2xx responses from Composio are caught, logged with `console.error`, and returned as `{ error: "Composio connection failed", status: 502 }` - the client shows nothing in the UI (connect button stays visible).
 
-### Step 3 — User completes OAuth on Composio's hosted page
+### Step 3 - User completes OAuth on Composio's hosted page
 
 Composio handles the OAuth dance with the platform (Google, Trello, Slack, etc.).
 
-### Step 4 — Composio redirects back to `/integrations`
+### Step 4 - Composio redirects back to `/integrations`
 
 Redirect URL: `{appUrl}/integrations?connectionId=conn_abc123&platform=trello`
 
-### Step 5 — Callback handled client-side
+### Step 5 - Callback handled client-side
 
 ```typescript
 // app/(dashboard)/integrations/page.tsx
@@ -117,7 +117,7 @@ User clicks "Disconnect" on the platform card:
 removeIntegration({ userId: convexUserId, platform: platform.id })
 ```
 
-This deletes the `integrations` record from Convex. It does **not** revoke the Composio connection — the OAuth token remains valid on Composio's side. If the user reconnects later, a new `connectionId` is created.
+This deletes the `integrations` record from Convex. It does **not** revoke the Composio connection - the OAuth token remains valid on Composio's side. If the user reconnects later, a new `connectionId` is created.
 
 > **Note:** To fully revoke access, the user should also disconnect from within the platform's settings (e.g., Trello → Power-Ups → remove DailyReport).
 
@@ -152,7 +152,7 @@ for platform_id in request.connectedPlatforms:
     composio_tools.extend(tools)
 ```
 
-This keeps the tool list minimal — an agent with no connected platforms only has the 5 built-in tools.
+This keeps the tool list minimal - an agent with no connected platforms only has the 5 built-in tools.
 
 ---
 

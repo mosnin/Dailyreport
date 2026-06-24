@@ -692,7 +692,7 @@ export default function AffirmationsPage() {
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm transition-colors"
           >
             <CheckCircle2 className="w-4 h-4" />
-            All done — view recap
+            All done - view recap
           </motion.button>
         ) : sorted.length > 0 ? (
           <motion.button
@@ -802,7 +802,7 @@ export default function AffirmationsPage() {
                     handleParseVision(e as unknown as React.FormEvent);
                   }
                 }}
-                placeholder="Describe the life you're building — the version of you that already exists on the other side."
+                placeholder="Describe the life you're building - the version of you that already exists on the other side."
                 rows={3}
                 className="w-full text-sm bg-transparent resize-none focus:outline-none placeholder:text-muted-foreground/40 leading-relaxed font-heading italic"
               />

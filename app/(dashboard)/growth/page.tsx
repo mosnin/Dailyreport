@@ -344,7 +344,7 @@ export default function GrowthPage() {
           accent={SKILL_ACCENT}
           icon={<Sparkles className="size-4" />}
           items={skills}
-          emptyHint="No skills yet — add one above and start leveling up."
+          emptyHint="No skills yet - add one above and start leveling up."
           onUpdate={handleUpdate}
           onRemove={handleRemove}
         />
@@ -353,7 +353,7 @@ export default function GrowthPage() {
           accent={FEAR_ACCENT}
           icon={<ShieldAlert className="size-4" />}
           items={fears}
-          emptyHint="No fears tracked — naming one is the first step to beating it."
+          emptyHint="No fears tracked - naming one is the first step to beating it."
           onUpdate={handleUpdate}
           onRemove={handleRemove}
         />

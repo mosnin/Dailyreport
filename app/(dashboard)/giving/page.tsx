@@ -15,7 +15,7 @@ import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
 // ── Empty state ───────────────────────────────────────────────────────────
 
 function EmptyState({ icon: Icon, headline, body }: {
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   headline: string;
   body: string;
 }) {
@@ -371,7 +371,7 @@ export default function GivingPage() {
           </div>
         ) : entries.length === 0 ? (
           <p className="text-sm text-muted-foreground/60 italic px-2 py-1">
-            {isToday ? "Nothing yet — how have you given value today?" : "No entries for this day."}
+            {isToday ? "Nothing yet - how have you given value today?" : "No entries for this day."}
           </p>
         ) : (
           <AnimatePresence initial={false}>
@@ -426,7 +426,7 @@ export default function GivingPage() {
         <EmptyState
           icon={Heart}
           headline="Giving starts here"
-          body="Track acts of giving — time, money, help, presence. What you give shapes who you become."
+          body="Track acts of giving - time, money, help, presence. What you give shapes who you become."
         />
       )}
     </div>

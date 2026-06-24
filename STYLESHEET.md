@@ -1,8 +1,8 @@
-# Ascend — Design System
+# Ascend - Design System
 
 This is the design system. Read it once. Then write code that disappears into it.
 
-The product is a **life-analytics dashboard**, not a notebook. Dark, vibrant, tile-based. Big numerals, bold sans, lots of negative space. Every surface is a bento tile. Color carries meaning — each life area owns a hue.
+The product is a **life-analytics dashboard**, not a notebook. Dark, vibrant, tile-based. Big numerals, bold sans, lots of negative space. Every surface is a bento tile. Color carries meaning - each life area owns a hue.
 
 > The old warm "notebook" aesthetic (Lora serif, cream paper, ruled lines, violet) has been fully removed. Do not reintroduce it.
 
@@ -11,11 +11,11 @@ The product is a **life-analytics dashboard**, not a notebook. Dark, vibrant, ti
 ## Stack & Libraries
 
 - **Framework**: Next.js 16 (App Router), React 19
-- **Styling**: Tailwind v4 — configured via `@theme inline` inside `app/globals.css`. No `tailwind.config.js`.
+- **Styling**: Tailwind v4 - configured via `@theme inline` inside `app/globals.css`. No `tailwind.config.js`.
 - **Components**: ShadCN/UI v4 over `@base-ui/react` primitives (in `components/ui/`)
 - **Icons**: `lucide-react` only.
 - **Animation**: `motion` (Framer Motion).
-- **Theme**: `next-themes` — **default is dark**. Light is a supported secondary.
+- **Theme**: `next-themes` - **default is dark**. Light is a supported secondary.
 - **Charts**: `recharts`, always via the wrappers in `components/charts/Charts.tsx`.
 - **Toasts**: `sonner`.
 - **Fonts**: `Geist Sans` (everything) + `Geist Mono` (numerals where useful). One family. `font-heading` = Geist with tight tracking.
@@ -36,7 +36,7 @@ The product is a **life-analytics dashboard**, not a notebook. Dark, vibrant, ti
 | Execution | `--execution` | orange |
 | Brand / primary | `--primary` | yellow |
 
-Core tokens: `--background`, `--foreground`, `--card`, `--muted`, `--muted-foreground`, `--accent`, `--border`, `--ring`, `--sidebar*`, `--chart-1…6`. Always use tokens — never raw grays.
+Core tokens: `--background`, `--foreground`, `--card`, `--muted`, `--muted-foreground`, `--accent`, `--border`, `--ring`, `--sidebar*`, `--chart-1…6`. Always use tokens - never raw grays.
 
 `--radius` is `1.25rem` (bento needs big radii).
 
@@ -44,12 +44,12 @@ Core tokens: `--background`, `--foreground`, `--card`, `--muted`, `--muted-foreg
 
 ## The bento language
 
-Everything is a tile. Use the primitives — don't hand-roll card chrome.
+Everything is a tile. Use the primitives - don't hand-roll card chrome.
 
-- **`BentoCard`** (`components/bento/BentoCard.tsx`) — the atomic surface. Props: `tint?` (a CSS color var → vibrant solid tile with dark text), `href?`, `onClick?`, `className?`, `delay?`. Renders padding (`p-5`), border, radius (`1.75rem`), inner highlight + drop shadow, and an entrance animation. Override padding with `!p-6` when wrapping forms.
-- **`BentoGrid`** — responsive `grid-cols-2 lg:grid-cols-4`. Most pages just use a raw `grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4` and size tiles with `col-span-2`, `lg:row-span-2`, etc.
-- **`ScoreRing`** — circular gauge. `value` (0–100), `color`, `size?`, `stroke?`, `track?`, centered children.
-- **`PageHeader`** — every page opens with `<PageHeader eyebrow title subtitle? action? />`.
+- **`BentoCard`** (`components/bento/BentoCard.tsx`) - the atomic surface. Props: `tint?` (a CSS color var → vibrant solid tile with dark text), `href?`, `onClick?`, `className?`, `delay?`. Renders padding (`p-5`), border, radius (`1.75rem`), inner highlight + drop shadow, and an entrance animation. Override padding with `!p-6` when wrapping forms.
+- **`BentoGrid`** - responsive `grid-cols-2 lg:grid-cols-4`. Most pages just use a raw `grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4` and size tiles with `col-span-2`, `lg:row-span-2`, etc.
+- **`ScoreRing`** - circular gauge. `value` (0-100), `color`, `size?`, `stroke?`, `track?`, centered children.
+- **`PageHeader`** - every page opens with `<PageHeader eyebrow title subtitle? action? />`.
 - **Charts** (`components/charts/Charts.tsx`): `LineTrend`, `AreaTrend`, `ScatterPlot`, `RadarScores`. Theme-aware; pass series colors as area vars.
 
 `lib/areas.ts` is the source of truth for area → {label, color, icon, blurb, href}. `lib/nav.ts` is the source of truth for navigation (sidebar, bottom bar, command palette all read it).

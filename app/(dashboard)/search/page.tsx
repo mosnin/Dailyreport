@@ -149,7 +149,7 @@ export default function SearchPage() {
         </motion.p>
       )}
 
-      {/* Suggested queries — shown only when no results and not loading */}
+      {/* Suggested queries - shown only when no results and not loading */}
       <AnimatePresence>
         {showInitialEmpty && !searching && (
           <motion.div
@@ -234,7 +234,7 @@ export default function SearchPage() {
               const dateLabel = formatDate(r);
               const Icon = r.type === "daily" ? NotepadText : BookOpen;
               const typeLabel = r.type === "daily" ? "Daily" : "Weekly Review";
-              // Score bar width — score is 0 to 1 (higher is more relevant)
+              // Score bar width - score is 0 to 1 (higher is more relevant)
               const barWidth = Math.max(8, Math.round(r.score * 100));
 
               return (

@@ -113,7 +113,7 @@ function ReportSummary({ responses }: { responses: Record<string, unknown> }) {
 export function CalendarGrid({
   userId,
   clickable = false,
-  // Controlled mode — when provided, disables inline panel and delegates selection up
+  // Controlled mode - when provided, disables inline panel and delegates selection up
   selectedDate: externalSelectedDate,
   onDateSelect,
 }: {
@@ -283,7 +283,7 @@ export function CalendarGrid({
         </span>
       </div>
 
-      {/* Inline panel — only rendered in uncontrolled mode */}
+      {/* Inline panel - only rendered in uncontrolled mode */}
       <AnimatePresence>
         {!isControlled && clickable && selectedDate && (
           <ReportDetailPanel

@@ -196,19 +196,19 @@ export default function HealthAnalyticsPage() {
 
         <StatTile
           label="Avg sleep"
-          value={avgSleep != null ? avgSleep.toFixed(1) : "—"}
+          value={avgSleep != null ? avgSleep.toFixed(1) : "-"}
           suffix={avgSleep != null ? "hrs" : undefined}
           delay={0.04}
         />
         <StatTile
           label="Avg exercise"
-          value={avgExercise != null ? Math.round(avgExercise).toString() : "—"}
+          value={avgExercise != null ? Math.round(avgExercise).toString() : "-"}
           suffix={avgExercise != null ? "min" : undefined}
           delay={0.06}
         />
         <StatTile
           label="Avg mood"
-          value={avgMood != null ? avgMood.toFixed(1) : "—"}
+          value={avgMood != null ? avgMood.toFixed(1) : "-"}
           suffix={avgMood != null ? "/ 10" : undefined}
           delay={0.08}
         />
@@ -235,7 +235,7 @@ export default function HealthAnalyticsPage() {
 
         <BentoCard className="col-span-2 lg:col-span-2" delay={0.12}>
           <p className={SECTION_LABEL}>Mood &amp; energy</p>
-          <h2 className="font-semibold mt-1 mb-3">Daily 1–10</h2>
+          <h2 className="font-semibold mt-1 mb-3">Daily 1-10</h2>
           {moodEnergyData.length >= 2 ? (
             <LineTrend
               data={moodEnergyData}

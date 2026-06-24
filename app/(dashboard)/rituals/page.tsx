@@ -240,7 +240,7 @@ export default function RitualsPage() {
                 })}
               </AnimatePresence>
 
-              {/* Add row — only in edit mode */}
+              {/* Add row - only in edit mode */}
               {editing && (
                 <div className="border-t border-border/60">
                   <AnimatePresence mode="wait">

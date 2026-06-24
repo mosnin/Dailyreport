@@ -29,14 +29,14 @@ function getWeekRange(dateStr: string): string {
   const mon = startOfWeek(date, { weekStartsOn: 1 });
   const sun = endOfWeek(date, { weekStartsOn: 1 });
   if (mon.getMonth() === sun.getMonth()) {
-    return `${format(mon, "MMM d")} – ${format(sun, "d, yyyy")}`;
+    return `${format(mon, "MMM d")} - ${format(sun, "d, yyyy")}`;
   }
-  return `${format(mon, "MMM d")} – ${format(sun, "MMM d, yyyy")}`;
+  return `${format(mon, "MMM d")} - ${format(sun, "MMM d, yyyy")}`;
 }
 
 // ── Section block ─────────────────────────────────────────────────────────
 
-function Section({ icon: Icon, label, children }: { icon: React.ElementType; label: string; children: React.ReactNode }) {
+function Section({ icon: Icon, label, children }: { icon: React.ComponentType<{ className?: string }>; label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-1.5">
@@ -442,7 +442,7 @@ function ReportPanel({ userId, date, isEditable }: { userId: Id<"users">; date: 
         )}
       </div>
 
-      {/* Tabs — hidden when editing */}
+      {/* Tabs - hidden when editing */}
       {!editing && (
         <div className="flex border-b border-border/50">
           {(["daily", "weekly", "rituals"] as const).map((t) => (

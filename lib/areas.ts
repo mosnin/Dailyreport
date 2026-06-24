@@ -27,7 +27,7 @@ export const AREAS: Record<AreaKey, AreaMeta> = {
     label: "Execution",
     color: "var(--execution)",
     icon: Zap,
-    blurb: "Showing up — reports, rituals, problems solved.",
+    blurb: "Showing up - reports, rituals, problems solved.",
     href: "/reports/daily",
   },
   health: {
@@ -59,7 +59,7 @@ export const AREAS: Record<AreaKey, AreaMeta> = {
     label: "Emotional",
     color: "var(--emotional)",
     icon: Brain,
-    blurb: "Your emotional bank account — mood, stress, recovery.",
+    blurb: "Your emotional bank account - mood, stress, recovery.",
     href: "/affirmations",
   },
   progress: {
@@ -67,7 +67,7 @@ export const AREAS: Record<AreaKey, AreaMeta> = {
     label: "Progress",
     color: "var(--progress)",
     icon: TrendingUp,
-    blurb: "Forward motion — projects, learning, overcoming fears.",
+    blurb: "Forward motion - projects, learning, overcoming fears.",
     href: "/projects",
   },
 };

@@ -45,12 +45,12 @@ const FAQS = [
   {
     question: "Is it free?",
     answer:
-      "You can start for free today. The core loop — daily reports, weekly reports, calendar, goals — is free. Advanced AI features may move to a paid tier in the future.",
+      "You can start for free today. The core loop - daily reports, weekly reports, calendar, goals - is free. Advanced AI features may move to a paid tier in the future.",
   },
   {
     question: "Who is this for?",
     answer:
-      "People who want to improve at something over time and are honest enough to track themselves doing it. Founders, athletes, writers, parents — anyone who takes their own development seriously.",
+      "People who want to improve at something over time and are honest enough to track themselves doing it. Founders, athletes, writers, parents - anyone who takes their own development seriously.",
   },
 ];
 

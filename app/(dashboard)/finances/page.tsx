@@ -46,7 +46,7 @@ function latestOf(rows: any[], key: string): number | null {
   return null;
 }
 
-/** Inline 1–10 stress selector. */
+/** Inline 1-10 stress selector. */
 function Scale({
   value,
   onChange,
@@ -411,21 +411,21 @@ export default function FinancesPage() {
 
         <StatTile
           label="Savings rate"
-          value={savingsRate != null ? String(savingsRate) : "—"}
+          value={savingsRate != null ? String(savingsRate) : "-"}
           suffix={savingsRate != null ? "%" : undefined}
           delay={0.06}
         />
         <StatTile
           label="Net worth"
           value={
-            latestNetWorth != null ? latestNetWorth.toLocaleString() : "—"
+            latestNetWorth != null ? latestNetWorth.toLocaleString() : "-"
           }
           delay={0.08}
         />
         <StatTile
           label="Monthly spending"
           value={
-            latestSpending != null ? latestSpending.toLocaleString() : "—"
+            latestSpending != null ? latestSpending.toLocaleString() : "-"
           }
           delay={0.1}
         />

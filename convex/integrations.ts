@@ -91,7 +91,7 @@ export const getIntegrationByPlatform = internalQuery({
       .unique(),
 });
 
-// Called by server-side actions (e.g. cron scheduler) — no auth context
+// Called by server-side actions (e.g. cron scheduler) - no auth context
 export const getConnectedPlatformsInternal = internalQuery({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {

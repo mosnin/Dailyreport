@@ -24,7 +24,7 @@ export type NavItem = {
   href: string;
   label: string;
   icon: LucideIcon;
-  /** status dot key — resolved against today's status */
+  /** status dot key - resolved against today's status */
   status?: "report" | "affirm";
 };
 

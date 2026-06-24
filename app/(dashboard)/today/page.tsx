@@ -56,11 +56,11 @@ export default function TodayPage() {
       <PageHeader
         eyebrow={new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric" }).format(new Date())}
         title={greet(firstName)}
-        subtitle="Your daily checklist — knock these out to keep every area climbing."
+        subtitle="Your daily checklist - knock these out to keep every area climbing."
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* Checklist — spans wide */}
+        {/* Checklist - spans wide */}
         <BentoCard className="col-span-2 lg:col-span-2 lg:row-span-2" delay={0.02}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -111,7 +111,7 @@ export default function TodayPage() {
         <BentoCard href="/dashboard" className="flex flex-col items-center justify-center text-center" delay={0.06}>
           <ScoreRing value={score?.composite ?? 0} color="var(--primary)" size={104}>
             <div>
-              <div className="text-2xl font-bold numeral leading-none">{score?.credit ?? "—"}</div>
+              <div className="text-2xl font-bold numeral leading-none">{score?.credit ?? "-"}</div>
               <div className="text-[10px] uppercase tracking-wide text-muted-foreground mt-1">Life score</div>
             </div>
           </ScoreRing>
@@ -125,7 +125,7 @@ export default function TodayPage() {
             <span className="text-[11px] font-semibold uppercase tracking-[0.14em]">Morning brief</span>
           </div>
           <p className="text-sm font-medium leading-snug mt-2">
-            {brief?.content ?? "Your AI brief lands here at 8am — a focused nudge for the day ahead."}
+            {brief?.content ?? "Your AI brief lands here at 8am - a focused nudge for the day ahead."}
           </p>
         </BentoCard>
       </div>
@@ -139,7 +139,7 @@ export default function TodayPage() {
             <BentoCard key={a.key} href={meta.href} className="!p-3.5 flex flex-col gap-2" delay={0.04 * i}>
               <Icon className="w-4 h-4" style={{ color: meta.color }} />
               <div>
-                <div className="text-lg font-bold numeral leading-none">{a.needsData ? "—" : a.score}</div>
+                <div className="text-lg font-bold numeral leading-none">{a.needsData ? "-" : a.score}</div>
                 <div className="text-[10px] text-muted-foreground mt-1 leading-tight">{meta.label}</div>
               </div>
             </BentoCard>

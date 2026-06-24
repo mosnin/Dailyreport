@@ -119,7 +119,7 @@ export default function SettingsPage() {
     }
   }, []);
 
-  // Handle OAuth callback from Composio — reads ?platform=X&connectionId=Y
+  // Handle OAuth callback from Composio - reads ?platform=X&connectionId=Y
   const connectionSaved = useRef(false);
   useEffect(() => {
     if (!convexUserId || connectionSaved.current) return;
@@ -253,7 +253,7 @@ export default function SettingsPage() {
       <motion.div {...fadeUp(0.12)}>
         <SectionLabel>Notifications</SectionLabel>
         <div className="rounded-2xl border border-border bg-card px-5 py-1">
-          <Row label="Push notifications" sub={subscribed ? "Active — you'll be reminded at 8pm" : "Off — enable to get daily reminders"}>
+          <Row label="Push notifications" sub={subscribed ? "Active - you'll be reminded at 8pm" : "Off - enable to get daily reminders"}>
             {subscribed ? (
               <span className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
@@ -337,7 +337,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between py-3.5">
             <div>
               <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-wider mb-0.5">Email</p>
-              <p className="text-sm">{convexUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || "—"}</p>
+              <p className="text-sm">{convexUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || "-"}</p>
             </div>
             <button
               onClick={handleSaveProfile}
@@ -383,7 +383,7 @@ export default function SettingsPage() {
         <div className="rounded-2xl border border-border bg-card px-5 py-1">
           <Row
             label="Google Calendar"
-            sub={gcalConnected ? "Connected — today's events appear in your morning brief" : "Show today's schedule in your morning brief"}
+            sub={gcalConnected ? "Connected - today's events appear in your morning brief" : "Show today's schedule in your morning brief"}
           >
             <div className="flex items-center gap-2">
               <CalendarDays className={cn("w-3.5 h-3.5 shrink-0", gcalConnected ? "text-[#1A73E8]" : "text-muted-foreground/30")} />
@@ -406,7 +406,7 @@ export default function SettingsPage() {
           </Row>
           <Row
             label="Gmail"
-            sub={gmailConnected ? "Connected — email context included in morning brief" : "Include email context in your morning brief"}
+            sub={gmailConnected ? "Connected - email context included in morning brief" : "Include email context in your morning brief"}
           >
             <div className="flex items-center gap-2">
               <Mail className={cn("w-3.5 h-3.5 shrink-0", gmailConnected ? "text-[#EA4335]" : "text-muted-foreground/30")} />
@@ -419,7 +419,7 @@ export default function SettingsPage() {
           </Row>
           <Row
             label="ClickUp"
-            sub={clickupConnected ? "Connected — sync projects on the Projects page" : "Sync your ClickUp projects into Ascend"}
+            sub={clickupConnected ? "Connected - sync projects on the Projects page" : "Sync your ClickUp projects into Ascend"}
           >
             <div className="flex items-center gap-2">
               <FolderKanban className={cn("w-3.5 h-3.5 shrink-0", clickupConnected ? "text-[#7B68EE]" : "text-muted-foreground/30")} />
@@ -432,7 +432,7 @@ export default function SettingsPage() {
           </Row>
           <Row
             label="Trello"
-            sub={trelloConnected ? "Connected — sync boards on the Projects page" : "Sync your Trello boards into Ascend"}
+            sub={trelloConnected ? "Connected - sync boards on the Projects page" : "Sync your Trello boards into Ascend"}
           >
             <div className="flex items-center gap-2">
               <FolderKanban className={cn("w-3.5 h-3.5 shrink-0", trelloConnected ? "text-[#0079BF]" : "text-muted-foreground/30")} />
@@ -464,7 +464,7 @@ export default function SettingsPage() {
           {!hasPaidAccess && (
             <div className="py-3.5 border-t border-border/40">
               <p className="text-sm text-muted-foreground mb-3">
-                Upgrade to Pro for <span className="font-medium text-foreground">$12.99/month</span> — AI insights, affirmations, and visualizations.
+                Upgrade to Pro for <span className="font-medium text-foreground">$12.99/month</span> - AI insights, affirmations, and visualizations.
               </p>
               <button
                 onClick={async () => {

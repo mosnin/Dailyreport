@@ -118,7 +118,7 @@ function ConnectorRow({
         projects: data.projects ?? [],
       });
       toast.success(
-        `${label} synced — ${result.created} created, ${result.updated} updated`
+        `${label} synced - ${result.created} created, ${result.updated} updated`
       );
     } catch {
       toast.error(`Could not sync ${label}`);
@@ -385,7 +385,7 @@ export default function ProjectsPage() {
         <PageHeader
           eyebrow="Life domain"
           title="Projects"
-          subtitle="Everything you're building — synced or tracked by hand."
+          subtitle="Everything you're building - synced or tracked by hand."
           action={action}
         />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -408,7 +408,7 @@ export default function ProjectsPage() {
       <PageHeader
         eyebrow="Life domain"
         title="Projects"
-        subtitle="Everything you're building — synced or tracked by hand."
+        subtitle="Everything you're building - synced or tracked by hand."
         action={action}
       />
 

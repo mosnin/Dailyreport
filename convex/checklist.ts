@@ -1,7 +1,7 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
 
-/* Daily checklist status — one query powering the home page "what to check off"
+/* Daily checklist status - one query powering the home page "what to check off"
    list. Returns done-state for every trackable daily action. */
 export const getToday = query({
   args: { userId: v.id("users"), date: v.string() },

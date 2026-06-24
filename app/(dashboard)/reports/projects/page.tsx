@@ -247,7 +247,7 @@ export default function ProjectProgressReportPage() {
           </div>
         ) : (updates as any[]).length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No updates yet — log progress on a project above.
+            No updates yet - log progress on a project above.
           </p>
         ) : (
           <ul className="divide-y divide-border">

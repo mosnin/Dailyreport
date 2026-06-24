@@ -10,7 +10,7 @@ export function Navbar() {
   const { totalDone, streak } = useTodayStatus(convexUserId);
 
   return (
-    <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 border-b border-border bg-background/80 backdrop-blur safe-top">
+    <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 safe-top">
       <Link href="/today" className="flex items-center gap-2">
         <span className="grid place-items-center w-7 h-7 rounded-lg bg-primary text-primary-foreground font-bold">A</span>
         <span className="font-heading text-base font-bold tracking-tight">Ascend</span>

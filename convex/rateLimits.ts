@@ -63,7 +63,7 @@ export const checkAndConsume = internalMutation({
     if (plan === "unlimited") return;
 
     const actionLimits = LIMITS[args.action];
-    if (!actionLimits) return; // unknown action — allow
+    if (!actionLimits) return; // unknown action - allow
 
     const limit = actionLimits[plan] ?? actionLimits.free;
     const today = new Date().toISOString().split("T")[0];

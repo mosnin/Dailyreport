@@ -14,7 +14,7 @@ import { PageHeader } from "@/components/bento/PageHeader";
 import { BentoCard } from "@/components/bento/BentoCard";
 
 function EmptyState({ icon: Icon, headline, body, cta }: {
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   headline: string;
   body: string;
   cta?: { label: string; href?: string };

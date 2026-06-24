@@ -55,7 +55,7 @@ export default function DashboardPage() {
       <PageHeader
         eyebrow="Overview"
         title="Your Life Score"
-        subtitle="A weighted, credit-style score across all six dimensions of your life — last 14 days."
+        subtitle="A weighted, credit-style score across all six dimensions of your life - last 14 days."
         action={
           <Link href="/analytics" className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium hover:bg-accent/70 transition-colors">
             Full analytics <ArrowRight className="w-3.5 h-3.5" />
@@ -68,7 +68,7 @@ export default function DashboardPage() {
         <BentoCard tint="var(--primary)" className="col-span-2 flex items-center gap-5" delay={0.02}>
           <ScoreRing value={score?.composite ?? 0} color="oklch(0.2 0.03 264)" size={120} stroke={11} track="oklch(0.2 0.03 264 / 20%)">
             <div className="text-center">
-              <div className="text-3xl font-bold numeral leading-none">{score?.credit ?? "—"}</div>
+              <div className="text-3xl font-bold numeral leading-none">{score?.credit ?? "-"}</div>
               <div className="text-[10px] uppercase tracking-wide mt-1 opacity-70">/ 850</div>
             </div>
           </ScoreRing>
@@ -108,7 +108,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-bold numeral">{a.needsData ? "—" : a.score}</span>
+                  <span className="text-2xl font-bold numeral">{a.needsData ? "-" : a.score}</span>
                   {!a.needsData && <span className="text-xs text-muted-foreground">/ 100</span>}
                 </div>
                 <p className="text-sm font-medium mt-0.5">{meta.label}</p>

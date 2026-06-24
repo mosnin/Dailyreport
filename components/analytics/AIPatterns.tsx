@@ -52,7 +52,7 @@ export function AIPatterns({ userId }: { userId: Id<"users"> }) {
 
       {!patterns && !loading && (
         <p className="text-sm text-muted-foreground">
-          Let AI scan every area together — sleep, mood, money, execution, projects — and surface the cross-domain
+          Let AI scan every area together - sleep, mood, money, execution, projects - and surface the cross-domain
           patterns moving your Life Score.
         </p>
       )}

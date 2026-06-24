@@ -554,7 +554,7 @@ export function DailyReportForm({
       </JournalSection>
 
       {/* Q3 */}
-      <JournalSection number={3} title="Emotional bank account — how drained did you feel today?">
+      <JournalSection number={3} title="Emotional bank account - how drained did you feel today?">
         <NoteTextarea
           value={r.emotionalDrain}
           onChange={(v) => set("emotionalDrain", v)}

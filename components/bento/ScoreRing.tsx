@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 
 /**
  * Circular progress ring used for area + composite scores.
- * `value` 0–100, `color` is any CSS color (var or hex).
+ * `value` 0-100, `color` is any CSS color (var or hex).
  */
 export function ScoreRing({
   value,

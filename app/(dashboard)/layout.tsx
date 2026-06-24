@@ -8,6 +8,7 @@ import { PageTransition } from "@/components/layout/PageTransition";
 import { CommandPalette } from "@/components/CommandPalette";
 import { KeyboardNavMount } from "@/components/layout/KeyboardNavMount";
 import { PWAInstallBanner } from "@/components/PWAInstallBanner";
+import { DitherBackground } from "@/components/DitherBackground";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
@@ -15,11 +16,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <OnboardingGate>
-      <div className="flex min-h-screen items-start">
+      <DitherBackground />
+      <div className="relative z-10 flex min-h-screen items-start">
         <Sidebar />
         <div className="flex flex-col flex-1 min-w-0 min-h-screen">
           <Navbar />
-          <main className="flex-1 px-4 py-5 md:px-8 md:py-7 with-bottom-tabs ambient-bg">
+          <main className="flex-1 px-4 py-5 md:px-8 md:py-7 with-bottom-tabs">
             <div className="mx-auto w-full max-w-6xl">
               <PageTransition>{children}</PageTransition>
             </div>
