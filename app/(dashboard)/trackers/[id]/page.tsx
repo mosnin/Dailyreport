@@ -19,6 +19,12 @@ import { toast } from "sonner";
 import { Flame } from "lucide-react";
 import Link from "next/link";
 
+function formatValue(field: any, v: any): string {
+  if (v === undefined || v === null || v === "") return "-";
+  if (field.type === "boolean") return v === true || v === "true" ? "Yes" : "No";
+  return `${v}${field.unit ? " " + field.unit : ""}`;
+}
+
 export default function TrackerDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -88,6 +94,22 @@ export default function TrackerDetailPage() {
     score: e.score,
   }));
 
+  // ── Per-tracker analytics ──────────────────────────────────────────────────
+  const nowMs = Date.now();
+  const since = (days: number) => dayStr(nowMs - days * 86400000);
+  const last30 = rows.filter((e: any) => e.date >= since(30));
+  const avg30 = last30.length ? Math.round(last30.reduce((a: number, e: any) => a + e.score, 0) / last30.length) : null;
+  const logged30 = last30.length;
+  const consistency = tracker.cadence === "weekly" ? null : Math.min(100, Math.round((logged30 / 30) * 100));
+  const best = rows.reduce((m: any, e: any) => (!m || e.score > m.score ? e : m), null as any);
+  const last7 = rows.filter((e: any) => e.date >= since(7));
+  const prev7 = rows.filter((e: any) => e.date >= since(14) && e.date < since(7));
+  const avg7 = last7.length ? last7.reduce((a: number, e: any) => a + e.score, 0) / last7.length : null;
+  const avgPrev7 = prev7.length ? prev7.reduce((a: number, e: any) => a + e.score, 0) / prev7.length : null;
+  const momentum = avg7 != null && avgPrev7 != null ? Math.round(avg7 - avgPrev7) : null;
+  const history = [...rows].sort((a: any, b: any) => b.date.localeCompare(a.date)).slice(0, 21);
+  const scoredFields = (tracker.fields as any[]).filter((f) => f.type !== "text");
+
   const draft: TrackerDraft = {
     name: tracker.name,
     color: tracker.color,
@@ -126,7 +148,7 @@ export default function TrackerDetailPage() {
       {editing && convexUserId && (
         <BentoCard delay={0.02}>
           <h2 className="font-semibold mb-1">Edit tracker</h2>
-          <p className="text-sm text-muted-foreground mb-3">Refine with AI or adjust fields and weights by hand.</p>
+          <p className="text-sm text-muted-foreground mb-3">Tell the AI what to change. It updates the fields and scoring for you.</p>
           <TrackerCreator userId={convexUserId} mode="edit" trackerId={trackerId} initial={draft} showTemplates={false} onSaved={() => setEditing(false)} />
           <button
             onClick={async () => {
@@ -201,6 +223,64 @@ export default function TrackerDetailPage() {
           <AreaTrend data={chartData} dataKey="score" name="Score" color={color} height={220} domain={[0, 100]} />
         ) : (
           <div className="grid h-[180px] place-items-center text-sm text-muted-foreground">Log a few entries to see your trend.</div>
+        )}
+      </BentoCard>
+
+      {/* Analytics */}
+      <div>
+        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">Analytics</p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <BentoCard delay={0.02}>
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">30-day average</p>
+            <p className="mt-1 text-2xl font-bold numeral">{avg30 ?? "-"}</p>
+            <p className="text-xs text-muted-foreground">{avg30 != null ? scoreLabel(avg30) : "No data yet"}</p>
+          </BentoCard>
+          <BentoCard delay={0.04}>
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Momentum</p>
+            <p className="mt-1 text-2xl font-bold numeral" style={{ color: momentum != null && momentum !== 0 ? (momentum > 0 ? "var(--primary)" : "oklch(0.7 0.18 16)") : undefined }}>
+              {momentum == null ? "-" : `${momentum > 0 ? "+" : ""}${momentum}`}
+            </p>
+            <p className="text-xs text-muted-foreground">vs the prior week</p>
+          </BentoCard>
+          <BentoCard delay={0.06}>
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{tracker.cadence === "weekly" ? "Logged (30d)" : "Consistency"}</p>
+            <p className="mt-1 text-2xl font-bold numeral">{consistency != null ? `${consistency}%` : logged30}</p>
+            <p className="text-xs text-muted-foreground">{logged30} {logged30 === 1 ? "entry" : "entries"} in 30 days</p>
+          </BentoCard>
+          <BentoCard delay={0.08}>
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Best day</p>
+            <p className="mt-1 text-2xl font-bold numeral">{best ? best.score : "-"}</p>
+            <p className="text-xs text-muted-foreground">{best ? new Date(best.date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "No data yet"}</p>
+          </BentoCard>
+        </div>
+      </div>
+
+      {/* History */}
+      <BentoCard delay={0.12}>
+        <h2 className="font-semibold mb-3">History</h2>
+        {history.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No entries yet. Log above to start your history.</p>
+        ) : (
+          <div className="divide-y divide-border/40">
+            {history.map((e: any) => {
+              const preview = scoredFields
+                .filter((f) => e.values?.[f.key] !== undefined && e.values?.[f.key] !== "")
+                .slice(0, 4)
+                .map((f) => `${f.label} ${formatValue(f, e.values[f.key])}`)
+                .join("  ·  ");
+              return (
+                <div key={e._id} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
+                  <div className="w-16 shrink-0 text-xs font-medium text-muted-foreground">
+                    {new Date(e.date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  </div>
+                  <p className="flex-1 min-w-0 truncate text-xs text-muted-foreground">{preview || "Logged"}</p>
+                  <span className="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold numeral" style={{ color, background: `color-mix(in oklch, ${color} 14%, transparent)` }}>
+                    {e.score}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         )}
       </BentoCard>
     </div>

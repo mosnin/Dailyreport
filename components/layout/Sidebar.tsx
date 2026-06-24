@@ -15,6 +15,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { trackerColor, trackerInitial } from "@/lib/trackers";
 import { NAV } from "@/lib/nav";
 
 function NavLink({
@@ -59,6 +62,8 @@ export function Sidebar() {
   const { user } = useUser();
   const { convexUserId, convexUser } = useConvexUser();
   const { reportDone, affirmDone, totalDone, streak } = useTodayStatus(convexUserId);
+  const overview = useQuery(api.trackers.getOverview, convexUserId ? { userId: convexUserId } : "skip");
+  const userTrackers = overview?.trackers ?? [];
   const isAdmin = (convexUser as { role?: string } | null | undefined)?.role === "admin";
   const is = (href: string) => pathname === href;
 
@@ -124,6 +129,43 @@ export function Sidebar() {
             </div>
           </div>
         ))}
+
+        {/* User-created trackers (views) */}
+        {userTrackers.length > 0 && (
+          <div>
+            <p className="px-3 pt-1 pb-1 text-[10px] font-semibold tracking-[0.14em] uppercase text-muted-foreground/50 select-none">
+              Your trackers
+            </p>
+            <div className="space-y-0.5">
+              {userTrackers.map((t: any) => {
+                const active = is(`/trackers/${t._id}`);
+                const color = trackerColor(t.color);
+                return (
+                  <Link
+                    key={t._id}
+                    href={`/trackers/${t._id}`}
+                    className={cn(
+                      "group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+                      active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {active && (
+                      <motion.span layoutId="nav-active-bg" className="absolute inset-0 rounded-xl bg-accent" transition={{ type: "spring", damping: 30, stiffness: 320 }} />
+                    )}
+                    <span
+                      className="relative z-10 grid h-[18px] w-[18px] shrink-0 place-items-center rounded-md text-[10px] font-bold"
+                      style={{ color, background: `color-mix(in oklch, ${color} 16%, transparent)`, border: `1px solid color-mix(in oklch, ${color} 28%, transparent)` }}
+                    >
+                      {trackerInitial(t.name)}
+                    </span>
+                    <span className="relative z-10 flex-1 truncate leading-none">{t.name}</span>
+                    {!t.needsData && <span className="relative z-10 text-[11px] text-muted-foreground/60 numeral">{t.score}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Footer */}

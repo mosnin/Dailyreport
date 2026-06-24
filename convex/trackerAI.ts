@@ -231,3 +231,143 @@ Pick "win" when celebrating a streak or rising score, "warn" when a tracker is d
     }
   },
 });
+
+// ── Cross-context recommendations (Analytics) ───────────────────────────────
+
+export const getRecommendations = query({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.clerkId !== identity.subject) return null;
+    return ctx.db
+      .query("trackerRecommendations")
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId).eq("date", args.date))
+      .unique();
+  },
+});
+
+export const saveRecommendations = internalMutation({
+  args: {
+    userId: v.id("users"),
+    date: v.string(),
+    summary: v.optional(v.string()),
+    items: v.array(v.object({ title: v.string(), detail: v.string(), focus: v.optional(v.string()) })),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("trackerRecommendations")
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId).eq("date", args.date))
+      .unique();
+    if (existing) {
+      await ctx.db.patch(existing._id, { summary: args.summary, items: args.items, generatedAt: Date.now() });
+      return existing._id;
+    }
+    return ctx.db.insert("trackerRecommendations", {
+      userId: args.userId,
+      date: args.date,
+      summary: args.summary,
+      items: args.items,
+      generatedAt: Date.now(),
+    });
+  },
+});
+
+// Cross-references every tracker AND recent daily reports to produce concrete,
+// prioritized recommendations for improving progress.
+export const recommend = action({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ summary: string; items: Array<{ title: string; detail: string; focus?: string }> } | null> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const overview: any = await ctx.runQuery(api.trackers.getOverview, { userId: args.userId });
+    const trackers: any[] = overview?.trackers ?? [];
+
+    let reports: any[] = [];
+    try {
+      reports = await ctx.runQuery(api.reports.getRecentReports, { userId: args.userId, limit: 7 });
+    } catch {
+      reports = [];
+    }
+    if (trackers.length === 0 && reports.length === 0) return null;
+
+    const trackerLines = trackers.length
+      ? trackers
+          .map((t) => {
+            const score = t.needsData ? "no data yet" : `${t.score}/100`;
+            const trend = t.trend > 0 ? `up ${t.trend}` : t.trend < 0 ? `down ${Math.abs(t.trend)}` : "flat";
+            const streak = t.streak > 0 ? `${t.streak}-day streak` : "no streak";
+            return `- ${t.name}: ${score}, ${trend}, ${streak}`;
+          })
+          .join("\n")
+      : "(no trackers yet)";
+
+    const reportLines = reports.length
+      ? reports
+          .map((r) => {
+            const res = (r.responses ?? {}) as any;
+            const parts = [
+              res.dayActivity,
+              res.emotionalDrain,
+              ...(Array.isArray(res.problemsToSolve) ? res.problemsToSolve.map((p: any) => p.title) : []),
+              res.tomorrowPlan,
+            ]
+              .filter(Boolean)
+              .join(" | ");
+            return `- ${r.date}: ${String(parts).slice(0, 400)}`;
+          })
+          .join("\n")
+      : "(no daily reports yet)";
+
+    const system = `You are the analyst inside a life-analytics app. You see the user's tracker scores AND their recent free-text daily reports. Cross-reference both: connect what they WRITE about (problems, energy, plans, people) with what their tracker NUMBERS show, and produce concrete, prioritized recommendations to improve their progress. Be specific and reference real data. No fluff, no emojis, no dashes.
+
+Return JSON in EXACTLY this shape:
+{
+  "summary": "<1 sentence overview of where they stand right now>",
+  "items": [
+    { "title": "<short imperative recommendation, max 8 words>", "detail": "<1-2 sentences, cite the specific tracker trend or report theme it is based on>", "focus": "<the tracker name or life area this is about>" }
+  ]
+}
+
+Give 3 to 5 items, ordered by impact. Tie at least one recommendation to something they wrote in a daily report.`;
+
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: system },
+          {
+            role: "user",
+            content: `Today is ${args.date}.\n\nTracker scores:\n${trackerLines}\n\nRecent daily reports:\n${reportLines}\n\nComposite life score: ${overview?.hasScored ? overview.composite + "/100" : "not established"}.`,
+          },
+        ],
+      });
+      const parsed = JSON.parse(completion.choices[0]?.message?.content ?? "{}");
+      const rawItems = Array.isArray(parsed.items) ? parsed.items : [];
+      const items = rawItems.slice(0, 6).map((it: any) => ({
+        title: String(it.title ?? "Keep going").slice(0, 80),
+        detail: String(it.detail ?? "").slice(0, 280),
+        focus: it.focus ? String(it.focus).slice(0, 40) : undefined,
+      }));
+      const summary = String(parsed.summary ?? "Here is where you stand.").slice(0, 240);
+      if (items.length === 0) return null;
+      await ctx.runMutation(internal.trackerAI.saveRecommendations, {
+        userId: args.userId,
+        date: args.date,
+        summary,
+        items,
+      });
+      return { summary, items };
+    } catch (e) {
+      console.error("trackerAI.recommend failed", e);
+      return null;
+    }
+  },
+});

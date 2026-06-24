@@ -6,7 +6,10 @@ import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { Menu, Settings, LogOut, ShieldAlert } from "lucide-react";
 import { useClerk, useUser } from "@clerk/nextjs";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { cn } from "@/lib/utils";
+import { trackerColor, trackerInitial } from "@/lib/trackers";
 import { useTodayStatus } from "@/hooks/useTodayStatus";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { NAV, BOTTOM_TABS } from "@/lib/nav";
@@ -70,6 +73,8 @@ function MobileMenu() {
   const { user } = useUser();
   const { convexUserId, convexUser } = useConvexUser();
   const { reportDone, affirmDone } = useTodayStatus(convexUserId);
+  const overview = useQuery(api.trackers.getOverview, convexUserId ? { userId: convexUserId } : "skip");
+  const userTrackers = overview?.trackers ?? [];
   const isAdmin = (convexUser as { role?: string } | null | undefined)?.role === "admin";
   const dotFor = (s?: string) => (s === "report" ? !reportDone : s === "affirm" ? !affirmDone : false);
 
@@ -113,6 +118,30 @@ function MobileMenu() {
             </div>
           </div>
         ))}
+
+        {/* User-created trackers (views) */}
+        {userTrackers.length > 0 && (
+          <div>
+            <p className="mb-3 px-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/50">Your trackers</p>
+            <div className="grid grid-cols-4 gap-x-4 gap-y-5">
+              {userTrackers.map((t: any) => {
+                const color = trackerColor(t.color);
+                return (
+                  <Link key={t._id} href={`/trackers/${t._id}`} onClick={collapse} className="flex flex-col items-center gap-2">
+                    <motion.span
+                      whileTap={{ scale: 0.9 }}
+                      className="grid aspect-square w-full place-items-center rounded-[26%] text-lg font-bold shadow-lg shadow-black/40"
+                      style={{ backgroundImage: `linear-gradient(150deg, ${color}, color-mix(in oklch, ${color} 62%, black))`, color: "oklch(0.16 0.02 264)" }}
+                    >
+                      {trackerInitial(t.name)}
+                    </motion.span>
+                    <span className="w-full truncate text-center text-[11px] font-medium text-foreground/85">{t.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* System */}
         <div>

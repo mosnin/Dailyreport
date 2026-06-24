@@ -443,4 +443,20 @@ export default defineSchema({
     generatedAt: v.number(),
   }).index("by_user_date", ["userId", "date"]),
 
+  // Cross-context AI recommendations for the Analytics page. Reads every tracker
+  // AND recent daily reports together to suggest concrete ways to improve.
+  trackerRecommendations: defineTable({
+    userId: v.id("users"),
+    date: v.string(),
+    summary: v.optional(v.string()),
+    items: v.array(
+      v.object({
+        title: v.string(),
+        detail: v.string(),
+        focus: v.optional(v.string()),       // tracker name or area this is about
+      })
+    ),
+    generatedAt: v.number(),
+  }).index("by_user_date", ["userId", "date"]),
+
 });

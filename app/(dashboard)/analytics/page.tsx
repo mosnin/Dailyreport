@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery } from "convex/react";
+import { useEffect, useRef, useState } from "react";
+import { useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,7 +9,7 @@ import { BentoCard } from "@/components/bento/BentoCard";
 import { PageHeader } from "@/components/bento/PageHeader";
 import { LineTrend, AreaTrend, RadarScores } from "@/components/charts/Charts";
 import { trackerColor } from "@/lib/trackers";
-import { cn } from "@/lib/utils";
+import { cn, todayString } from "@/lib/utils";
 import Link from "next/link";
 
 const RANGES = [30, 60, 90];
@@ -17,8 +17,21 @@ const RANGES = [30, 60, 90];
 export default function AnalyticsPage() {
   const { convexUserId } = useConvexUser();
   const [days, setDays] = useState(30);
+  const today = todayString();
   const overview = useQuery(api.trackers.getOverview, convexUserId ? { userId: convexUserId } : "skip");
   const series = useQuery(api.trackers.getSeries, convexUserId ? { userId: convexUserId, days } : "skip");
+  const recommendations = useQuery(api.trackerAI.getRecommendations, convexUserId ? { userId: convexUserId, date: today } : "skip");
+  const runRecommend = useAction(api.trackerAI.recommend);
+
+  // Generate today's cross-context recommendations once if missing and there's data.
+  const recKicked = useRef(false);
+  useEffect(() => {
+    if (recKicked.current) return;
+    if (!convexUserId || recommendations === undefined || recommendations !== null) return;
+    if (!overview?.trackers?.length) return;
+    recKicked.current = true;
+    runRecommend({ userId: convexUserId, date: today }).catch(() => {});
+  }, [convexUserId, recommendations, overview?.trackers?.length, runRecommend, today]);
 
   if (!convexUserId || overview === undefined) {
     return (
@@ -65,6 +78,34 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-4 pb-6">
       <PageHeader eyebrow="Analytics" title="The full picture" subtitle="Every tracker, measured over time." action={rangeToggle} />
+
+      {/* AI recommendations: cross-references trackers + daily reports */}
+      <BentoCard delay={0.01}>
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="font-semibold">Recommendations</h2>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">AI</span>
+        </div>
+        {recommendations === undefined || (recommendations === null && !recKicked.current) ? (
+          <p className="text-sm text-muted-foreground">Reading across your trackers and daily reports...</p>
+        ) : recommendations === null ? (
+          <p className="text-sm text-muted-foreground">Log a few trackers and daily reports and tailored recommendations appear here.</p>
+        ) : (
+          <>
+            {recommendations.summary && <p className="text-sm text-muted-foreground mb-3">{recommendations.summary}</p>}
+            <div className="space-y-2.5">
+              {recommendations.items.map((it: any, i: number) => (
+                <div key={i} className="rounded-2xl border border-border/50 bg-background/40 px-4 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-semibold">{it.title}</p>
+                    {it.focus && <span className="shrink-0 text-[11px] font-medium text-muted-foreground/70">{it.focus}</span>}
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground leading-snug">{it.detail}</p>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </BentoCard>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* All trackers over time */}
