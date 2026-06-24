@@ -175,7 +175,7 @@ function DitheredWaves(props: WaveProps) {
 
   const mesh = useRef<THREE.Mesh>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const { viewport, size, gl } = useThree();
+  const { size, gl } = useThree();
 
   const waveUniformsRef = useRef({
     time: new THREE.Uniform(0),
@@ -231,8 +231,10 @@ function DitheredWaves(props: WaveProps) {
 
   return (
     <>
-      <mesh ref={mesh} scale={[viewport.width, viewport.height, 1]}>
-        <planeGeometry args={[1, 1]} />
+      <mesh ref={mesh}>
+        {/* Fullscreen quad: the vertex shader bypasses the camera matrices and
+            uses positions directly, so the plane must span clip space (-1..1). */}
+        <planeGeometry args={[2, 2]} />
         <shaderMaterial
           vertexShader={waveVertexShader}
           fragmentShader={waveFragmentShader}
@@ -274,6 +276,9 @@ export default function Dither({
       className="dither-container"
       camera={{ position: [0, 0, 6] }}
       dpr={[1, 2]}
+      frameloop="always"
+      resize={{ scroll: false, offsetSize: true }}
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }}
       gl={{ antialias: true, preserveDrawingBuffer: true }}
     >
       <DitheredWaves

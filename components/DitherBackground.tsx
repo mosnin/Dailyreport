@@ -2,20 +2,19 @@
 
 import dynamic from "next/dynamic";
 
-// WebGL canvas — load on the client only (no SSR).
 const Dither = dynamic(() => import("./Dither"), { ssr: false });
 
 /**
- * Fixed, full-viewport animated dither background that sits behind the entire
- * app. pointer-events are disabled so the UI stays fully clickable; the shader
- * still tracks the cursor via a window-level listener.
+ * Fixed, full-viewport animated dither background behind the entire app.
+ * pointer-events are disabled so the UI stays clickable; the shader still
+ * tracks the cursor via a window-level listener.
  */
 export function DitherBackground() {
   return (
     <div
       aria-hidden
-      className="fixed inset-0 z-0 pointer-events-none"
-      style={{ width: "100%", height: "100%" }}
+      className="pointer-events-none fixed inset-0"
+      style={{ zIndex: 0, width: "100vw", height: "100dvh" }}
     >
       <Dither
         waveColor={[0.5372549019607843, 0.6941176470588235, 0.996078431372549]}

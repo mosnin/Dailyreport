@@ -35,8 +35,12 @@ function MobileMenu() {
 
   return (
     <div
-      className="flex min-h-full flex-col px-6 pb-10 safe-x"
-      style={{ paddingTop: "calc(env(safe-area-inset-top) + 1.5rem)" }}
+      className="flex min-h-full flex-col px-7 pb-12"
+      style={{
+        paddingTop: "calc(env(safe-area-inset-top) + 1.5rem)",
+        paddingLeft: "calc(env(safe-area-inset-left) + 1.75rem)",
+        paddingRight: "calc(env(safe-area-inset-right) + 1.75rem)",
+      }}
     >
       <div className="flex items-center gap-3 mb-8">
         <span className="grid place-items-center w-10 h-10 rounded-2xl bg-primary text-primary-foreground font-bold text-xl">A</span>

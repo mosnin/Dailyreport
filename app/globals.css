@@ -72,8 +72,8 @@
   --card-foreground:      oklch(0.97 0.004 264);
   --popover:              oklch(0.205 0.014 264);
   --popover-foreground:   oklch(0.97 0.004 264);
-  --primary:              oklch(0.82 0.17 85);   /* signature amber/yellow */
-  --primary-foreground:   oklch(0.20 0.03 80);
+  --primary:              oklch(0.83 0.10 233);  /* baby blue */
+  --primary-foreground:   oklch(0.18 0.03 245);
   --secondary:            oklch(0.27 0.015 264);
   --secondary-foreground: oklch(0.97 0.004 264);
   --muted:                oklch(0.255 0.013 264);
@@ -83,7 +83,7 @@
   --destructive:          oklch(0.64 0.21 22);
   --border:               oklch(1 0 0 / 9%);
   --input:                oklch(1 0 0 / 12%);
-  --ring:                 oklch(0.82 0.17 85 / 50%);
+  --ring:                 oklch(0.83 0.10 233 / 55%);
 
   --health:               oklch(0.78 0.16 162);  /* emerald   */
   --goals:                oklch(0.72 0.15 295);  /* violet    */
@@ -256,4 +256,18 @@ html, body { overscroll-behavior-y: none; }
 /* The SVG-displacement variant (desktop Chromium): add a readable dark frost. */
 .glass-surface--svg {
   background: rgba(18, 20, 28, 0.30) !important;
+}
+
+/* Dither background canvas must fill the viewport, always. */
+.dither-container,
+.dither-container > div {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+.dither-container canvas {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
 }
