@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronRight, Flame, CheckCircle2 } from "lucide-react";
 import { TestimonialMarquee } from "@/components/landing/TestimonialMarquee";
 import { FAQ } from "@/components/landing/FAQ";
+import { HyperspeedHero } from "@/components/HyperspeedHero";
 
 const FACTS = [
   {
@@ -122,21 +123,21 @@ export default async function LandingPage() {
       </header>
 
       {/* ── Hero ───────────────────────────────────────────────────── */}
-      <section className="notebook-lines pt-40 pb-32 px-6 text-center relative">
-        {/* Left margin rule */}
-        <div className="absolute left-[max(2.5rem,calc(50%-38rem))] top-0 bottom-0 w-px bg-red-200/50 dark:bg-red-900/20 pointer-events-none" />
+      <section className="relative min-h-[92vh] flex items-center justify-center pt-40 pb-32 px-6 text-center overflow-hidden bg-black">
+        {/* Hyperspeed animated background */}
+        <HyperspeedHero />
 
-        <div className="max-w-3xl mx-auto relative">
-          <h1 className="font-heading text-5xl sm:text-6xl lg:text-[4.5rem] font-semibold tracking-tight leading-[1.06] mb-6">
-            Show up in writing.
+        <div className="max-w-3xl mx-auto relative z-10">
+          <h1 className="font-heading text-5xl sm:text-6xl lg:text-[4.5rem] font-semibold tracking-tight leading-[1.06] mb-6 text-white">
+            Measure your whole life.
             <br />
             <span className="text-brand-blue">Every day.</span>
           </h1>
 
-          <p className="text-base sm:text-lg text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-lg mx-auto mb-10">
-            Seven questions. Every night.
+          <p className="text-base sm:text-lg text-neutral-300 leading-relaxed max-w-lg mx-auto mb-10">
+            Track health, goals, money, and growth.
             <br />
-            A year from now, you&rsquo;ll have proof.
+            One score for the life you are building.
           </p>
 
           <div className="flex items-center justify-center gap-3">

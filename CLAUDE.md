@@ -10,7 +10,9 @@ These are absolute and apply to the entire application:
 2. **Animated background.** The whole app sits on the full-page animated `DitherBackground` (`components/DitherBackground.tsx` wrapping `components/Dither.tsx`). Headers and page surfaces are transparent so it shows through.
 3. **Glass everything.** Every card and surface is a glass element built on `components/GlassSurface.jsx` (used via `components/bento/BentoCard.tsx`). Do not create opaque cards; do not hand-roll card chrome.
 4. **No icons or decorations on cards.** Cards contain zero icons and zero ornamental decoration (no lucide icons, no colored icon chips, no accent dots/gradients). Only text and real data visualizations (charts, score rings, progress bars) are allowed inside cards. Navigation chrome (sidebar/bottom bar/command palette) may keep its icons.
-5. **Zero em dashes.** Never use an em dash (-) or en dash (-) anywhere in the codebase or copy. Use a hyphen, comma, or rephrase.
+5. **If an icon is genuinely needed** for decoration anywhere, use `components/GlassIcons.jsx` (ReactBits GlassIcons) - never raw lucide icons as decoration. Pass `items={[{ icon, color, label }]}`.
+6. **Zero em dashes.** Never use an em dash or en dash anywhere in the codebase or copy. Use a hyphen, comma, or rephrase.
+7. **Logged-out landing** uses the `components/Hyperspeed.jsx` (ReactBits Hyperspeed) animation as the hero background. The logged-in app uses the Dither background.
 
 ## What this is
 

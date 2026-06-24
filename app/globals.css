@@ -33,6 +33,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-brand-blue: var(--brand-blue);
 
   /* Domain accents - one hue per scored life area. Used everywhere. */
   --color-health: var(--health);
@@ -101,6 +102,7 @@
   --sidebar-foreground:   oklch(0.97 0.004 264);
   --sidebar-accent:       oklch(0.26 0.015 264);
   --sidebar-border:       oklch(1 0 0 / 8%);
+  --brand-blue:           #89b1fe;
 
   --radius: 1.25rem;
 }
@@ -144,6 +146,7 @@
   --sidebar-foreground:   oklch(0.20 0.02 264);
   --sidebar-accent:       oklch(0.95 0.008 95);
   --sidebar-border:       oklch(0.90 0.006 95);
+  --brand-blue:           #89b1fe;
 
   --radius: 1.25rem;
 }
