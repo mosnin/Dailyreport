@@ -24,6 +24,9 @@ uniform float waveSpeed;
 uniform float waveFrequency;
 uniform float waveAmplitude;
 uniform vec3 waveColor;
+uniform vec3 waveColor2;
+uniform vec3 waveColor3;
+uniform float waveContrast;
 uniform vec2 mousePos;
 uniform int enableMouseInteraction;
 uniform float mouseRadius;
@@ -92,7 +95,14 @@ void main() {
     float effect = 1.0 - smoothstep(0.0, mouseRadius, dist);
     f -= 0.5 * effect;
   }
-  vec3 col = mix(vec3(0.0), waveColor, f);
+  // Diagonal screen-space gradient between the three wave colors.
+  vec2 guv = gl_FragCoord.xy / resolution.xy;
+  float t = clamp((guv.x + (1.0 - guv.y)) * 0.5, 0.0, 1.0);
+  vec3 grad = mix(waveColor, waveColor2, smoothstep(0.0, 0.5, t));
+  grad = mix(grad, waveColor3, smoothstep(0.5, 1.0, t));
+  // waveContrast > 1 expands the dark regions so black stays dominant.
+  float shade = pow(clamp(f, 0.0, 1.0), waveContrast);
+  vec3 col = mix(vec3(0.0), grad, shade);
   gl_FragColor = vec4(col, 1.0);
 }
 `;
@@ -160,6 +170,9 @@ type WaveProps = {
   waveFrequency: number;
   waveAmplitude: number;
   waveColor: [number, number, number];
+  waveColor2: [number, number, number];
+  waveColor3: [number, number, number];
+  waveContrast: number;
   colorNum: number;
   pixelSize: number;
   disableAnimation: boolean;
@@ -169,8 +182,8 @@ type WaveProps = {
 
 function DitheredWaves(props: WaveProps) {
   const {
-    waveSpeed, waveFrequency, waveAmplitude, waveColor,
-    colorNum, pixelSize, disableAnimation, enableMouseInteraction, mouseRadius,
+    waveSpeed, waveFrequency, waveAmplitude, waveColor, waveColor2, waveColor3,
+    waveContrast, colorNum, pixelSize, disableAnimation, enableMouseInteraction, mouseRadius,
   } = props;
 
   const mesh = useRef<THREE.Mesh>(null);
@@ -184,6 +197,9 @@ function DitheredWaves(props: WaveProps) {
     waveFrequency: new THREE.Uniform(waveFrequency),
     waveAmplitude: new THREE.Uniform(waveAmplitude),
     waveColor: new THREE.Uniform(new THREE.Color(waveColor[0], waveColor[1], waveColor[2])),
+    waveColor2: new THREE.Uniform(new THREE.Color(waveColor2[0], waveColor2[1], waveColor2[2])),
+    waveColor3: new THREE.Uniform(new THREE.Color(waveColor3[0], waveColor3[1], waveColor3[2])),
+    waveContrast: new THREE.Uniform(waveContrast),
     mousePos: new THREE.Uniform(new THREE.Vector2(0, 0)),
     enableMouseInteraction: new THREE.Uniform(enableMouseInteraction ? 1 : 0),
     mouseRadius: new THREE.Uniform(mouseRadius),
@@ -220,6 +236,9 @@ function DitheredWaves(props: WaveProps) {
     u.waveFrequency.value = waveFrequency;
     u.waveAmplitude.value = waveAmplitude;
     (u.waveColor.value as THREE.Color).setRGB(waveColor[0], waveColor[1], waveColor[2]);
+    (u.waveColor2.value as THREE.Color).setRGB(waveColor2[0], waveColor2[1], waveColor2[2]);
+    (u.waveColor3.value as THREE.Color).setRGB(waveColor3[0], waveColor3[1], waveColor3[2]);
+    u.waveContrast.value = waveContrast;
     u.enableMouseInteraction.value = enableMouseInteraction ? 1 : 0;
     u.mouseRadius.value = mouseRadius;
     if (enableMouseInteraction) {
@@ -251,6 +270,9 @@ export type DitherProps = {
   waveFrequency?: number;
   waveAmplitude?: number;
   waveColor?: [number, number, number];
+  waveColor2?: [number, number, number];
+  waveColor3?: [number, number, number];
+  waveContrast?: number;
   colorNum?: number;
   pixelSize?: number;
   disableAnimation?: boolean;
@@ -263,6 +285,9 @@ export default function Dither({
   waveFrequency = 3,
   waveAmplitude = 0.3,
   waveColor = [0.5, 0.5, 0.5],
+  waveColor2 = waveColor,
+  waveColor3 = waveColor2,
+  waveContrast = 1,
   colorNum = 4,
   pixelSize = 2,
   disableAnimation = false,
@@ -281,6 +306,9 @@ export default function Dither({
         waveFrequency={waveFrequency}
         waveAmplitude={waveAmplitude}
         waveColor={waveColor}
+        waveColor2={waveColor2}
+        waveColor3={waveColor3}
+        waveContrast={waveContrast}
         colorNum={colorNum}
         pixelSize={pixelSize}
         disableAnimation={disableAnimation}

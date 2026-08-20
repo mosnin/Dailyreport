@@ -18,7 +18,10 @@ export function DitherBackground() {
       style={{ width: "100%", height: "100%" }}
     >
       <Dither
-        waveColor={[0.5372549019607843, 0.6941176470588235, 0.996078431372549]}
+        waveColor={[0.96, 0.76, 0.86]}
+        waveColor2={[0.78, 0.73, 0.95]}
+        waveColor3={[0.7, 0.9, 0.88]}
+        waveContrast={1.6}
         disableAnimation={false}
         enableMouseInteraction
         mouseRadius={0.3}
