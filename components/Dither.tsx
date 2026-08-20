@@ -23,10 +23,8 @@ uniform float time;
 uniform float waveSpeed;
 uniform float waveFrequency;
 uniform float waveAmplitude;
-uniform vec3 waveColor;
-uniform vec3 waveColor2;
-uniform vec3 waveColor3;
 uniform float waveContrast;
+uniform float waveGain;
 uniform vec2 mousePos;
 uniform int enableMouseInteraction;
 uniform float mouseRadius;
@@ -95,15 +93,12 @@ void main() {
     float effect = 1.0 - smoothstep(0.0, mouseRadius, dist);
     f -= 0.5 * effect;
   }
-  // Diagonal screen-space gradient between the three wave colors.
-  vec2 guv = gl_FragCoord.xy / resolution.xy;
-  float t = clamp((guv.x + (1.0 - guv.y)) * 0.5, 0.0, 1.0);
-  vec3 grad = mix(waveColor, waveColor2, smoothstep(0.0, 0.5, t));
-  grad = mix(grad, waveColor3, smoothstep(0.5, 1.0, t));
-  // waveContrast > 1 expands the dark regions so black stays dominant.
-  float shade = pow(clamp(f, 0.0, 1.0), waveContrast);
-  vec3 col = mix(vec3(0.0), grad, shade);
-  gl_FragColor = vec4(col, 1.0);
+  // Grayscale only; the dither pass tints with the gradient AFTER
+  // quantization so pastel hues are not saturated into primaries.
+  // waveGain lifts highlights past the dither bias; waveContrast > 1
+  // expands the dark regions so black stays dominant.
+  float shade = pow(clamp(f * waveGain, 0.0, 1.0), waveContrast);
+  gl_FragColor = vec4(vec3(shade), 1.0);
 }
 `;
 
@@ -111,6 +106,9 @@ const ditherFragmentShader = /* glsl */ `
 precision highp float;
 uniform float colorNum;
 uniform float pixelSize;
+uniform vec3 colorA;
+uniform vec3 colorB;
+uniform vec3 colorC;
 
 const float bayerMatrix8x8[64] = float[64](
   0.0/64.0, 48.0/64.0, 12.0/64.0, 60.0/64.0, 3.0/64.0, 51.0/64.0, 15.0/64.0, 63.0/64.0,
@@ -140,9 +138,15 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   vec2 uvPixel = normalizedPixelSize * floor(uv / normalizedPixelSize);
   vec4 color = texture2D(inputBuffer, uvPixel);
   color.rgb = dither(uv * resolution, color.rgb);
-  outputColor = color;
+  // Tint the quantized grayscale with a diagonal three-stop gradient.
+  float t = clamp((uv.x + (1.0 - uv.y)) * 0.5, 0.0, 1.0);
+  vec3 grad = mix(colorA, colorB, smoothstep(0.0, 0.5, t));
+  grad = mix(grad, colorC, smoothstep(0.5, 1.0, t));
+  outputColor = vec4(grad * color.rgb, color.a);
 }
 `;
+
+type RGB = [number, number, number];
 
 class RetroEffectImpl extends Effect {
   public uniforms: Map<string, THREE.Uniform>;
@@ -150,6 +154,9 @@ class RetroEffectImpl extends Effect {
     const uniforms = new Map<string, THREE.Uniform>([
       ["colorNum", new THREE.Uniform(4.0)],
       ["pixelSize", new THREE.Uniform(2.0)],
+      ["colorA", new THREE.Uniform(new THREE.Color(1, 1, 1))],
+      ["colorB", new THREE.Uniform(new THREE.Color(1, 1, 1))],
+      ["colorC", new THREE.Uniform(new THREE.Color(1, 1, 1))],
     ]);
     super("RetroEffect", ditherFragmentShader, { uniforms } as any);
     this.uniforms = uniforms;
@@ -158,11 +165,17 @@ class RetroEffectImpl extends Effect {
   get colorNum(): number { return this.uniforms.get("colorNum")!.value; }
   set pixelSize(v: number) { this.uniforms.get("pixelSize")!.value = v; }
   get pixelSize(): number { return this.uniforms.get("pixelSize")!.value; }
+  set colorA(v: RGB) { (this.uniforms.get("colorA")!.value as THREE.Color).setRGB(v[0], v[1], v[2]); }
+  set colorB(v: RGB) { (this.uniforms.get("colorB")!.value as THREE.Color).setRGB(v[0], v[1], v[2]); }
+  set colorC(v: RGB) { (this.uniforms.get("colorC")!.value as THREE.Color).setRGB(v[0], v[1], v[2]); }
 }
 
 const RetroEffect = wrapEffect(RetroEffectImpl) as unknown as React.ComponentType<{
   colorNum?: number;
   pixelSize?: number;
+  colorA?: RGB;
+  colorB?: RGB;
+  colorC?: RGB;
 }>;
 
 type WaveProps = {
@@ -173,6 +186,7 @@ type WaveProps = {
   waveColor2: [number, number, number];
   waveColor3: [number, number, number];
   waveContrast: number;
+  waveGain: number;
   colorNum: number;
   pixelSize: number;
   disableAnimation: boolean;
@@ -183,7 +197,7 @@ type WaveProps = {
 function DitheredWaves(props: WaveProps) {
   const {
     waveSpeed, waveFrequency, waveAmplitude, waveColor, waveColor2, waveColor3,
-    waveContrast, colorNum, pixelSize, disableAnimation, enableMouseInteraction, mouseRadius,
+    waveContrast, waveGain, colorNum, pixelSize, disableAnimation, enableMouseInteraction, mouseRadius,
   } = props;
 
   const mesh = useRef<THREE.Mesh>(null);
@@ -196,10 +210,8 @@ function DitheredWaves(props: WaveProps) {
     waveSpeed: new THREE.Uniform(waveSpeed),
     waveFrequency: new THREE.Uniform(waveFrequency),
     waveAmplitude: new THREE.Uniform(waveAmplitude),
-    waveColor: new THREE.Uniform(new THREE.Color(waveColor[0], waveColor[1], waveColor[2])),
-    waveColor2: new THREE.Uniform(new THREE.Color(waveColor2[0], waveColor2[1], waveColor2[2])),
-    waveColor3: new THREE.Uniform(new THREE.Color(waveColor3[0], waveColor3[1], waveColor3[2])),
     waveContrast: new THREE.Uniform(waveContrast),
+    waveGain: new THREE.Uniform(waveGain),
     mousePos: new THREE.Uniform(new THREE.Vector2(0, 0)),
     enableMouseInteraction: new THREE.Uniform(enableMouseInteraction ? 1 : 0),
     mouseRadius: new THREE.Uniform(mouseRadius),
@@ -235,10 +247,8 @@ function DitheredWaves(props: WaveProps) {
     u.waveSpeed.value = waveSpeed;
     u.waveFrequency.value = waveFrequency;
     u.waveAmplitude.value = waveAmplitude;
-    (u.waveColor.value as THREE.Color).setRGB(waveColor[0], waveColor[1], waveColor[2]);
-    (u.waveColor2.value as THREE.Color).setRGB(waveColor2[0], waveColor2[1], waveColor2[2]);
-    (u.waveColor3.value as THREE.Color).setRGB(waveColor3[0], waveColor3[1], waveColor3[2]);
     u.waveContrast.value = waveContrast;
+    u.waveGain.value = waveGain;
     u.enableMouseInteraction.value = enableMouseInteraction ? 1 : 0;
     u.mouseRadius.value = mouseRadius;
     if (enableMouseInteraction) {
@@ -259,7 +269,13 @@ function DitheredWaves(props: WaveProps) {
         />
       </mesh>
       <EffectComposer>
-        <RetroEffect colorNum={colorNum} pixelSize={pixelSize} />
+        <RetroEffect
+          colorNum={colorNum}
+          pixelSize={pixelSize}
+          colorA={waveColor}
+          colorB={waveColor2}
+          colorC={waveColor3}
+        />
       </EffectComposer>
     </>
   );
@@ -273,6 +289,7 @@ export type DitherProps = {
   waveColor2?: [number, number, number];
   waveColor3?: [number, number, number];
   waveContrast?: number;
+  waveGain?: number;
   colorNum?: number;
   pixelSize?: number;
   disableAnimation?: boolean;
@@ -288,6 +305,7 @@ export default function Dither({
   waveColor2 = waveColor,
   waveColor3 = waveColor2,
   waveContrast = 1,
+  waveGain = 1,
   colorNum = 4,
   pixelSize = 2,
   disableAnimation = false,
@@ -309,6 +327,7 @@ export default function Dither({
         waveColor2={waveColor2}
         waveColor3={waveColor3}
         waveContrast={waveContrast}
+        waveGain={waveGain}
         colorNum={colorNum}
         pixelSize={pixelSize}
         disableAnimation={disableAnimation}

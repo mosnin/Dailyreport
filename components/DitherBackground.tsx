@@ -18,20 +18,22 @@ export function DitherBackground() {
       style={{ width: "100%", height: "100%" }}
     >
       <Dither
-        waveColor={[0.96, 0.76, 0.86]}
-        waveColor2={[0.78, 0.73, 0.95]}
-        waveColor3={[0.7, 0.9, 0.88]}
-        waveContrast={1.6}
+        waveColor={[1.0, 0.72, 0.86]}
+        waveColor2={[0.72, 0.68, 1.0]}
+        waveColor3={[0.62, 0.95, 0.85]}
+        waveContrast={1.3}
+        waveGain={1.9}
         disableAnimation={false}
         enableMouseInteraction
         mouseRadius={0.3}
-        colorNum={3.3}
+        colorNum={4.5}
         waveAmplitude={0}
         waveFrequency={3.2}
         waveSpeed={0.06}
       />
-      {/* Soften so foreground text/cards stay legible over the animation */}
-      <div className="absolute inset-0 bg-background/55 dark:bg-background/60" />
+      {/* Soften so foreground text/cards stay legible over the animation.
+          Neutral black so it darkens without tinting the pastel gradient. */}
+      <div className="absolute inset-0 bg-black/30" />
     </div>
   );
 }
