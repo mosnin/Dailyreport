@@ -9,13 +9,13 @@ const crons = cronJobs();
 crons.hourly("check-8pm-notifications", { minuteUTC: 0 }, internal.crons.checkNotifications);
 crons.daily("generate-daily-visualizations", { hourUTC: 0, minuteUTC: 0 }, internal.crons.generateVisualizationsForAllUsers);
 
-// Monday 9am UTC — weekly digest email (covers the previous Mon–Sun)
+// Monday 9am UTC - weekly digest email (covers the previous Mon-Sun)
 crons.weekly("send-weekly-digest-emails", { dayOfWeek: "monday", hourUTC: 9, minuteUTC: 0 }, internal.email.sendWeeklyDigestToAll);
 
-// Sunday 6pm UTC — gentle reminder if weekly report not yet submitted
+// Sunday 6pm UTC - gentle reminder if weekly report not yet submitted
 crons.weekly("send-weekly-reminder-emails", { dayOfWeek: "sunday", hourUTC: 18, minuteUTC: 0 }, internal.email.sendWeeklyRemindersToAll);
 
-// Sunday 7pm UTC — generate AI week draft from the 7 daily reports
+// Sunday 7pm UTC - generate AI week draft from the 7 daily reports
 crons.weekly("generate-week-drafts", { dayOfWeek: "sunday", hourUTC: 19, minuteUTC: 0 }, internal.crons.generateWeekDraftsForAllUsers);
 
 export default crons;
@@ -36,7 +36,7 @@ export const checkNotifications = internalAction({
         const hour = localDate.getHours();
         const localDateStr = localDate.toISOString().split("T")[0];
 
-        // Morning briefing at 8am — agent pre-briefs before the user opens the app
+        // Morning briefing at 8am - generate today's brief before the user opens the app
         if (hour === 8 && user.onboardingComplete) {
           const briefingSent = await ctx.runQuery(internal.crons.wasNotificationSent, {
             userId: user._id,
@@ -50,13 +50,12 @@ export const checkNotifications = internalAction({
               date: localDateStr,
             });
             try {
-              await ctx.runAction(
-                // @ts-ignore — agentScheduler added in parallel; run npx convex dev --once
-                (internal as any).agentScheduler.triggerMorningBriefing,
-                { userId: user._id, clerkId: user.clerkId }
-              );
+              await ctx.runAction(internal.ai.generateMorningBriefInternal, {
+                userId: user._id,
+                date: localDateStr,
+              });
             } catch (err) {
-              console.error(`Morning briefing failed for ${user._id}:`, err);
+              console.error(`Morning brief failed for ${user._id}:`, err);
             }
           }
         }

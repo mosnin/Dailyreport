@@ -12,8 +12,8 @@ function getOpenAI() {
 function affirmationStylePrompt(style: string, customInstructions: string | null): string {
   switch (style) {
     case "power":
-      return `Each affirmation must be short, commanding, and declarative (2–3 short punchy sentences max).
-Present tense only. No soft language — bold, direct, owned.
+      return `Each affirmation must be short, commanding, and declarative (2-3 short punchy sentences max).
+Present tense only. No soft language - bold, direct, owned.
 Example: "I run a seven-figure business. Every move I make compounds my power. I am built for this."`;
     case "spiritual":
       return `Each affirmation should feel deeply spiritual and energetically resonant.
@@ -22,11 +22,11 @@ Example: "The universe has already delivered this into my reality. I am a vessel
     case "poetic":
       return `Each affirmation should be beautifully written with original metaphor and lyrical language.
 Avoid clichés. Use evocative imagery rooted in the user's specific dream or goal.
-Example: "Like a river that carves through stone with patient certainty, I have carved my path — and wealth flows to me as naturally as water finds the sea."`;
+Example: "Like a river that carves through stone with patient certainty, I have carved my path - and wealth flows to me as naturally as water finds the sea."`;
     case "identity":
-      return `Each affirmation should focus on the identity of the person — WHO they are, not just what they have.
+      return `Each affirmation should focus on the identity of the person - WHO they are, not just what they have.
 Begin with or include phrases like "I am the kind of person who..." or ground in a core identity statement.
-Example: "I am the kind of person who builds extraordinary things. Creating wealth isn't something I chase — it's simply who I am at my core."`;
+Example: "I am the kind of person who builds extraordinary things. Creating wealth isn't something I chase - it's simply who I am at my core."`;
     case "custom":
       return customInstructions?.trim()
         ? customInstructions.trim()
@@ -42,33 +42,33 @@ function visualizationStylePrompt(style: string, customInstructions: string | nu
   switch (style) {
     case "meditative":
       return `Generate calm, meditative visualization scenarios. Slow pace, breath-anchored, gentle body awareness.
-No high drama or peak performance — pure peaceful knowing that the dream has arrived.
+No high drama or peak performance - pure peaceful knowing that the dream has arrived.
 Use soft, present-moment sensory detail: warmth in the chest, settled breathing, quiet joy, spaciousness.
-Write in second person present tense, 3–4 sentences.`;
+Write in second person present tense, 3-4 sentences.`;
     case "athletic":
       return `Generate high-energy, peak-performance visualization scenarios. Adrenaline, physical power, sharp mental focus, the electricity of being completely dialed in.
-The user is operating at their absolute best — a warrior, a champion at the moment of victory.
+The user is operating at their absolute best - a warrior, a champion at the moment of victory.
 Use intense, kinetic language. Heart rate, breath, muscle memory, the surge of winning.
-Write in second person present tense, 3–4 sentences.`;
+Write in second person present tense, 3-4 sentences.`;
     case "spiritual":
       return `Generate spiritually-oriented visualization scenarios. Light expanding from the heart center, energy fields, divine alignment, the higher self witnessing the fulfilled dream.
 Use language of universal love, quantum possibility, divine timing, and energetic truth.
 The scene should feel transcendent and deeply connected to something larger than the individual.
-Write in second person present tense, 3–4 sentences.`;
+Write in second person present tense, 3-4 sentences.`;
     case "narrative":
       return `Generate first-person narrative scenarios with a brief story arc: first a flash of remembering the struggle, then arriving fully in the moment of resolution.
 The story has a beginning (a nod to who you were), a turning point, and an ending (the present reality of achievement).
-Make it emotionally resonant — the contrast between the past doubt and present truth.
-Write in second person present tense, 3–4 sentences.`;
+Make it emotionally resonant - the contrast between the past doubt and present truth.
+Write in second person present tense, 3-4 sentences.`;
     case "custom":
       return customInstructions?.trim()
         ? customInstructions.trim()
-        : `Generate vivid, sensory-immersive visualization scenarios in second person present tense, 3–4 sentences each.`;
+        : `Generate vivid, sensory-immersive visualization scenarios in second person present tense, 3-4 sentences each.`;
     default: // "cinematic"
       return `Generate intensely sensory, cinematic visualization scenarios.
 Each must place the user inside a SPECIFIC, CONCRETE moment where the dream is already achieved.
 Use rich sensory detail: what they see, hear, feel in their body, the emotional weight of the moment.
-Write in second person present tense ("You are...", "You feel the weight of..."), 3–4 sentences.`;
+Write in second person present tense ("You are...", "You feel the weight of..."), 3-4 sentences.`;
   }
 }
 
@@ -287,7 +287,7 @@ export const analyzeProgress = action({
             role: "system",
             content: `You are an accountability coach scoring weekly report data.
 For each week provided, score these 4 dimensions:
-- momentum (-100 to 100): direction of travel. Score chronologically — early weeks set the baseline, later weeks are judged relative to each other and to prior history.
+- momentum (-100 to 100): direction of travel. Score chronologically - early weeks set the baseline, later weeks are judged relative to each other and to prior history.
 - execution (0-100): % of stated goals actually completed
 - wellbeing (0-100): emotional health and energy level
 - growth (0-100): problem-solving effectiveness and learning rate
@@ -446,11 +446,11 @@ export const generateAffirmations = action({
           role: "system",
           content: `You are a life coach creating deeply personal affirmations rooted in the user's actual dreams and current goals.
 
-STYLE INSTRUCTIONS — follow these exactly when writing each affirmation:
+STYLE INSTRUCTIONS - follow these exactly when writing each affirmation:
 ${styleInstructions}
 
 Rules that always apply:
-- Root every affirmation in one of the user's stated dreams or current active goals — don't invent new ones
+- Root every affirmation in one of the user's stated dreams or current active goals - don't invent new ones
 - Prioritize big life dreams; use current goals when they are vision-worthy
 - Write as though the dream or goal is already fully realized
 - Make them specific and personal, not generic
@@ -515,7 +515,7 @@ ${dataContext}
 
 RESPONSE FORMATTING RULES for the "message" field:
 - Use ## for section headers (e.g. ## Strengths, ## Areas to Improve, ## Recommendation)
-- Use bullet points (- ) for lists — never write long paragraph lists
+- Use bullet points (- ) for lists - never write long paragraph lists
 - Keep paragraphs to 2 sentences max; break the rest into bullets
 - Bold (**text**) key numbers, percentages, and pivotal insights
 - Use a short opening sentence, then structured sections below it
@@ -528,7 +528,7 @@ RESPONSE FORMAT: Always respond with valid JSON in this exact shape:
     "type": "bar" | "line" | "pie" | "radar",
     "title": "<chart title>",
     "description": "<1 sentence describing what the chart shows>",
-    "data": <array of objects — see notes>,
+    "data": <array of objects - see notes>,
     "xKey": "<field name for x-axis (bar/line only)>",
     "dataKeys": ["<y-axis field names (bar/line)>"],
     "nameKey": "<field for pie slice labels (pie only)>",
@@ -722,7 +722,7 @@ Each affirmation MUST follow this exact pattern:
 "I am so happy and grateful that I am [restate the dream as a present reality]"
 
 Rules:
-- Root every affirmation directly in one of the user's stated dreams — don't invent new goals
+- Root every affirmation directly in one of the user's stated dreams - don't invent new goals
 - Write as though the dream is already fully realized
 - Keep each to one sentence, specific and joyful
 - Generate exactly 5 affirmations
@@ -819,14 +819,14 @@ async function doGenerateVisualizations(
         role: "system",
         content: `You are creating intensely personal 60-second visualization scenarios for a daily mental rehearsal practice.
 
-STYLE INSTRUCTIONS — follow these exactly for every scenario:
+STYLE INSTRUCTIONS - follow these exactly for every scenario:
 ${vizStyleInstructions}
 
 Rules that always apply:
-- Draw directly from the user's actual dreams, goals, or problems — not generic positivity
+- Draw directly from the user's actual dreams, goals, or problems - not generic positivity
 - Frame problems as the moment they are fully solved (not the struggle)
 - Cover a mix of their dreams AND problems across the 10 scenarios
-- Each scenario title should be short and evocative (4–6 words)
+- Each scenario title should be short and evocative (4-6 words)
 - Generate exactly 10 scenarios
 
 Respond with exactly this JSON:
@@ -952,7 +952,7 @@ export const generateInspirations = action({
       .join("\n");
     if (recentDailyText) contextParts.push(`Recent patterns:\n${recentDailyText}`);
 
-    const userContext = contextParts.join("\n\n") || "No data yet — generate general Napoleon Hill wisdom stories.";
+    const userContext = contextParts.join("\n\n") || "No data yet - generate general Napoleon Hill wisdom stories.";
 
     const PRINCIPLES = [
       "Focus",
@@ -975,27 +975,27 @@ export const generateInspirations = action({
           role: "system",
           content: `You are a sharp, direct personal coach who knows this person's goals, struggles, and patterns from their daily reports.
 
-Write exactly 5 short reflections (60–90 words each). Each reflection must:
+Write exactly 5 short reflections (60-90 words each). Each reflection must:
 1. Speak directly to ONE real pattern, tension, or opportunity visible in their data
-2. Be written in second person ("You…") — like a trusted mentor talking to them directly
-3. Reference their ACTUAL situation — specific enough to feel personal, not generic
+2. Be written in second person ("You…") - like a trusted mentor talking to them directly
+3. Reference their ACTUAL situation - specific enough to feel personal, not generic
 4. Offer a concrete reframe, honest observation, or clear next step
-5. Be grounded and practical — no metaphors, no fictional stories, no inspirational clichés
+5. Be grounded and practical - no metaphors, no fictional stories, no inspirational clichés
 
 Choose 5 different themes from: ${PRINCIPLES.join(", ")}
 
 USER CONTEXT:
 ${userContext}
 
-TONE: Direct and warm. Like a coach who respects the person enough to tell them the truth. Not a cheerleader, not a philosopher — just someone who sees clearly and says it plainly.
+TONE: Direct and warm. Like a coach who respects the person enough to tell them the truth. Not a cheerleader, not a philosopher - just someone who sees clearly and says it plainly.
 
 Respond with this exact JSON:
 {
   "stories": [
     {
-      "title": "Short direct title (3–5 words)",
+      "title": "Short direct title (3-5 words)",
       "principle": "The theme",
-      "story": "The reflection text (60–90 words)"
+      "story": "The reflection text (60-90 words)"
     }
   ]
 }`,
@@ -1079,11 +1079,11 @@ Rules:
 - Reference a concrete pattern, pending item, win, or tension from their recent entries
 - Do NOT be generic, motivational-poster-ish, or give unsolicited life advice
 - Speak like a trusted friend who has read their journal, not a life coach
-- No greetings, no "you've been", no "remember to" — just the observation or reminder
-- Do not start with "You" — vary the opening
+- No greetings, no "you've been", no "remember to" - just the observation or reminder
+- Do not start with "You" - vary the opening
 
 Good examples:
-"Three days of mentioning the deployment issue — it's still waiting."
+"Three days of mentioning the deployment issue - it's still waiting."
 "The plan from Tuesday hasn't shown up since. Worth revisiting today."
 "Six straight days. The version of you from last year is watching."`,
           },
@@ -1105,6 +1105,151 @@ Good examples:
       console.error("generateMorningBrief failed:", err);
       return null;
     }
+  },
+});
+
+// Internal version of generateMorningBrief - called by cron, no auth context required.
+// Richer than the dashboard's on-demand version: includes yesterday's plan, goals, and calendar.
+export const generateMorningBriefInternal = internalAction({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, { userId, date }) => {
+    const existing = await ctx.runQuery(internal.aiInternal.getDailyBriefInternal, { userId, date });
+    if (existing) return;
+
+    const [reports, calendarRows] = await Promise.all([
+      ctx.runQuery(internal.aiInternal.getRecentReportsForInsights, { userId }),
+      ctx.runQuery(internal.integrations.getConnectedPlatformsInternal, { userId }),
+    ]);
+
+    const daily = (reports.daily as { date: string; responses: unknown }[]).slice(0, 7);
+    if (daily.length === 0) return;
+
+    // Pull yesterday's committed plan specifically
+    const yesterday = daily[0];
+    const yesterdayPlan = (yesterday?.responses as Record<string, unknown>)?.tomorrowPlan;
+    const yesterdayPlanStr =
+      typeof yesterdayPlan === "string" && yesterdayPlan.trim()
+        ? yesterdayPlan.trim()
+        : null;
+
+    // Build recent context lines
+    const recentLines = daily
+      .map((r) => {
+        const res = r.responses as Record<string, unknown>;
+        const parts: string[] = [];
+        if (typeof res?.dayActivity === "string" && res.dayActivity.trim())
+          parts.push(`day: ${res.dayActivity.slice(0, 120)}`);
+        if (typeof res?.emotionalDrain === "string" && res.emotionalDrain.trim())
+          parts.push(`energy: ${res.emotionalDrain.slice(0, 80)}`);
+        if (Array.isArray(res?.problemsToSolve) && res.problemsToSolve.length > 0)
+          parts.push(`problems: ${(res.problemsToSolve as Array<{ title?: string }>).map((p) => p.title).filter(Boolean).join(", ")}`);
+        return parts.length ? `[${r.date}] ${parts.join(" | ")}` : null;
+      })
+      .filter(Boolean)
+      .join("\n");
+
+    // Fetch calendar events if connected - best effort
+    let calendarContext = "";
+    if (calendarRows.includes("googlecalendar")) {
+      try {
+        const events = await ctx.runAction(internal.ai.fetchCalendarEventsInternal, { userId, date });
+        if (events && events.length > 0) {
+          calendarContext = `\nToday's calendar: ${events.map((e: { title: string; time: string }) => `${e.title} at ${e.time}`).join("; ")}`;
+        }
+      } catch {
+        // calendar fetch is best-effort
+      }
+    }
+
+    const userMessage = [
+      yesterdayPlanStr ? `Yesterday's plan: "${yesterdayPlanStr}"` : "",
+      calendarContext,
+      `Recent entries:\n${recentLines}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    const openai = getOpenAI();
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are an accountability coach writing a sharp morning brief - 2 to 3 sentences.
+
+Rules:
+- If yesterday's plan is provided, open by referencing it directly: did they follow through, or is it still waiting?
+- Mention today's calendar obligations if relevant to their goals or patterns
+- Close with one observation grounded in their actual recent entries - a pattern, a tension, a win
+- Never use motivational-poster language. No "you've got this", no "stay focused"
+- Sound like a trusted mentor who has read their journal, not a generic AI coach
+- Do not start with "You". Do not use bullet points.`,
+          },
+          { role: "user", content: userMessage },
+        ],
+        max_tokens: 120,
+      });
+
+      const content = completion.choices[0].message.content?.trim() ?? null;
+      if (content) {
+        await ctx.runMutation(internal.aiInternal.saveDailyBrief, { userId, date, content });
+      }
+    } catch (err) {
+      console.error("generateMorningBriefInternal failed:", err);
+    }
+  },
+});
+
+// Fetches today's Google Calendar events via Composio - returns simplified event list.
+export const fetchCalendarEventsInternal = internalAction({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, { userId, date }): Promise<{ title: string; time: string }[]> => {
+    const integration = await ctx.runQuery(internal.integrations.getIntegrationByPlatform, {
+      userId,
+      platform: "googlecalendar",
+    });
+    if (!integration?.composioConnectionId) return [];
+
+    const composioApiKey = process.env.COMPOSIO_API_KEY;
+    if (!composioApiKey) return [];
+
+    const timeMin = `${date}T00:00:00Z`;
+    const timeMax = `${date}T23:59:59Z`;
+
+    try {
+      const res = await fetch("https://backend.composio.dev/api/v1/actions/execute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": composioApiKey },
+        body: JSON.stringify({
+          action: "GOOGLECALENDAR_LIST_EVENTS",
+          connectedAccountId: integration.composioConnectionId,
+          input: { calendarId: "primary", timeMin, timeMax, maxResults: 8, singleEvents: true, orderBy: "startTime" },
+        }),
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      const items: Array<{ summary?: string; start?: { dateTime?: string; date?: string } }> =
+        data?.data?.items ?? data?.response_data?.items ?? data?.items ?? [];
+      return items.slice(0, 8).map((e) => ({
+        title: e.summary ?? "Untitled",
+        time: e.start?.dateTime
+          ? new Date(e.start.dateTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+          : "All day",
+      }));
+    } catch {
+      return [];
+    }
+  },
+});
+
+// Public action: client calls this to refresh and return today's calendar events.
+export const fetchCalendarEvents = action({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, args): Promise<{ title: string; time: string }[]> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    return ctx.runAction(internal.ai.fetchCalendarEventsInternal, args);
   },
 });
 
@@ -1197,17 +1342,17 @@ export const generateSubmitCallback = action({
           {
             role: "system",
             content: `You are a wise mentor who just read someone's daily journal entry.
-Write ONE sentence (max 20 words) that makes them feel genuinely seen — a specific observation, not generic praise.
+Write ONE sentence (max 20 words) that makes them feel genuinely seen - a specific observation, not generic praise.
 
 Rules:
 - Reference something CONCRETE from their entry (a person, problem, plan, or feeling)
-- Never start with "You" — vary the opening
+- Never start with "You" - vary the opening
 - No life coach language, no "great job", no hollow affirmations
 - Tone: like a trusted friend who actually read it
 - If the entry is sparse, write something honest about beginning the habit
 
 Examples of good responses:
-"The investor meeting has been on your list four days running — tomorrow might be the day."
+"The investor meeting has been on your list four days running - tomorrow might be the day."
 "Three problems named, two with solutions. That's not nothing."
 "Starting is harder than continuing. You started today."`,
           },
@@ -1342,7 +1487,7 @@ Write exactly 3 short bullets (max 12 words each) capturing the most significant
 - 1 bullet on energy or forward momentum
 
 Rules:
-- Be specific — reference actual things from the entries, not generic observations
+- Be specific - reference actual things from the entries, not generic observations
 - Write in first-person past tense ("Shipped the dashboard feature", "Struggled with the investor meeting")
 - No fluff, no life-coach language
 - If a week is sparse, still write 3 bullets from what's available
@@ -1519,11 +1664,11 @@ export const parseVisionToAffirmations = action({
           content: `Transform a personal vision into 3-5 powerful affirmations. Return JSON: { "affirmations": ["...", ...] }
 
 Rules:
-- Present tense — written as if already true, not future
+- Present tense - written as if already true, not future
 - Specific to their actual vision, never generic
 - Begin each with "I am", "I have", "I attract", "I create", or "I live"
 - Max 15 words each
-- No "I will" — only present ownership`,
+- No "I will" - only present ownership`,
         },
         { role: "user", content: args.text },
       ],

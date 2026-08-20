@@ -13,43 +13,26 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import {
-  Gauge,
-  NotepadText,
-  Flame,
-  Telescope,
-  BookOpen,
-  Crosshair,
-  BrainCircuit,
-  Activity,
-  CalendarDays,
-  Lightbulb,
   Search,
   SlidersHorizontal,
   Sparkles,
-  ArrowRight,
+  Plus,
+  PenLine,
 } from "lucide-react";
+import { NAV } from "@/lib/nav";
 
 const PAGES = [
-  { label: "Today",          href: "/dashboard",      icon: Gauge },
-  { label: "Daily Report",   href: "/reports/daily",  icon: NotepadText },
-  { label: "Weekly Review",  href: "/reports/weekly", icon: BookOpen },
-  { label: "Affirmations",   href: "/affirmations",   icon: Flame },
-  { label: "Visualizations", href: "/dreams",         icon: Telescope },
-  { label: "Goals",          href: "/goals",          icon: Crosshair },
-  { label: "Progress",       href: "/insights",       icon: BrainCircuit },
-  { label: "Patterns",       href: "/patterns",       icon: Activity },
-  { label: "History",        href: "/calendar",       icon: CalendarDays },
-  { label: "Inspiration",    href: "/inspiration",    icon: Lightbulb },
-  { label: "Settings",       href: "/settings",       icon: SlidersHorizontal },
+  ...NAV.flatMap((s) => s.items.map((i) => ({ label: i.label, href: i.href, icon: i.icon }))),
+  { label: "Settings", href: "/settings", icon: SlidersHorizontal },
 ];
 
 const ACTIONS = [
-  { label: "Begin today's daily report",   href: "/reports/daily", icon: ArrowRight },
-  { label: "Start affirmations practice",  href: "/affirmations",  icon: Sparkles },
-  { label: "Run visualizations",           href: "/dreams",        icon: Sparkles },
-  { label: "Generate today's inspiration", href: "/inspiration",   icon: Sparkles },
-  { label: "Search reports",               href: "/search",        icon: Search },
-  { label: "Ask AI about your data",       href: "/chat",          icon: Sparkles },
+  { label: "Write today's report",    href: "/reports/daily", icon: PenLine },
+  { label: "Create a tracker",        href: "/trackers", icon: Plus },
+  { label: "Log trackers",            href: "/log",      icon: PenLine },
+  { label: "Start affirmations",      href: "/affirmations", icon: Sparkles },
+  { label: "Search",                  href: "/search",   icon: Search },
+  { label: "Ask AI about your data",  href: "/chat",     icon: Sparkles },
 ];
 
 export function CommandPalette() {

@@ -90,7 +90,7 @@ export function WelcomeOverlay() {
     // Wait for stats before deciding whether to show the streak phase.
     // If stats hasn't resolved within the typing window, hold the overlay
     // for a bit longer (capped at 3s) so users on slow connections still
-    // get the streak reveal — but never hang the splash forever.
+    // get the streak reveal - but never hang the splash forever.
     const statsReady = stats !== undefined;
     const decisionDelay = statsReady ? 1850 : 3000;
 

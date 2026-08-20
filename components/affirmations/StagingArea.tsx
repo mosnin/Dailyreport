@@ -89,7 +89,7 @@ export function StagingArea({
           <p className="text-sm text-muted-foreground">
             {accepted > 0
               ? `${accepted} affirmation${accepted === 1 ? "" : "s"} added to your list.`
-              : "None kept — generate again to try new ones."}
+              : "None kept - generate again to try new ones."}
           </p>
           <button
             onClick={onDone}

@@ -9,8 +9,8 @@
 
 The agent has two categories of tools:
 
-1. **Built-in callback tools** — defined in `modal_agent/orchestrator.py`, call back into the Next.js app via `AppClient`
-2. **Composio platform tools** — loaded dynamically at runtime from `composio_openai.ComposioToolSet` based on which platforms the user has connected
+1. **Built-in callback tools** - defined in `modal_agent/orchestrator.py`, call back into the Next.js app via `AppClient`
+2. **Composio platform tools** - loaded dynamically at runtime from `composio_openai.ComposioToolSet` based on which platforms the user has connected
 
 ---
 
@@ -30,7 +30,7 @@ The agent has two categories of tools:
 
 **Side effects:** None. Does not call any external service. Does not log to the user.
 
-**Why it exists:** Externalizing reasoning before action significantly reduces incorrect tool calls and misinterpretations. The `think()` call is the reasoning gate — the agent writes out its intent, checks it against the user's request, and only then proceeds.
+**Why it exists:** Externalizing reasoning before action significantly reduces incorrect tool calls and misinterpretations. The `think()` call is the reasoning gate - the agent writes out its intent, checks it against the user's request, and only then proceeds.
 
 ---
 
@@ -131,7 +131,7 @@ Reports are ordered **newest first**. Up to 7 records.
 - Always call `think()` first to filter to only open, relevant tasks
 - Maximum 50 tasks recommended; hard cap of 100 enforced by the Convex mutation
 - `platform` must be one of: `slack`, `notion`, `asana`, `clickup`, `trello`, `googlecalendar`
-- `externalId` must be unique within the user's data — use the platform's native ID
+- `externalId` must be unique within the user's data - use the platform's native ID
 
 **When to call:** After fetching tasks from a Composio platform tool. Always sync before completing the job so the user's Today view reflects current state.
 
@@ -195,20 +195,20 @@ for platform_id in request.connectedPlatforms:
 ### Common Composio tool patterns
 
 **Trello:**
-- `TRELLO_LIST_BOARDS` — get all boards
-- `TRELLO_LIST_CARDS_IN_LIST` — get cards in a specific list
-- `TRELLO_CREATE_CARD` — create a card
-- `TRELLO_UPDATE_CARD` — move card, change status, add due date
+- `TRELLO_LIST_BOARDS` - get all boards
+- `TRELLO_LIST_CARDS_IN_LIST` - get cards in a specific list
+- `TRELLO_CREATE_CARD` - create a card
+- `TRELLO_UPDATE_CARD` - move card, change status, add due date
 
 **Asana:**
-- `ASANA_GET_TASKS_FROM_PROJECT` — list tasks in a project
-- `ASANA_CREATE_TASK` — create a task
-- `ASANA_UPDATE_TASK` — update status, due date
+- `ASANA_GET_TASKS_FROM_PROJECT` - list tasks in a project
+- `ASANA_CREATE_TASK` - create a task
+- `ASANA_UPDATE_TASK` - update status, due date
 
 **Google Calendar:**
-- `GOOGLECALENDAR_LIST_EVENTS` — get events for a date range
-- `GOOGLECALENDAR_CREATE_EVENT` — create an event
-- `GOOGLECALENDAR_UPDATE_EVENT` — modify an event
+- `GOOGLECALENDAR_LIST_EVENTS` - get events for a date range
+- `GOOGLECALENDAR_CREATE_EVENT` - create an event
+- `GOOGLECALENDAR_UPDATE_EVENT` - modify an event
 
 > **Note:** The full list of available actions for each app is determined by the Composio SDK version. Call `toolset.get_tools(apps=[App.TRELLO])` to see all loaded tools at runtime.
 

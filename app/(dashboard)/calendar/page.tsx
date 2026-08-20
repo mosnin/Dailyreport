@@ -12,8 +12,8 @@ import { fadeUp } from "@/lib/motion";
 import { format, parseISO, startOfWeek, endOfWeek, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { CheckCircle2, XCircle, Minus, NotepadText, BookOpen, Users, Target, AlertTriangle, CheckSquare, CalendarDays, Pencil, X } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
+import { PageHeader } from "@/components/bento/PageHeader";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -28,20 +28,17 @@ function getWeekRange(dateStr: string): string {
   const mon = startOfWeek(date, { weekStartsOn: 1 });
   const sun = endOfWeek(date, { weekStartsOn: 1 });
   if (mon.getMonth() === sun.getMonth()) {
-    return `${format(mon, "MMM d")} – ${format(sun, "d, yyyy")}`;
+    return `${format(mon, "MMM d")} - ${format(sun, "d, yyyy")}`;
   }
-  return `${format(mon, "MMM d")} – ${format(sun, "MMM d, yyyy")}`;
+  return `${format(mon, "MMM d")} - ${format(sun, "MMM d, yyyy")}`;
 }
 
 // ── Section block ─────────────────────────────────────────────────────────
 
-function Section({ icon: Icon, label, children }: { icon: React.ElementType; label: string; children: React.ReactNode }) {
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center gap-1.5">
-        <Icon className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
-        <p className="text-[10px] font-semibold tracking-[0.14em] uppercase text-muted-foreground/50">{label}</p>
-      </div>
+      <p className="text-[10px] font-semibold tracking-[0.14em] uppercase text-muted-foreground/50">{label}</p>
       <div className="pl-5">{children}</div>
     </div>
   );
@@ -75,16 +72,12 @@ function DailyReportView({ userId, date }: { userId: Id<"users">; date: string }
 
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-          <NotepadText className="w-5 h-5 text-muted-foreground/40" />
-        </div>
         <p className="text-sm text-muted-foreground">No daily report for this day.</p>
         {canCatchUp && (
           <Link
             href={`/reports/daily?date=${date}`}
             className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
           >
-            <Pencil className="w-3 h-3" />
             Write report for this day
           </Link>
         )}
@@ -111,17 +104,16 @@ function DailyReportView({ userId, date }: { userId: Id<"users">; date: string }
   return (
     <div className="space-y-6">
       {dayActivity && (
-        <Section icon={NotepadText} label="How the day went">
+        <Section label="How the day went">
           <p className="text-sm leading-relaxed text-foreground">{dayActivity}</p>
         </Section>
       )}
 
       {dailyGoals.length > 0 && (
-        <Section icon={Target} label="Goals for the day">
+        <Section label="Goals for the day">
           <ul className="space-y-1">
             {dailyGoals.map((g, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 mt-2 shrink-0" />
+              <li key={i} className="text-sm">
                 {g}
               </li>
             ))}
@@ -130,13 +122,13 @@ function DailyReportView({ userId, date }: { userId: Id<"users">; date: string }
       )}
 
       {emotionalDrain && (
-        <Section icon={Minus} label="Emotional check-in">
+        <Section label="Emotional check-in">
           <p className="text-sm leading-relaxed text-foreground">{emotionalDrain}</p>
         </Section>
       )}
 
       {peopleMetToday.length > 0 && (
-        <Section icon={Users} label="People connected with">
+        <Section label="People connected with">
           <div className="space-y-2">
             {peopleMetToday.map((p) => (
               <div key={p.id} className="space-y-0.5">
@@ -154,7 +146,7 @@ function DailyReportView({ userId, date }: { userId: Id<"users">; date: string }
       )}
 
       {problemsToSolve.length > 0 && (
-        <Section icon={AlertTriangle} label="Problems & solutions">
+        <Section label="Problems & solutions">
           <div className="space-y-3">
             {problemsToSolve.map((p) => (
               <div key={p.id}>
@@ -167,11 +159,10 @@ function DailyReportView({ userId, date }: { userId: Id<"users">; date: string }
       )}
 
       {problemsSolvedToday.length > 0 && (
-        <Section icon={CheckSquare} label="Problems solved today">
+        <Section label="Problems solved today">
           <ul className="space-y-1">
             {problemsSolvedToday.map((p, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+              <li key={i} className="text-sm">
                 {p}
               </li>
             ))}
@@ -180,18 +171,18 @@ function DailyReportView({ userId, date }: { userId: Id<"users">; date: string }
       )}
 
       {tomorrowPlan && (
-        <Section icon={CalendarDays} label="Tomorrow's plan">
+        <Section label="Tomorrow's plan">
           <p className="text-sm leading-relaxed text-foreground">{tomorrowPlan}</p>
         </Section>
       )}
 
       {didAffirmations !== null && (
-        <Section icon={CheckCircle2} label="Affirmations">
+        <Section label="Affirmations">
           <div className="flex items-center gap-1.5">
             {didAffirmations ? (
-              <><CheckCircle2 className="w-4 h-4 text-emerald-500" /><span className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Done</span></>
+              <span className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Done</span>
             ) : (
-              <><XCircle className="w-4 h-4 text-muted-foreground/40" /><span className="text-sm text-muted-foreground">Skipped</span></>
+              <span className="text-sm text-muted-foreground">Skipped</span>
             )}
           </div>
         </Section>
@@ -218,9 +209,6 @@ function WeeklyReportView({ userId, weekStartDate }: { userId: Id<"users">; week
   if (!report) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-          <BookOpen className="w-5 h-5 text-muted-foreground/40" />
-        </div>
         <p className="text-sm text-muted-foreground">No weekly review for this week.</p>
       </div>
     );
@@ -245,17 +233,16 @@ function WeeklyReportView({ userId, weekStartDate }: { userId: Id<"users">; week
   return (
     <div className="space-y-6">
       {weekActivity && (
-        <Section icon={BookOpen} label="How the week went">
+        <Section label="How the week went">
           <p className="text-sm leading-relaxed text-foreground">{weekActivity}</p>
         </Section>
       )}
 
       {weeklyGoals.length > 0 && (
-        <Section icon={Target} label="Goals for the week">
+        <Section label="Goals for the week">
           <ul className="space-y-1">
             {weeklyGoals.map((g, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 mt-2 shrink-0" />
+              <li key={i} className="text-sm">
                 {g}
               </li>
             ))}
@@ -264,13 +251,13 @@ function WeeklyReportView({ userId, weekStartDate }: { userId: Id<"users">; week
       )}
 
       {emotionalDrain && (
-        <Section icon={Minus} label="Emotional check-in">
+        <Section label="Emotional check-in">
           <p className="text-sm leading-relaxed text-foreground">{emotionalDrain}</p>
         </Section>
       )}
 
       {peopleMetThisWeek.length > 0 && (
-        <Section icon={Users} label="People connected with">
+        <Section label="People connected with">
           <div className="space-y-2">
             {peopleMetThisWeek.map((p) => (
               <div key={p.id} className="space-y-0.5">
@@ -288,7 +275,7 @@ function WeeklyReportView({ userId, weekStartDate }: { userId: Id<"users">; week
       )}
 
       {problemsToSolve.length > 0 && (
-        <Section icon={AlertTriangle} label="Problems & solutions">
+        <Section label="Problems & solutions">
           <div className="space-y-3">
             {problemsToSolve.map((p) => (
               <div key={p.id}>
@@ -301,11 +288,10 @@ function WeeklyReportView({ userId, weekStartDate }: { userId: Id<"users">; week
       )}
 
       {problemsSolvedThisWeek.length > 0 && (
-        <Section icon={CheckSquare} label="Problems solved this week">
+        <Section label="Problems solved this week">
           <ul className="space-y-1">
             {problemsSolvedThisWeek.map((p, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+              <li key={i} className="text-sm">
                 {p}
               </li>
             ))}
@@ -314,18 +300,18 @@ function WeeklyReportView({ userId, weekStartDate }: { userId: Id<"users">; week
       )}
 
       {nextWeekPlan && (
-        <Section icon={CalendarDays} label="Next week's plan">
+        <Section label="Next week's plan">
           <p className="text-sm leading-relaxed text-foreground">{nextWeekPlan}</p>
         </Section>
       )}
 
       {didAffirmations !== null && (
-        <Section icon={CheckCircle2} label="Affirmations">
+        <Section label="Affirmations">
           <div className="flex items-center gap-1.5">
             {didAffirmations ? (
-              <><CheckCircle2 className="w-4 h-4 text-emerald-500" /><span className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Done</span></>
+              <span className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Done</span>
             ) : (
-              <><XCircle className="w-4 h-4 text-muted-foreground/40" /><span className="text-sm text-muted-foreground">Skipped</span></>
+              <span className="text-sm text-muted-foreground">Skipped</span>
             )}
           </div>
         </Section>
@@ -334,10 +320,57 @@ function WeeklyReportView({ userId, weekStartDate }: { userId: Id<"users">; week
   );
 }
 
+// ── Ritual log viewer ─────────────────────────────────────────────────────
+
+function RitualLogView({ userId, date }: { userId: Id<"users">; date: string }) {
+  // @ts-ignore
+  const rituals = useQuery(api.rituals.list as any, { userId }) ?? [];
+  // @ts-ignore
+  const log = useQuery(api.rituals.getLog as any, { userId, date });
+
+  if (rituals === undefined || log === undefined) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => <Skeleton key={i} className="h-8 w-full rounded-lg" />)}
+      </div>
+    );
+  }
+
+  if ((rituals as any[]).length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
+        <p className="text-sm text-muted-foreground">No rituals set up yet.</p>
+      </div>
+    );
+  }
+
+  const completedIds = new Set<string>((log as any)?.completedIds ?? []);
+  const completed = (rituals as any[]).filter((r) => completedIds.has(r._id)).length;
+  const total = (rituals as any[]).length;
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-muted-foreground">{completed} of {total} completed</p>
+      <div className="space-y-2">
+        {(rituals as any[]).map((ritual: any) => {
+          const done = completedIds.has(ritual._id);
+          return (
+            <div key={ritual._id} className="flex items-center gap-3">
+              <span className={cn("text-sm", done ? "text-foreground" : "text-muted-foreground line-through")}>
+                {ritual.title}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Report panel (tabs + viewer) ──────────────────────────────────────────
 
 function ReportPanel({ userId, date, isEditable }: { userId: Id<"users">; date: string; isEditable: boolean }) {
-  const [tab, setTab] = useState<"daily" | "weekly">("daily");
+  const [tab, setTab] = useState<"daily" | "weekly" | "rituals">("daily");
   const [editing, setEditing] = useState(false);
   const weekStartDate = getMondayOfWeek(date);
   const weekRange = getWeekRange(date);
@@ -371,7 +404,6 @@ function ReportPanel({ userId, date, isEditable }: { userId: Id<"users">; date: 
             onClick={() => setEditing(true)}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0 mt-0.5"
           >
-            <Pencil className="w-3 h-3" />
             Edit
           </button>
         )}
@@ -380,26 +412,24 @@ function ReportPanel({ userId, date, isEditable }: { userId: Id<"users">; date: 
             onClick={() => setEditing(false)}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0 mt-0.5"
           >
-            <X className="w-3 h-3" />
             Cancel
           </button>
         )}
       </div>
 
-      {/* Tabs — hidden when editing */}
+      {/* Tabs - hidden when editing */}
       {!editing && (
         <div className="flex border-b border-border/50">
-          {(["daily", "weekly"] as const).map((t) => (
+          {(["daily", "weekly", "rituals"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={cn(
-                "flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-colors relative",
+                "flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold transition-colors relative",
                 tab === t ? "text-foreground" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {t === "daily" ? <NotepadText className="w-3.5 h-3.5" /> : <BookOpen className="w-3.5 h-3.5" />}
-              {t === "daily" ? "Daily Report" : "Weekly Review"}
+              {t === "daily" ? "Daily" : t === "weekly" ? "Weekly" : "Rituals"}
               {tab === t && (
                 <motion.span
                   layoutId="tab-underline"
@@ -438,11 +468,9 @@ function ReportPanel({ userId, date, isEditable }: { userId: Id<"users">; date: 
               exit={{ opacity: 0 }}
               transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             >
-              {tab === "daily" ? (
-                <DailyReportView userId={userId} date={date} />
-              ) : (
-                <WeeklyReportView userId={userId} weekStartDate={weekStartDate} />
-              )}
+              {tab === "daily" && <DailyReportView userId={userId} date={date} />}
+              {tab === "weekly" && <WeeklyReportView userId={userId} weekStartDate={weekStartDate} />}
+              {tab === "rituals" && <RitualLogView userId={userId} date={date} />}
             </motion.div>
           )}
         </AnimatePresence>
@@ -471,13 +499,12 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="max-w-5xl space-y-6">
-      <motion.div {...fadeUp(0)}>
-        <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">History</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Select any past day to read your daily report and weekly review.
-        </p>
-      </motion.div>
+    <div className="max-w-5xl space-y-4 pb-6">
+      <PageHeader
+        eyebrow="Reflect"
+        title="History"
+        subtitle="Select any past day to read your daily report and weekly review."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 items-start">
         {/* Calendar */}
@@ -515,7 +542,6 @@ export default function CalendarPage() {
                 transition={{ duration: 0.2 }}
                 className="flex flex-col items-center justify-center h-full min-h-[280px] rounded-xl border border-dashed border-border/50 text-center gap-3 px-6"
               >
-                <CalendarDays className="w-8 h-8 text-muted-foreground/20" />
                 <p className="text-sm text-muted-foreground/50">
                   Select a day on the calendar to read your reports.
                 </p>

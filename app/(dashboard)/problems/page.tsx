@@ -24,7 +24,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
 
 function EmptyState({ icon: Icon, headline, body }: {
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   headline: string;
   body: string;
 }) {
@@ -384,7 +384,7 @@ export default function ProblemsPage() {
               <Sparkles className="w-4 h-4 text-primary shrink-0 mt-0.5" />
               <p className="text-xs text-muted-foreground">
                 Hit <strong className="text-foreground">AI Analysis</strong> to cross-reference your problems against your
-                daily reports — Claude will check what you said you solved and what you planned, and surface which
+                daily reports - Claude will check what you said you solved and what you planned, and surface which
                 problems are likely still open.
               </p>
             </CardContent>

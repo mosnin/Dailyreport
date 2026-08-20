@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
-import { Lora } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ConvexWithClerkProvider } from "@/components/ConvexWithClerkProvider";
@@ -9,16 +8,11 @@ import { Toaster } from "@/components/ui/sonner";
 import { WelcomeOverlay } from "@/components/WelcomeOverlay";
 
 const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const lora = Lora({
-  variable: "--font-lora",
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  weight: ["400", "500", "600", "700"],
-});
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Daily Report",
-  description: "Accountability through daily and weekly reporting",
+  description: "Track, score, and find the patterns across every dimension of your life.",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -31,8 +25,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#faf9f7" },
-    { media: "(prefers-color-scheme: dark)", color: "#1c1917" },
+    { media: "(prefers-color-scheme: light)", color: "#f7f5f0" },
+    { media: "(prefers-color-scheme: dark)", color: "#1a1b22" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -42,7 +36,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
-      <html lang="en" className={`${geist.variable} ${lora.variable} h-full antialiased`} suppressHydrationWarning>
+      <html lang="en" className={`dark ${geist.variable} ${geistMono.variable} h-full antialiased`} style={{ colorScheme: "dark" }} suppressHydrationWarning>
         <body className="min-h-full bg-background text-foreground">
           <ThemeProvider>
             <ConvexWithClerkProvider>

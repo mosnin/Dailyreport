@@ -30,6 +30,17 @@ import type * as rateLimits from "../rateLimits.js";
 import type * as integrations from "../integrations.js";
 import type * as agentJobs from "../agentJobs.js";
 import type * as externalTasks from "../externalTasks.js";
+import type * as rituals from "../rituals.js";
+import type * as health from "../health.js";
+import type * as finances from "../finances.js";
+import type * as education from "../education.js";
+import type * as growth from "../growth.js";
+import type * as projects from "../projects.js";
+import type * as lifeScore from "../lifeScore.js";
+import type * as checklist from "../checklist.js";
+import type * as lifePatterns from "../lifePatterns.js";
+import type * as trackers from "../trackers.js";
+import type * as trackerAI from "../trackerAI.js";
 
 import type {
   ApiFromModules,
@@ -60,6 +71,17 @@ declare const fullApi: ApiFromModules<{
   integrations: typeof integrations;
   agentJobs: typeof agentJobs;
   externalTasks: typeof externalTasks;
+  rituals: typeof rituals;
+  health: typeof health;
+  finances: typeof finances;
+  education: typeof education;
+  growth: typeof growth;
+  projects: typeof projects;
+  lifeScore: typeof lifeScore;
+  checklist: typeof checklist;
+  lifePatterns: typeof lifePatterns;
+  trackers: typeof trackers;
+  trackerAI: typeof trackerAI;
 }>;
 
 /**

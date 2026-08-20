@@ -13,7 +13,6 @@ type DreamCategory = "financial" | "health" | "relationships" | "other";
 
 const CATEGORY_META: Record<DreamCategory, {
   label: string;
-  emoji: string;
   color: string;
   ring: string;
   dot: string;
@@ -21,7 +20,6 @@ const CATEGORY_META: Record<DreamCategory, {
 }> = {
   financial: {
     label: "Financial",
-    emoji: "💰",
     color: "text-emerald-600 dark:text-emerald-400",
     ring: "focus:ring-emerald-400/30",
     dot: "bg-emerald-400",
@@ -29,7 +27,6 @@ const CATEGORY_META: Record<DreamCategory, {
   },
   health: {
     label: "Health",
-    emoji: "❤️",
     color: "text-rose-500 dark:text-rose-400",
     ring: "focus:ring-rose-400/30",
     dot: "bg-rose-400",
@@ -37,7 +34,6 @@ const CATEGORY_META: Record<DreamCategory, {
   },
   relationships: {
     label: "Relationships",
-    emoji: "🤝",
     color: "text-amber-500 dark:text-amber-400",
     ring: "focus:ring-amber-400/30",
     dot: "bg-amber-400",
@@ -45,7 +41,6 @@ const CATEGORY_META: Record<DreamCategory, {
   },
   other: {
     label: "Other",
-    emoji: "✨",
     color: "text-sky-500 dark:text-sky-400",
     ring: "focus:ring-sky-400/30",
     dot: "bg-sky-400",
@@ -172,7 +167,7 @@ function DreamCategoryCard({
   return (
     <motion.div variants={itemVariants} className="rounded-2xl border border-border bg-card p-4 flex flex-col gap-3">
       <div className="flex items-center gap-2">
-        <span className="text-base">{meta.emoji}</span>
+        <span className={cn("h-2 w-2 rounded-full", meta.dot)} />
         <h3 className={cn("text-sm font-semibold", meta.color)}>{meta.label}</h3>
         {dreams.length > 0 && (
           <span className="ml-auto text-xs text-muted-foreground">{dreams.length}</span>
@@ -257,7 +252,7 @@ export function DreamsManagement({ userId }: { userId: Id<"users"> }) {
       <motion.div {...fadeUp(0)}>
         <h2 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">My Dreams</h2>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Your big life visions — the foundation everything else is built on.
+          Your big life visions - the foundation everything else is built on.
         </p>
       </motion.div>
       <motion.div

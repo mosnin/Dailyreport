@@ -6,10 +6,10 @@ import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, todayString } from "@/lib/utils";
-import { Lightbulb, RefreshCw, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { fadeUp, listVariants, itemVariants } from "@/lib/motion";
+import { PageHeader } from "@/components/bento/PageHeader";
 
 // ── Principle badge colors ────────────────────────────────────────────────
 
@@ -76,12 +76,7 @@ function StoryCard({
             </div>
             <p className="font-medium text-sm leading-snug">{story.title}</p>
           </div>
-          <motion.div
-            animate={{ rotate: expanded ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <ChevronDown className="w-4 h-4 text-muted-foreground/50 shrink-0" />
-          </motion.div>
+          <span className="text-xs text-muted-foreground/50 shrink-0">{expanded ? "Hide" : "Read"}</span>
         </div>
       </button>
 
@@ -207,32 +202,29 @@ export default function InspirationPage() {
   return (
     <div className="max-w-xl mx-auto space-y-6">
       {/* Header */}
-      <motion.div {...fadeUp(0)} className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-tight">Today's Coaching</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Drawn from your reports, written for where you are right now.
-          </p>
-        </div>
-
-        <button
-          onClick={handleRegenerate}
-          disabled={generating}
-          className={cn(
-            "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors",
-            generating && "opacity-50 cursor-not-allowed"
-          )}
-        >
-          <RefreshCw className={cn("w-3.5 h-3.5", generating && "animate-spin")} />
-          {generating ? "Generating…" : "Regenerate"}
-        </button>
-      </motion.div>
+      <PageHeader
+        eyebrow="Practice"
+        title="Today's Coaching"
+        subtitle="Drawn from your reports, written for where you are right now."
+        action={
+          <button
+            onClick={handleRegenerate}
+            disabled={generating}
+            className={cn(
+              "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors",
+              generating && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            {generating ? "Generating..." : "Regenerate"}
+          </button>
+        }
+      />
 
       {/* Content */}
       {showSkeletons ? (
         <>
           <div className="text-sm text-muted-foreground animate-pulse text-center py-2">
-            Crafting your wisdom stories…
+            Crafting your wisdom stories...
           </div>
           {[0, 1, 2, 3, 4].map((i) => <StorySkeleton key={i} index={i} />)}
         </>
@@ -263,9 +255,6 @@ export default function InspirationPage() {
         </motion.div>
       ) : !generating ? (
         <motion.div {...fadeUp(0.1)} className="text-center py-16 space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-amber-400/10 flex items-center justify-center mx-auto">
-            <Lightbulb className="w-7 h-7 text-amber-400" />
-          </div>
           <div>
             <p className="font-semibold">No stories yet</p>
             <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
@@ -276,7 +265,6 @@ export default function InspirationPage() {
             onClick={handleRegenerate}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
           >
-            <Lightbulb className="w-4 h-4" />
             Generate stories
           </button>
         </motion.div>

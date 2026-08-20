@@ -22,7 +22,7 @@ function PracticeCard({
   barColor,
 }: {
   href: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   iconColor: string;
   label: string;
   value: string;

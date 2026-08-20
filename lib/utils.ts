@@ -98,10 +98,10 @@ export function nextPeriodKey(category: GoalCategory, periodKey: string): string
 }
 
 const QUARTER_MONTHS: Record<number, string> = {
-  1: "Jan – Mar",
-  2: "Apr – Jun",
-  3: "Jul – Sep",
-  4: "Oct – Dec",
+  1: "Jan - Mar",
+  2: "Apr - Jun",
+  3: "Jul - Sep",
+  4: "Oct - Dec",
 };
 
 export function periodLabel(category: GoalCategory, periodKey: string): string {
@@ -109,7 +109,7 @@ export function periodLabel(category: GoalCategory, periodKey: string): string {
     case "yearly":
       return periodKey; // "2026"
     case "quarterly": {
-      // "2026-Q2" → "Q2 2026 · Apr – Jun"
+      // "2026-Q2" → "Q2 2026 · Apr - Jun"
       const [year, qPart] = periodKey.split("-");
       const qNum = parseInt(qPart.replace("Q", ""));
       return `${qPart} ${year} · ${QUARTER_MONTHS[qNum]}`;

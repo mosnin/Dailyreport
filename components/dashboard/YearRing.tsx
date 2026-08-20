@@ -32,7 +32,7 @@ export function YearRing({
   if (submittedDates === undefined) return <Skeleton />;
 
   const yearStart = new Date(`${year}-01-01T12:00:00`);
-  // Start accuracy from account creation if it's within this year — so a new
+  // Start accuracy from account creation if it's within this year - so a new
   // user sees their actual consistency rate, not a demoralising fraction of 365.
   const journeyStart =
     createdAt && createdAt > yearStart.getTime()

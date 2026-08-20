@@ -194,6 +194,19 @@ export default defineSchema({
     generatedAt: v.number(),
   }).index("by_user_week", ["userId", "weekStartDate"]),
 
+  rituals: defineTable({
+    userId: v.id("users"),
+    title: v.string(),
+    order: v.number(),
+    createdAt: v.number(),
+  }).index("by_user", ["userId"]),
+
+  ritualLogs: defineTable({
+    userId: v.id("users"),
+    date: v.string(),
+    completedIds: v.array(v.string()),
+  }).index("by_user_date", ["userId", "date"]),
+
   integrations: defineTable({
     userId: v.id("users"),
     platform: v.union(
@@ -202,7 +215,8 @@ export default defineSchema({
       v.literal("clickup"),
       v.literal("trello"),
       v.literal("asana"),
-      v.literal("googlecalendar")
+      v.literal("googlecalendar"),
+      v.literal("gmail")
     ),
     composioConnectionId: v.string(),
     connected: v.boolean(),
@@ -251,4 +265,198 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_user_platform", ["userId", "platform"])
     .index("by_user_external", ["userId", "externalId"]),
+
+  // ── Life analytics: domain logs ──────────────────────────────────────────
+
+  // Daily health + wellness report (physical + emotional self-care)
+  healthLogs: defineTable({
+    userId: v.id("users"),
+    date: v.string(),
+    sleepHours: v.optional(v.number()),
+    energy: v.optional(v.number()),       // 1-10
+    mood: v.optional(v.number()),         // 1-10
+    stress: v.optional(v.number()),       // 1-10 (higher = more stressed)
+    exerciseMinutes: v.optional(v.number()),
+    exerciseType: v.optional(v.string()),
+    nutrition: v.optional(v.number()),    // 1-10 quality
+    water: v.optional(v.number()),        // glasses
+    weight: v.optional(v.number()),
+    gratitude: v.optional(v.string()),
+    win: v.optional(v.string()),          // today's win
+    notes: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_user_date", ["userId", "date"]),
+
+  // Finance snapshots
+  financeLogs: defineTable({
+    userId: v.id("users"),
+    date: v.string(),
+    income: v.optional(v.number()),
+    spending: v.optional(v.number()),
+    saved: v.optional(v.number()),
+    netWorth: v.optional(v.number()),
+    financialStress: v.optional(v.number()), // 1-10 (higher = more stressed)
+    category: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_user_date", ["userId", "date"]),
+
+  // Education / skill-learning sessions
+  educationLogs: defineTable({
+    userId: v.id("users"),
+    date: v.string(),
+    skill: v.string(),
+    minutes: v.number(),
+    whatLearned: v.optional(v.string()),
+    mastery: v.optional(v.number()),       // 0-100 self-rated
+    linkedGoalId: v.optional(v.id("goals")),
+    linkedGrowthId: v.optional(v.id("growthItems")),
+    notes: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_date", ["userId", "date"]),
+
+  // Skills to learn + fears to overcome
+  growthItems: defineTable({
+    userId: v.id("users"),
+    type: v.union(v.literal("skill"), v.literal("fear")),
+    title: v.string(),
+    description: v.optional(v.string()),
+    status: v.union(v.literal("active"), v.literal("achieved"), v.literal("paused")),
+    progress: v.number(),                  // 0-100
+    targetDate: v.optional(v.string()),
+    linkedGoalId: v.optional(v.id("goals")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_type", ["userId", "type"]),
+
+  // Projects (manual or synced from ClickUp/Trello) tied to goals
+  projects: defineTable({
+    userId: v.id("users"),
+    title: v.string(),
+    description: v.optional(v.string()),
+    source: v.union(v.literal("manual"), v.literal("clickup"), v.literal("trello")),
+    externalId: v.optional(v.string()),
+    externalUrl: v.optional(v.string()),
+    status: v.string(),                    // planning | active | blocked | done
+    progress: v.number(),                  // 0-100
+    linkedGoalId: v.optional(v.id("goals")),
+    color: v.optional(v.string()),
+    dueDate: v.optional(v.string()),
+    archived: v.optional(v.boolean()),
+    lastSynced: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_external", ["userId", "externalId"])
+    .index("by_user_status", ["userId", "status"]),
+
+  // Project progress updates (the "project progress report")
+  projectUpdates: defineTable({
+    userId: v.id("users"),
+    projectId: v.id("projects"),
+    date: v.string(),
+    progress: v.number(),                  // 0-100 snapshot
+    hoursSpent: v.optional(v.number()),
+    note: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_user_date", ["userId", "date"])
+    .index("by_project", ["projectId"]),
+
+  // Cached daily snapshots of computed life-area scores (for fast charts)
+  lifeScores: defineTable({
+    userId: v.id("users"),
+    date: v.string(),
+    health: v.number(),
+    goals: v.number(),
+    finance: v.number(),
+    emotional: v.number(),
+    progress: v.number(),
+    execution: v.number(),
+    composite: v.number(),
+    computedAt: v.number(),
+  }).index("by_user_date", ["userId", "date"]),
+
+  // ── Dynamic, user-defined trackers (AI-designed) ─────────────────────────
+  // A tracker is a custom thing the user measures (fitness, sobriety, a
+  // business metric, learning a language...). Its fields + scoring drive
+  // dynamically-rendered log forms, score rings and charts.
+  trackers: defineTable({
+    userId: v.id("users"),
+    name: v.string(),
+    emoji: v.optional(v.string()),
+    color: v.string(),                       // palette key (see lib/trackers.ts)
+    description: v.optional(v.string()),
+    cadence: v.union(v.literal("daily"), v.literal("weekly")),
+    fields: v.array(
+      v.object({
+        key: v.string(),
+        label: v.string(),
+        type: v.union(
+          v.literal("number"),
+          v.literal("scale"),
+          v.literal("boolean"),
+          v.literal("duration"),
+          v.literal("text")
+        ),
+        unit: v.optional(v.string()),
+        min: v.optional(v.number()),
+        max: v.optional(v.number()),
+        target: v.optional(v.number()),
+        direction: v.optional(
+          v.union(v.literal("higher"), v.literal("lower"), v.literal("target"), v.literal("boolean"))
+        ),
+        weight: v.number(),                  // 0 = logged but not scored
+      })
+    ),
+    archived: v.optional(v.boolean()),
+    order: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_user", ["userId"]),
+
+  trackerEntries: defineTable({
+    userId: v.id("users"),
+    trackerId: v.id("trackers"),
+    date: v.string(),
+    values: v.any(),                         // { [fieldKey]: number|boolean|string }
+    score: v.number(),                       // computed 0-100 for this entry
+    createdAt: v.number(),
+  })
+    .index("by_tracker_date", ["trackerId", "date"])
+    .index("by_user_date", ["userId", "date"]),
+
+  // Proactive AI coach insight, one cached card per user per day. Reads across
+  // every tracker and surfaces the single most useful nudge on the home screen.
+  trackerInsights: defineTable({
+    userId: v.id("users"),
+    date: v.string(),
+    headline: v.string(),
+    body: v.string(),
+    tone: v.optional(v.string()),            // "win" | "warn" | "nudge"
+    focusTrackerId: v.optional(v.id("trackers")),
+    generatedAt: v.number(),
+  }).index("by_user_date", ["userId", "date"]),
+
+  // Cross-context AI recommendations for the Analytics page. Reads every tracker
+  // AND recent daily reports together to suggest concrete ways to improve.
+  trackerRecommendations: defineTable({
+    userId: v.id("users"),
+    date: v.string(),
+    summary: v.optional(v.string()),
+    items: v.array(
+      v.object({
+        title: v.string(),
+        detail: v.string(),
+        focus: v.optional(v.string()),       // tracker name or area this is about
+      })
+    ),
+    generatedAt: v.number(),
+  }).index("by_user_date", ["userId", "date"]),
+
 });

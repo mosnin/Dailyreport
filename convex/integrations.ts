@@ -7,7 +7,8 @@ const PLATFORM = v.union(
   v.literal("clickup"),
   v.literal("trello"),
   v.literal("asana"),
-  v.literal("googlecalendar")
+  v.literal("googlecalendar"),
+  v.literal("gmail")
 );
 
 export const saveIntegration = mutation({
@@ -81,7 +82,16 @@ export const getUserIntegrations = query({
   },
 });
 
-// Called by server-side actions (e.g. cron scheduler) — no auth context
+export const getIntegrationByPlatform = internalQuery({
+  args: { userId: v.id("users"), platform: PLATFORM },
+  handler: async (ctx, args) =>
+    ctx.db
+      .query("integrations")
+      .withIndex("by_user_platform", (q) => q.eq("userId", args.userId).eq("platform", args.platform))
+      .unique(),
+});
+
+// Called by server-side actions (e.g. cron scheduler) - no auth context
 export const getConnectedPlatformsInternal = internalQuery({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {

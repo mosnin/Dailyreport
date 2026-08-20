@@ -15,7 +15,7 @@ export async function GET(req: Request) {
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-  const redirectUri = `${appUrl}/integrations`;
+  const redirectUri = `${appUrl}/settings`;
 
   try {
     const res = await fetch("https://backend.composio.dev/api/v1/connectedAccounts", {
@@ -37,7 +37,10 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Composio connection failed" }, { status: 502 });
     }
     const data = await res.json();
-    return NextResponse.json({ redirectUrl: data.redirectUrl ?? data.redirect_url ?? null });
+    return NextResponse.json({
+      redirectUrl: data.redirectUrl ?? data.redirect_url ?? null,
+      connectionId: data.id ?? data.connectionId ?? null,
+    });
   } catch {
     return NextResponse.json({ error: "Failed to initiate connection" }, { status: 502 });
   }

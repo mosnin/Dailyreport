@@ -234,7 +234,7 @@ export const updateTimezone = mutation({
   },
 });
 
-// Called by server-side actions (no auth context) — returns minimal user fields needed by the agent
+// Called by server-side actions (no auth context) - returns minimal user fields needed by the agent
 export const getUserForScheduler = internalQuery({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {

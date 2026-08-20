@@ -1,344 +1,173 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { useQuery, useAction } from "convex/react";
+import { useEffect, useState } from "react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useConvexUser } from "@/hooks/useConvexUser";
-import { useTodayStatus } from "@/hooks/useTodayStatus";
-import { usePushSubscription } from "@/hooks/usePushSubscription";
-import { usePullToRefresh } from "@/hooks/usePullToRefresh";
-import { TimezoneModal } from "@/components/dashboard/TimezoneModal";
-import { StatsBar } from "@/components/dashboard/StatsBar";
-import { YearRing } from "@/components/dashboard/YearRing";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+import { BentoCard } from "@/components/bento/BentoCard";
+import { ScoreRing } from "@/components/bento/ScoreRing";
+import { PageHeader } from "@/components/bento/PageHeader";
+import { LineTrend, AreaTrend, RadarScores } from "@/components/charts/Charts";
+import { TimezoneModal } from "@/components/dashboard/TimezoneModal";
+import { TrackerCreator } from "@/components/trackers/TrackerCreator";
+import { TrackerMark } from "@/components/trackers/TrackerMark";
+import { trackerColor, scoreLabel } from "@/lib/trackers";
 import Link from "next/link";
-import { todayString } from "@/lib/utils";
-import { Bell, ArrowRight, Check, BookOpen, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
-import { useUser } from "@clerk/nextjs";
-import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "motion/react";
 
-function greeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
+function creditLabel(credit: number): string {
+  if (credit >= 800) return "Exceptional";
+  if (credit >= 740) return "Very good";
+  if (credit >= 670) return "Good";
+  if (credit >= 580) return "Fair";
+  return "Building";
 }
-
-const ease = [0.16, 1, 0.3, 1] as const;
-
-function fadeUp(delay = 0) {
-  return {
-    initial: { opacity: 0, y: 10 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.55, ease, delay },
-  };
-}
-
-// ── Ritual step ───────────────────────────────────────────────────────────────
-
-function RitualStep({
-  done,
-  label,
-  sub,
-  href,
-  icon: Icon,
-  index,
-}: {
-  done: boolean;
-  label: string;
-  sub?: string;
-  href: string;
-  icon: React.ElementType;
-  index: number;
-}) {
-  return (
-    <motion.div {...fadeUp(0.25 + index * 0.07)}>
-      <Link
-        href={href}
-        className={cn(
-          "flex items-center justify-between rounded-xl px-4 py-3 transition-colors",
-          done
-            ? "bg-muted/30 text-muted-foreground pointer-events-none"
-            : "bg-muted/50 hover:bg-muted/70"
-        )}
-      >
-        <div className="flex items-center gap-3">
-          <div
-            className={cn(
-              "w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors",
-              done ? "bg-emerald-500/15" : "bg-background/80 border border-border"
-            )}
-          >
-            {done ? (
-              <Check className="w-3.5 h-3.5 text-emerald-500" />
-            ) : (
-              <Icon className="w-3.5 h-3.5 text-muted-foreground" />
-            )}
-          </div>
-          <div>
-            <p className={cn("text-sm font-medium", done && "line-through opacity-50")}>{label}</p>
-            {sub && <p className="text-xs text-muted-foreground/60 mt-0.5">{sub}</p>}
-          </div>
-        </div>
-        {!done && <ArrowRight className="w-4 h-4 text-muted-foreground/40" />}
-      </Link>
-    </motion.div>
-  );
-}
-
-// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const { convexUserId, convexUser, isLoading } = useConvexUser();
-  const { user } = useUser();
-  const [showTzModal, setShowTzModal] = useState(false);
-
-  const { pullDistance, refreshing } = usePullToRefresh(async () => {
-    router.refresh();
-    // Brief pause so the spinner is visible — feels intentional
-    await new Promise((r) => setTimeout(r, 700));
-  });
-  const { subscribe, subscribed } = usePushSubscription(convexUserId);
-  const { reportDone, affirmDone, vizDone, streak } = useTodayStatus(convexUserId);
-
-  const brief = useQuery(
-    api.aiInternal.getDailyBriefPublic,
-    convexUserId ? { userId: convexUserId, date: todayString() } : "skip"
-  );
-  const allProblems = useQuery(
-    api.problems.getAllProblems,
-    convexUserId ? { userId: convexUserId } : "skip"
-  ) as Array<{ solvedManually: boolean | null; aiResolved: boolean | null }> | undefined;
-  const generateBrief = useAction(api.ai.generateMorningBrief);
-  const briefTriggered = useRef(false);
+  const { convexUserId, convexUser } = useConvexUser();
+  const [showTz, setShowTz] = useState(false);
+  const overview = useQuery(api.trackers.getOverview, convexUserId ? { userId: convexUserId } : "skip");
+  const series = useQuery(api.trackers.getSeries, convexUserId ? { userId: convexUserId, days: 30 } : "skip");
 
   useEffect(() => {
-    if (convexUser && !convexUser.timezone) setShowTzModal(true);
+    if (convexUser && !convexUser.timezone) setShowTz(true);
   }, [convexUser]);
 
-  useEffect(() => {
-    if (!convexUserId || brief === undefined || briefTriggered.current) return;
-    if (brief !== null) return;
-    briefTriggered.current = true;
-    generateBrief({ userId: convexUserId }).catch(() => {});
-  }, [brief, convexUserId, generateBrief]);
-
-  if (isLoading || !convexUserId) {
+  if (!convexUserId || overview === undefined) {
     return (
-      <div className="max-w-xl space-y-8 py-4">
-        <div className="space-y-2">
-          <Skeleton className="h-3 w-32" />
-          <Skeleton className="h-9 w-52" />
-        </div>
-        <div className="flex items-center gap-6">
-          <Skeleton className="w-[140px] h-[140px] rounded-full shrink-0" />
-          <div className="space-y-2 flex-1">
-            <Skeleton className="h-3 w-24" />
-            <Skeleton className="h-4 w-16" />
-          </div>
-        </div>
-        <Skeleton className="h-24 w-full rounded-2xl" />
-        <div className="space-y-2">
-          <Skeleton className="h-14 w-full rounded-xl" />
-          <Skeleton className="h-14 w-full rounded-xl" />
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-64" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-3xl" />)}
         </div>
       </div>
     );
   }
 
-  const firstName = user?.firstName ?? null;
-  const allDone = reportDone && affirmDone && vizDone;
-  const openProblems = (allProblems ?? []).filter(
-    (p) => p.solvedManually !== true && !(p.solvedManually === null && p.aiResolved === true)
-  ).length;
+  const trackers = overview?.trackers ?? [];
+
+  if (trackers.length === 0) {
+    return (
+      <div className="space-y-4 pb-6">
+        <PageHeader eyebrow="Overview" title="Your Life Score" subtitle="Set up what you measure and your score appears here." />
+        <BentoCard delay={0.04}>
+          <h2 className="font-semibold mb-1">Build your dashboard</h2>
+          <p className="text-sm text-muted-foreground mb-3">Your <Link href="/reports/daily" className="text-primary">daily report</Link> is the foundation. Add trackers to score anything else over time. Describe what you want to track and the AI designs it.</p>
+          {convexUserId && <TrackerCreator userId={convexUserId} />}
+        </BentoCard>
+        {convexUserId && <TimezoneModal userId={convexUserId} open={showTz} onClose={() => setShowTz(false)} />}
+      </div>
+    );
+  }
+
+  const composite = overview?.composite ?? 0;
+  const hasScored = overview?.hasScored ?? false;
+  const radarData = trackers.filter((t: any) => !t.needsData).map((t: any) => ({ area: t.name, score: t.score }));
+  const lineSeries = (series?.trackers ?? []).slice(0, 6).map((t: any) => ({ key: t.id, name: t.name, color: trackerColor(t.color) }));
+  const ranked = [...trackers].sort((a: any, b: any) => {
+    if (a.needsData !== b.needsData) return a.needsData ? 1 : -1;
+    return b.score - a.score;
+  });
 
   return (
-    <div
-      className="max-w-5xl"
-      style={{
-        paddingTop: pullDistance > 0 ? `${pullDistance * 0.6}px` : undefined,
-        transition: refreshing ? "none" : "padding-top 0.15s ease-out",
-      }}
-    >
-      {/* Pull-to-refresh indicator — mobile only */}
-      <div
-        className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-end justify-center pointer-events-none"
-        style={{
-          paddingTop: "env(safe-area-inset-top)",
-          height: `calc(env(safe-area-inset-top) + ${Math.max(0, pullDistance)}px + 3.5rem)`,
-          opacity: pullDistance > 10 ? Math.min(pullDistance / 72, 1) : 0,
-          transition: refreshing ? "none" : "opacity 0.1s",
-        }}
-      >
-        <div className="mb-3">
-          <RefreshCw
-            className={cn(
-              "w-5 h-5 text-muted-foreground transition-transform",
-              refreshing && "animate-spin"
-            )}
-            style={{
-              transform: refreshing ? undefined : `rotate(${(pullDistance / 72) * 180}deg)`,
-            }}
-          />
-        </div>
-      </div>
+    <div className="space-y-4 pb-6">
+      <PageHeader
+        eyebrow="Overview"
+        title="Your Life Score"
+        subtitle="A single weighted score across everything you track."
+        action={<Link href="/analytics" className="hidden sm:inline-flex items-center rounded-full bg-accent px-4 py-2 text-sm font-medium hover:bg-accent/70">Analytics</Link>}
+      />
 
-      <div>
-
-        {/* ── Main content ── */}
-        <div className="max-w-xl space-y-8">
-
-          {/* Date + greeting */}
-          <motion.div {...fadeUp(0)}>
-            <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-muted-foreground/40 mb-1.5">
-              {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-            </p>
-            <h1 className="font-heading text-[2.1rem] font-semibold tracking-tight leading-[1.15]">
-              {greeting()}{firstName ? `, ${firstName}` : ""}
-            </h1>
-          </motion.div>
-
-          {/* Morning brief */}
-          <AnimatePresence>
-            {brief?.content && (
-              <motion.p
-                key="brief"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.9, delay: 0.2 }}
-                className="font-heading italic text-[15px] leading-relaxed text-muted-foreground border-l-2 border-primary/30 pl-4"
-              >
-                {brief.content}
-              </motion.p>
-            )}
-          </AnimatePresence>
-
-          {/* ── Year ring + consistency panel ── */}
-          <motion.div {...fadeUp(0.08)}>
-            <div className="flex items-center gap-6 py-2">
-              <YearRing userId={convexUserId} streak={streak} createdAt={convexUser?.createdAt} />
-              <div className="flex flex-col gap-1.5">
-                <p className="text-[10px] font-semibold tracking-[0.14em] uppercase text-muted-foreground/40">
-                  Daily consistency
-                </p>
-                <p className="text-sm text-muted-foreground/50 leading-snug">
-                  {new Date().getFullYear()}
-                </p>
-                <p className="text-sm text-muted-foreground/60 leading-snug">
-                  Keep going.
-                </p>
-                {streak > 0 && (
-                  <p className="text-sm font-semibold text-orange-500 mt-1">
-                    {streak} day{streak === 1 ? "" : "s"} in a row
-                  </p>
-                )}
-              </div>
+      {/* Hero: composite score + 30-day movement */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+        <BentoCard className="lg:col-span-1 flex items-center gap-5" delay={0.02}>
+          <ScoreRing value={composite} color="var(--primary)" size={128} stroke={12}>
+            <div className="text-center">
+              <div className="text-3xl font-bold numeral leading-none">{hasScored ? overview?.credit : "-"}</div>
+              <div className="text-[10px] uppercase tracking-wide mt-1 text-muted-foreground">/ 850</div>
             </div>
-          </motion.div>
+          </ScoreRing>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Composite</p>
+            <p className="text-2xl font-bold mt-0.5 leading-tight">{hasScored ? creditLabel(overview?.credit ?? 0) : "No data yet"}</p>
+            <p className="text-sm mt-1 text-muted-foreground">{hasScored ? `${composite}/100 across ${trackers.length} tracker${trackers.length === 1 ? "" : "s"}` : `${trackers.length} tracker${trackers.length === 1 ? "" : "s"} set up`}</p>
+          </div>
+        </BentoCard>
 
-          {/* ── BEFORE: entry not done ── */}
-          <AnimatePresence mode="wait">
-            {!reportDone ? (
-              <motion.div key="before" className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-
-                {/* Primary CTA */}
-                <motion.div {...fadeUp(0.1)}>
-                  <Link
-                    href="/reports/daily"
-                    className="group block rounded-2xl bg-foreground text-background px-8 py-7 hover:opacity-90 active:scale-[0.99] transition-all"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-heading text-xl font-semibold">Begin today&apos;s entry</p>
-                        <p className="text-sm opacity-55 mt-1">
-                          {new Date().toLocaleDateString("en-US", { weekday: "long" })}&apos;s report is waiting.
-                        </p>
-                      </div>
-                      <ArrowRight className="w-5 h-5 opacity-50 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </Link>
-                </motion.div>
-
-                {/* Practice ritual */}
-                <div className="space-y-2">
-                  <motion.p {...fadeUp(0.22)} className="text-[10px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40">
-                    Your ritual
-                  </motion.p>
-                  <RitualStep done={affirmDone} label="Affirmations" sub="5 rounds" href="/affirmations" icon={Sparkles} index={0} />
-                  <RitualStep done={vizDone} label="Visualizations" sub="60-second scenes" href="/dreams" icon={BookOpen} index={1} />
-                </div>
-              </motion.div>
-
-            ) : (
-              /* ── AFTER: entry done ── */
-              <motion.div key="after" className="space-y-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
-
-                {/* Compact stats */}
-                <motion.div {...fadeUp(0.22)}>
-                  <StatsBar userId={convexUserId} compact />
-                </motion.div>
-
-                {/* Ritual completion */}
-                <div className="space-y-2">
-                  <motion.p {...fadeUp(0.15)} className="text-[10px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40">
-                    Your ritual
-                  </motion.p>
-                  <RitualStep done={true}       label="Today's entry"  href="/reports/daily"  icon={BookOpen}  index={0} />
-                  <RitualStep done={affirmDone} label="Affirmations"   sub="5 rounds" href="/affirmations" icon={Sparkles} index={1} />
-                  <RitualStep done={vizDone}    label="Visualizations"  sub="60-second scenes" href="/dreams" icon={BookOpen} index={2} />
-                </div>
-
-                {/* Open problems nudge */}
-                {openProblems > 0 && (
-                  <motion.div {...fadeUp(0.28)}>
-                    <Link
-                      href="/problems"
-                      className="flex items-center justify-between rounded-xl px-4 py-3 bg-muted/40 hover:bg-muted/60 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
-                        <span className="text-sm text-muted-foreground">
-                          {openProblems} open problem{openProblems === 1 ? "" : "s"}
-                        </span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-muted-foreground/40" />
-                    </Link>
-                  </motion.div>
-                )}
-
-                {/* Push prompt */}
-                {!subscribed &&
-                  typeof window !== "undefined" &&
-                  "Notification" in window &&
-                  Notification.permission !== "granted" && (
-                    <motion.div {...fadeUp(0.35)} className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/20 px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <Bell className="w-4 h-4 text-muted-foreground/50 shrink-0" />
-                        <span className="text-muted-foreground/60 text-sm">Get reminded at 8pm every day.</span>
-                      </div>
-                      <Button size="sm" variant="outline" onClick={subscribe} className="text-xs">Enable</Button>
-                    </motion.div>
-                  )}
-
-
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
+        <BentoCard className="lg:col-span-2 flex flex-col" delay={0.04}>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="font-semibold">Last 30 days</h2>
+            <Link href="/analytics" className="text-xs text-muted-foreground hover:text-foreground">Details</Link>
+          </div>
+          {series && series.series.length > 1 ? (
+            <AreaTrend data={series.series} dataKey="composite" name="Life Score" color="var(--primary)" height={150} />
+          ) : (
+            <div className="flex-1 grid place-items-center text-sm text-muted-foreground min-h-[140px]">Not enough history yet.</div>
+          )}
+        </BentoCard>
       </div>
 
-      {convexUserId && (
-        <TimezoneModal
-          userId={convexUserId}
-          open={showTzModal}
-          onClose={() => setShowTzModal(false)}
-        />
-      )}
+      {/* Trackers: ranked list with score bars */}
+      <BentoCard delay={0.06}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold">Trackers</h2>
+          <Link href="/trackers" className="text-xs text-muted-foreground hover:text-foreground">Manage</Link>
+        </div>
+        <div className="divide-y divide-border/40">
+          {ranked.map((t: any) => {
+            const color = trackerColor(t.color);
+            return (
+              <Link key={t._id} href={`/trackers/${t._id}`} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0 group">
+                <TrackerMark name={t.name} color={t.color} size={38} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium truncate group-hover:text-foreground">{t.name}</p>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {!t.needsData && t.trend !== 0 && (
+                        <span className={`text-xs font-medium ${t.trend > 0 ? "text-emerald-400" : "text-rose-400"}`}>{t.trend > 0 ? "+" : ""}{t.trend}</span>
+                      )}
+                      <span className="text-sm font-bold numeral w-8 text-right">{t.needsData ? "-" : t.score}</span>
+                    </div>
+                  </div>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${t.needsData ? 0 : t.score}%`, background: color }} />
+                    </div>
+                    <span className="text-[11px] text-muted-foreground w-20 shrink-0">{t.needsData ? "No data yet" : scoreLabel(t.score)}</span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </BentoCard>
+
+      {/* Balance + per-tracker movement */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 sm:gap-4">
+        <BentoCard className="lg:col-span-2" delay={0.08}>
+          <h2 className="font-semibold mb-1">Balance</h2>
+          <p className="text-xs text-muted-foreground mb-2">How evenly you are investing across trackers</p>
+          {radarData.length >= 3 ? (
+            <RadarScores data={radarData} height={240} />
+          ) : (
+            <div className="h-[240px] grid place-items-center text-center text-sm text-muted-foreground px-6">Log a few more trackers to unlock your balance chart.</div>
+          )}
+        </BentoCard>
+
+        <BentoCard className="lg:col-span-3" delay={0.1}>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold">Every tracker over time</h2>
+            <Link href="/analytics" className="text-xs text-muted-foreground hover:text-foreground">Compare</Link>
+          </div>
+          {series && series.series.length > 1 ? (
+            <LineTrend data={series.series} series={[{ key: "composite", name: "Life Score", color: "var(--primary)" }, ...lineSeries]} height={240} />
+          ) : (
+            <div className="h-[220px] grid place-items-center text-sm text-muted-foreground">Not enough history yet.</div>
+          )}
+        </BentoCard>
+      </div>
+
+      {convexUserId && <TimezoneModal userId={convexUserId} open={showTz} onClose={() => setShowTz(false)} />}
     </div>
   );
 }

@@ -10,13 +10,13 @@ export function fadeUp(delay = 0) {
   };
 }
 
-// Stagger container — wrap lists with initial="hidden" animate="visible"
+// Stagger container - wrap lists with initial="hidden" animate="visible"
 export const listVariants: Variants = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.07, delayChildren: 0.08 } },
 };
 
-// Stagger item — apply to each child in a listVariants container
+// Stagger item - apply to each child in a listVariants container
 export const itemVariants: Variants = {
   hidden: { opacity: 0, y: 10 },
   visible: {
