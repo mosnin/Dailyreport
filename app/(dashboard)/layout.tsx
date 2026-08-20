@@ -9,6 +9,7 @@ import { CommandPalette } from "@/components/CommandPalette";
 import { KeyboardNavMount } from "@/components/layout/KeyboardNavMount";
 import { PWAInstallBanner } from "@/components/PWAInstallBanner";
 import { DitherBackground } from "@/components/DitherBackground";
+import { WelcomeOverlay } from "@/components/WelcomeOverlay";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
@@ -29,6 +30,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </div>
       </div>
       <BottomTabBar />
+      <WelcomeOverlay />
       <CommandPalette />
       <KeyboardNavMount />
       <PWAInstallBanner />
