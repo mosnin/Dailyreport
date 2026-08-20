@@ -16,7 +16,7 @@ These are absolute and apply to the entire application:
 
 ## What this is
 
-**Ascend** - a life-analytics web app (formerly "Daily Report", a reflection journal). It tracks and **scores every dimension of a user's life** - Health, Goals, Finance, Emotional, Progress, Execution - and surfaces patterns over time.
+**Daily Report** (reports.quest) - a life-tracking web app built around a daily report and user-defined trackers. Users log daily, each tracker is scored, and a composite Life Score (out of 850) surfaces patterns over time. The earlier "Ascend" six-dimension redesign was abandoned - do not reintroduce it.
 
 Stack: **Next.js 16 (App Router) + React 19 + Convex + Clerk + Tailwind v4**. Charts via `recharts`. AI via OpenAI (`gpt-4o`). Optional integrations via **Composio** (Google Calendar, Gmail, ClickUp, Trello, …). Deployed on Vercel with `npx convex deploy --cmd 'next build'`.
 

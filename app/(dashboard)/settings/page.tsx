@@ -419,7 +419,7 @@ export default function SettingsPage() {
           </Row>
           <Row
             label="ClickUp"
-            sub={clickupConnected ? "Connected - sync projects on the Projects page" : "Sync your ClickUp projects into Ascend"}
+            sub={clickupConnected ? "Connected - sync projects on the Projects page" : "Sync your ClickUp projects into Daily Report"}
           >
             <div className="flex items-center gap-2">
               <FolderKanban className={cn("w-3.5 h-3.5 shrink-0", clickupConnected ? "text-[#7B68EE]" : "text-muted-foreground/30")} />
@@ -432,7 +432,7 @@ export default function SettingsPage() {
           </Row>
           <Row
             label="Trello"
-            sub={trelloConnected ? "Connected - sync boards on the Projects page" : "Sync your Trello boards into Ascend"}
+            sub={trelloConnected ? "Connected - sync boards on the Projects page" : "Sync your Trello boards into Daily Report"}
           >
             <div className="flex items-center gap-2">
               <FolderKanban className={cn("w-3.5 h-3.5 shrink-0", trelloConnected ? "text-[#0079BF]" : "text-muted-foreground/30")} />

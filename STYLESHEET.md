@@ -1,4 +1,4 @@
-# Ascend - Design System
+# Daily Report - Design System
 
 This is the design system. Read it once. Then write code that disappears into it.
 

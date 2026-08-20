@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 /**
  * Pulls projects from a connected ClickUp / Trello account via Composio and
- * returns them in Ascend's project shape. The client then persists them with
+ * returns them in the app's project shape. The client then persists them with
  * `api.projects.syncFromConnector`.
  *
  * Body: { platform: "clickup" | "trello", connectionId: string }
