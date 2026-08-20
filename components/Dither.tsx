@@ -30,6 +30,7 @@ uniform int enableMouseInteraction;
 uniform float mouseRadius;
 uniform float pixelSize;
 uniform float colorNum;
+uniform float waveContrast;
 
 vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 vec4 permute(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
@@ -113,6 +114,10 @@ void main() {
     f -= 0.5 * effect;
   }
 
+  // waveContrast > 1 pushes midtones toward black so the dark field
+  // dominates and only the wave crests carry color.
+  f = pow(clamp(f, 0.0, 1.0), waveContrast);
+
   vec3 col = mix(vec3(0.0), waveColor, f);
 
   // Ordered (bayer) dithering + quantization.
@@ -133,6 +138,7 @@ type WaveProps = {
   waveFrequency: number;
   waveAmplitude: number;
   waveColor: [number, number, number];
+  waveContrast: number;
   colorNum: number;
   pixelSize: number;
   disableAnimation: boolean;
@@ -142,7 +148,7 @@ type WaveProps = {
 
 function DitheredWaves(props: WaveProps) {
   const {
-    waveSpeed, waveFrequency, waveAmplitude, waveColor,
+    waveSpeed, waveFrequency, waveAmplitude, waveColor, waveContrast,
     colorNum, pixelSize, disableAnimation, enableMouseInteraction, mouseRadius,
   } = props;
 
@@ -161,6 +167,7 @@ function DitheredWaves(props: WaveProps) {
     mouseRadius: new THREE.Uniform(mouseRadius),
     pixelSize: new THREE.Uniform(pixelSize),
     colorNum: new THREE.Uniform(colorNum),
+    waveContrast: new THREE.Uniform(waveContrast),
   }).current;
 
   useEffect(() => {
@@ -189,6 +196,7 @@ function DitheredWaves(props: WaveProps) {
     uniforms.waveAmplitude.value = waveAmplitude;
     uniforms.colorNum.value = colorNum;
     uniforms.pixelSize.value = pixelSize;
+    uniforms.waveContrast.value = waveContrast;
     (uniforms.waveColor.value as THREE.Color).setRGB(waveColor[0], waveColor[1], waveColor[2]);
     uniforms.enableMouseInteraction.value = enableMouseInteraction ? 1 : 0;
     uniforms.mouseRadius.value = mouseRadius;
@@ -220,6 +228,7 @@ export type DitherProps = {
   waveFrequency?: number;
   waveAmplitude?: number;
   waveColor?: [number, number, number];
+  waveContrast?: number;
   colorNum?: number;
   pixelSize?: number;
   disableAnimation?: boolean;
@@ -232,6 +241,7 @@ export default function Dither({
   waveFrequency = 3,
   waveAmplitude = 0.3,
   waveColor = [0.5, 0.5, 0.5],
+  waveContrast = 1,
   colorNum = 4,
   pixelSize = 2,
   disableAnimation = false,
@@ -253,6 +263,7 @@ export default function Dither({
         waveFrequency={waveFrequency}
         waveAmplitude={waveAmplitude}
         waveColor={waveColor}
+        waveContrast={waveContrast}
         colorNum={colorNum}
         pixelSize={pixelSize}
         disableAnimation={disableAnimation}

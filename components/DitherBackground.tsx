@@ -17,7 +17,8 @@ export function DitherBackground() {
       style={{ zIndex: 0, width: "100vw", height: "100dvh", isolation: "isolate" }}
     >
       <Dither
-        waveColor={[0.1843137254901961, 0.3176470588235294, 0.615686274509804]}
+        waveColor={[0.88, 0.88, 0.88]}
+        waveContrast={2}
         disableAnimation={false}
         enableMouseInteraction
         mouseRadius={0.3}
@@ -26,14 +27,15 @@ export function DitherBackground() {
         waveFrequency={1.5}
         waveSpeed={0.07}
       />
-      {/* Recolor the single-hue dither into a gradient (blend keeps the dither
-          texture, swaps the color across the screen). Component is untouched. */}
+      {/* Recolor the neutral dither into a pastel gradient (blend keeps the
+          dither's black-dominant luminance, swaps in soft hues across the
+          screen). Component is untouched. */}
       <div
         className="absolute inset-0"
         style={{
           mixBlendMode: "color",
           backgroundImage:
-            "linear-gradient(135deg, #3b5bff 0%, #7c4dff 38%, #2bb6c9 72%, #16c79a 100%)",
+            "linear-gradient(135deg, #dfb3c8 0%, #b5abdd 38%, #9cc4dd 72%, #a3d8c6 100%)",
         }}
       />
     </div>

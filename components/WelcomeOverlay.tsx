@@ -66,7 +66,7 @@ function StreakDisplay({ streak }: { streak: number }) {
 }
 
 export function WelcomeOverlay() {
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
   const { convexUserId } = useConvexUser();
   const stats = useQuery(
     api.users.getStats,
@@ -79,10 +79,12 @@ export function WelcomeOverlay() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    // Only greet signed-in users; never flash the splash on public pages.
+    if (!isLoaded || !isSignedIn) return;
     if (sessionStorage.getItem("welcome-shown") === "1") return;
     sessionStorage.setItem("welcome-shown", "1");
     setShow(true);
-  }, []);
+  }, [isLoaded, isSignedIn]);
 
   useEffect(() => {
     if (!show) return;
