@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
-import { ConvexWithClerkProvider } from "@/components/ConvexWithClerkProvider";
+import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
+import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -34,14 +34,14 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
+    <ConvexAuthNextjsServerProvider>
       <html lang="en" className={`dark ${geist.variable} ${geistMono.variable} h-full antialiased`} style={{ colorScheme: "dark" }} suppressHydrationWarning>
         <body className="min-h-full bg-background text-foreground">
           <ThemeProvider>
-            <ConvexWithClerkProvider>
+            <ConvexClientProvider>
               {children}
               <Toaster />
-            </ConvexWithClerkProvider>
+            </ConvexClientProvider>
           </ThemeProvider>
           <script
             dangerouslySetInnerHTML={{
@@ -50,6 +50,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           />
         </body>
       </html>
-    </ClerkProvider>
+    </ConvexAuthNextjsServerProvider>
   );
 }

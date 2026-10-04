@@ -3,8 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useConvexUser } from "@/hooks/useConvexUser";
-import { useUser } from "@clerk/nextjs";
+import { firstNameOf, useConvexUser } from "@/hooks/useConvexUser";
 import { useTodayStatus } from "@/hooks/useTodayStatus";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, todayString } from "@/lib/utils";
@@ -26,9 +25,8 @@ function greet(name: string) {
 }
 
 export default function TodayPage() {
-  const { convexUserId } = useConvexUser();
-  const { user } = useUser();
-  const firstName = user?.firstName ?? user?.fullName?.split(" ")[0] ?? "there";
+  const { convexUser, convexUserId } = useConvexUser();
+  const firstName = firstNameOf(convexUser) ?? "there";
   const today = todayString();
 
   const overview = useQuery(api.trackers.getOverview, convexUserId ? { userId: convexUserId } : "skip");

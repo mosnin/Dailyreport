@@ -12,7 +12,7 @@
 - **Animation:** `motion/react` (`AnimatePresence`, `motion.div`, `fadeUp` helper from `lib/motion.ts`)
 - **Icons:** `lucide-react`
 - **State / data:** Convex real-time (`useQuery`, `useMutation` from `convex/react`)
-- **Auth:** Clerk (`useUser`, `useClerk`, `useConvexUser` hook)
+- **Auth:** Convex Auth (`useConvexUser`, `useSignOut` hooks)
 
 ---
 
@@ -130,7 +130,7 @@ useQuery(api.goals.getCurrentSummary, convexUserId ? { userId: convexUserId } : 
 ```
 
 ### `useConvexUser` hook (`hooks/useConvexUser.ts`)
-Returns `{ convexUserId, convexUser, isLoading }`. On first mount, calls `api.users.getOrCreate` with the Clerk identity to upsert the Convex user record. Every page that needs the Convex user ID uses this hook.
+Returns `{ convexUserId, convexUser, isLoading, isAuthenticated }` from `api.users.current`. Convex Auth creates the user record on first sign-in. Every page that needs the Convex user ID uses this hook.
 
 ---
 
@@ -150,14 +150,14 @@ import { fadeUp } from "@/lib/motion";
 
 ## Auth Integration
 
-All dashboard pages are protected by `middleware.ts` (`clerkMiddleware`). Public routes: `/`, `/sign-in(.*)`, `/sign-up(.*)`.
+All dashboard pages are protected by `proxy.ts` (`convexAuthNextjsMiddleware`). Public routes: `/`, `/sign-in(.*)`, `/sign-up(.*)`.
 
-The Clerk JWT is passed to Convex via `ConvexWithClerkProvider` (`components/ConvexWithClerkProvider.tsx`), which wraps the app with `ConvexProviderWithClerk`. Convex validates the JWT against the Clerk JWKS endpoint configured in `convex/auth.config.ts`.
+`ConvexAuthNextjsServerProvider` (root layout) and `ConvexClientProvider` (`components/ConvexClientProvider.tsx`) pass the Convex Auth JWT to Convex. Convex validates it against its own issuer configured in `convex/auth.config.ts`.
 
 Server-side auth (API routes):
 ```typescript
-import { auth } from "@clerk/nextjs/server";
-const { userId } = await auth(); // Clerk userId (clerkId), not Convex ID
+import { getServerUser } from "@/lib/serverAuth";
+const user = await getServerUser(); // Convex user document, or null
 ```
 
 ---

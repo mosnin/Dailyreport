@@ -1,22 +1,16 @@
-import { auth } from "@clerk/nextjs/server";
+import { getServerUser } from "@/lib/serverAuth";
 import { NextResponse } from "next/server";
-import { ConvexHttpClient } from "convex/browser";
-import { api } from "@/convex/_generated/api";
 
 const CREEM_API_URL = "https://api.creem.io/v1";
 
 export async function POST() {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getServerUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const apiKey = process.env.CREEM_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "Payment not configured" }, { status: 500 });
 
-  // Look up the user's creemCustomerId from Convex
-  const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-  const user = await convex.query(api.users.getByClerkId, { clerkId: userId });
-
-  if (!user?.creemCustomerId) {
+  if (!user.creemCustomerId) {
     return NextResponse.json({ error: "No active subscription found" }, { status: 404 });
   }
 

@@ -1,5 +1,6 @@
 import { internalQuery, internalMutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { authUserId } from "./authUser";
 
 export const getDailyReportInternal = internalQuery({
   args: { reportId: v.id("dailyReports") },
@@ -135,7 +136,7 @@ export const getProgressHistory = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
     const insights = await ctx.db
       .query("aiInsights")
       .withIndex("by_user_week", (q) => q.eq("userId", args.userId))
@@ -151,7 +152,7 @@ export const getLatestInsight = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
     return await ctx.db
       .query("aiInsights")
       .withIndex("by_user_week", (q) => q.eq("userId", args.userId))
@@ -431,7 +432,7 @@ export const getDailyBriefPublic = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
     return ctx.db
       .query("dailyBriefs")
       .withIndex("by_user_date", (q) => q.eq("userId", args.userId).eq("date", args.date))
@@ -467,7 +468,7 @@ export const getEnergyAnalysisPublic = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
     return ctx.db
       .query("energyAnalysis")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -518,7 +519,7 @@ export const getInspirationForDatePublic = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
     return ctx.db
       .query("inspirations")
       .withIndex("by_user_date", (q) => q.eq("userId", args.userId).eq("date", args.date))
@@ -595,7 +596,7 @@ export const getWeekDraftPublic = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
     return await ctx.db
       .query("weekDrafts")
       .withIndex("by_user_week", (q) =>

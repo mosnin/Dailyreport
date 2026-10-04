@@ -1,45 +1,23 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
-import { useMutation, useQuery, useConvexAuth } from "convex/react";
+import { useConvexAuth, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useEffect, useState } from "react";
-import type { Id } from "@/convex/_generated/dataModel";
 
+// The signed-in user's Convex profile. Convex Auth creates it on first sign-in.
 export function useConvexUser() {
-  const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
-  const { isAuthenticated, isLoading: convexAuthLoading } = useConvexAuth();
-  const [convexUserId, setConvexUserId] = useState<Id<"users"> | null>(null);
-  const [createError, setCreateError] = useState<string | null>(null);
-  const getOrCreate = useMutation(api.users.getOrCreate);
-
-  const convexUser = useQuery(
-    api.users.getByClerkId,
-    isAuthenticated && clerkUser?.id ? { clerkId: clerkUser.id } : "skip"
-  );
-
-  useEffect(() => {
-    if (!isAuthenticated || !clerkUser?.id) return;
-    getOrCreate({
-      email: clerkUser.primaryEmailAddress?.emailAddress ?? "",
-      name: clerkUser.fullName ?? clerkUser.primaryEmailAddress?.emailAddress ?? "",
-    })
-      .then((id) => {
-        setConvexUserId(id);
-        setCreateError(null);
-      })
-      .catch((err) => {
-        console.error("Convex getOrCreate failed:", err);
-        setCreateError(err instanceof Error ? err.message : "Failed to create user");
-      });
-  }, [isAuthenticated, clerkUser?.id, getOrCreate]);
+  const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
+  const convexUser = useQuery(api.users.current, isAuthenticated ? {} : "skip");
 
   return {
-    clerkUser,
     convexUser,
-    convexUserId: convexUserId ?? convexUser?._id ?? null,
-    isLoading: !clerkLoaded || convexAuthLoading,
+    convexUserId: convexUser?._id ?? null,
+    isLoading: authLoading || (isAuthenticated && convexUser === undefined),
     isAuthenticated,
-    createError,
   };
+}
+
+export function firstNameOf(user: { name?: string; email?: string } | null | undefined) {
+  const name = user?.name?.trim();
+  if (name && name !== user?.email) return name.split(/\s+/)[0];
+  return null;
 }

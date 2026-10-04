@@ -6,15 +6,23 @@ import { v } from "convex/values";
 
 export const activateProPlan = mutation({
   args: {
-    clerkId: v.string(),
+    // Checkouts started after the move to Convex Auth carry the Convex user id;
+    // older ones still carry the Clerk id.
+    userId: v.optional(v.string()),
+    clerkId: v.optional(v.string()),
     creemCustomerId: v.string(),
     creemSubscriptionId: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
-      .unique();
+    const userId = args.userId ? ctx.db.normalizeId("users", args.userId) : null;
+    const user = userId
+      ? await ctx.db.get(userId)
+      : args.clerkId
+        ? await ctx.db
+            .query("users")
+            .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+            .unique()
+        : null;
     if (!user) return;
     // Don't downgrade unlimited or admin users
     if (user.plan === "unlimited" || user.role === "admin") return;

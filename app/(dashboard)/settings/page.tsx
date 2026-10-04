@@ -7,7 +7,7 @@ import { useConvexUser } from "@/hooks/useConvexUser";
 import { usePushSubscription } from "@/hooks/usePushSubscription";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { useClerk } from "@clerk/nextjs";
+import { useSignOut } from "@/hooks/useSignOut";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Check, Sun, Moon, Monitor, CalendarDays, Mail, FolderKanban } from "lucide-react";
@@ -73,8 +73,8 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
 // ── Page ──────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
-  const { convexUserId, convexUser, clerkUser, isLoading } = useConvexUser();
-  const { signOut } = useClerk();
+  const { convexUserId, convexUser, isLoading } = useConvexUser();
+  const signOut = useSignOut();
   const { subscribe, subscribed } = usePushSubscription(convexUserId);
   const updateTimezone = useMutation(api.users.updateTimezone);
   const updateEmailOptOut = useMutation(api.users.updateEmailOptOut);
@@ -224,26 +224,26 @@ export default function SettingsPage() {
 
       {/* ── Identity card ── */}
       <motion.div {...fadeUp(0.06)} className="rounded-2xl bg-foreground text-background px-6 py-5 flex items-center gap-4">
-        {clerkUser?.imageUrl ? (
+        {convexUser?.image ? (
           <Image
-            src={clerkUser.imageUrl}
-            alt={clerkUser.fullName ?? "You"}
+            src={convexUser.image}
+            alt={convexUser.name || "You"}
             width={48}
             height={48}
             className="w-12 h-12 rounded-full object-cover shrink-0"
           />
         ) : (
           <div className="w-12 h-12 rounded-full bg-background/20 text-background flex items-center justify-center text-lg font-semibold shrink-0">
-            {(clerkUser?.firstName?.[0] ?? clerkUser?.primaryEmailAddress?.emailAddress?.[0] ?? "?").toUpperCase()}
+            {(convexUser?.name?.[0] ?? convexUser?.email?.[0] ?? "?").toUpperCase()}
           </div>
         )}
         <div className="min-w-0">
           <p className="font-semibold text-background leading-tight">
-            {clerkUser?.fullName ?? clerkUser?.primaryEmailAddress?.emailAddress ?? "Your account"}
+            {convexUser?.name || convexUser?.email || "Your account"}
           </p>
-          {clerkUser?.fullName && (
+          {convexUser?.name && convexUser.name !== convexUser.email && (
             <p className="text-sm text-background/60 truncate mt-0.5">
-              {clerkUser.primaryEmailAddress?.emailAddress}
+              {convexUser.email}
             </p>
           )}
         </div>
@@ -337,7 +337,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between py-3.5">
             <div>
               <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-wider mb-0.5">Email</p>
-              <p className="text-sm">{convexUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || "-"}</p>
+              <p className="text-sm">{convexUser?.email || "-"}</p>
             </div>
             <button
               onClick={handleSaveProfile}
@@ -504,7 +504,7 @@ export default function SettingsPage() {
       {/* ── Sign out ── */}
       <motion.div {...fadeUp(0.42)} className="pt-4">
         <button
-          onClick={() => signOut({ redirectUrl: "/" })}
+          onClick={() => void signOut()}
           className="w-full py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-destructive hover:border-destructive/40 transition-colors"
         >
           Sign out

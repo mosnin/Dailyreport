@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { isAuthenticatedNextjs } from "@convex-dev/auth/nextjs/server";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Navbar } from "@/components/layout/Navbar";
@@ -12,8 +12,8 @@ import { DitherBackground } from "@/components/DitherBackground";
 import { WelcomeOverlay } from "@/components/WelcomeOverlay";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { userId } = await auth();
-  if (!userId) redirect("/sign-in");
+  const signedIn = await isAuthenticatedNextjs();
+  if (!signedIn) redirect("/sign-in");
 
   return (
     <OnboardingGate>

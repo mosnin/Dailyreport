@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { authUserId } from "./authUser";
 
 export const getForDate = query({
   args: { userId: v.id("users"), date: v.string() },
@@ -7,7 +8,7 @@ export const getForDate = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
     return ctx.db
       .query("visualizations")
       .withIndex("by_user_date", (q) =>
@@ -25,7 +26,7 @@ export const markCompleted = mutation({
     const viz = await ctx.db.get(args.vizId);
     if (!viz) return;
     const user = await ctx.db.get(viz.userId);
-    if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+    if (!user || user._id !== authUserId(identity)) throw new Error("Unauthorized");
     if (!viz.completedIndexes.includes(args.index)) {
       await ctx.db.patch(args.vizId, {
         completedIndexes: [...viz.completedIndexes, args.index],

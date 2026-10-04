@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getServerUser } from "@/lib/serverAuth";
 
 // OPENAI_API_KEY must also be set in .env.local (in addition to Convex env vars)
 // for this server-side route to proxy the ephemeral session request.
 export async function POST() {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getServerUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {

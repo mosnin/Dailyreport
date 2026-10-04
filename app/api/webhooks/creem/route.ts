@@ -34,9 +34,12 @@ export async function POST(req: NextRequest) {
   const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
   if (event.eventType === "checkout.completed" || event.eventType === "subscription.active") {
-    const clerkId =
-      (event.metadata?.clerkId as string) ??
-      (event.object?.metadata as Record<string, unknown> | undefined)?.clerkId as string;
+    const metadata = {
+      ...((event.object?.metadata as Record<string, unknown> | undefined) ?? {}),
+      ...(event.metadata ?? {}),
+    };
+    const userId = typeof metadata.userId === "string" ? metadata.userId : undefined;
+    const clerkId = typeof metadata.clerkId === "string" ? metadata.clerkId : undefined;
 
     const subscription = event.object?.subscription as Record<string, unknown> | undefined;
     const customer = event.object?.customer as Record<string, unknown> | undefined;
@@ -45,8 +48,9 @@ export async function POST(req: NextRequest) {
       event.object?.id as string;
     const customerId = customer?.id as string ?? event.object?.customer_id as string;
 
-    if (clerkId && subId && customerId) {
+    if ((userId || clerkId) && subId && customerId) {
       await convex.mutation(api.subscriptions.activateProPlan, {
+        userId,
         clerkId,
         creemCustomerId: customerId,
         creemSubscriptionId: subId,

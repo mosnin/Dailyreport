@@ -1,42 +1,15 @@
 import { mutation, query, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
+import { authUserId } from "./authUser";
 
-export const getOrCreate = mutation({
-  args: {
-    email: v.string(),
-    name: v.string(),
-  },
-  handler: async (ctx, args) => {
+// The signed-in user's profile. Convex Auth creates the document on first
+// sign-in (see convex/auth.ts), so there is nothing to create here.
+export const current = query({
+  args: {},
+  handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
-    const clerkId = identity.subject;
-
-    const existing = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
-      .unique();
-
-    if (existing) return existing._id;
-
-    return await ctx.db.insert("users", {
-      clerkId,
-      email: args.email,
-      name: args.name,
-      onboardingComplete: false,
-      createdAt: Date.now(),
-    });
-  },
-});
-
-export const getByClerkId = query({
-  args: { clerkId: v.string() },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity || identity.subject !== args.clerkId) return null;
-    return await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
-      .unique();
+    if (!identity) return null;
+    return await ctx.db.get(authUserId(identity));
   },
 });
 
@@ -57,7 +30,7 @@ export const completeOnboarding = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+    if (!user || user._id !== authUserId(identity)) throw new Error("Unauthorized");
 
     await ctx.db.patch(args.userId, {
       bio: args.bio,
@@ -99,7 +72,7 @@ export const migrateLifelongGoals = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+    if (!user || user._id !== authUserId(identity)) throw new Error("Unauthorized");
 
     if (user.lifelongMigrated) return { migrated: 0 };
 
@@ -138,7 +111,7 @@ export const updateStyles = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+    if (!user || user._id !== authUserId(identity)) throw new Error("Unauthorized");
     await ctx.db.patch(args.userId, {
       affirmationStyle: args.affirmationStyle,
       affirmationCustomInstructions: args.affirmationCustomInstructions,
@@ -155,10 +128,7 @@ export const listAll = query({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
-    const caller = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .unique();
+    const caller = await ctx.db.get(authUserId(identity));
     if (!caller || caller.role !== "admin") return null;
     return ctx.db.query("users").order("desc").collect();
   },
@@ -172,10 +142,7 @@ export const adminUpdatePlan = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
-    const caller = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .unique();
+    const caller = await ctx.db.get(authUserId(identity));
     if (!caller || caller.role !== "admin") throw new Error("Unauthorized");
     await ctx.db.patch(args.targetUserId, { plan: args.plan, planUpdatedAt: Date.now() });
   },
@@ -189,10 +156,7 @@ export const adminUpdateRole = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
-    const caller = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .unique();
+    const caller = await ctx.db.get(authUserId(identity));
     if (!caller || caller.role !== "admin") throw new Error("Unauthorized");
     await ctx.db.patch(args.targetUserId, { role: args.role });
   },
@@ -204,7 +168,7 @@ export const updateProfile = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+    if (!user || user._id !== authUserId(identity)) throw new Error("Unauthorized");
     await ctx.db.patch(args.userId, {
       name: args.name.trim(),
       bio: args.bio?.trim() ?? undefined,
@@ -218,7 +182,7 @@ export const updateEmailOptOut = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+    if (!user || user._id !== authUserId(identity)) throw new Error("Unauthorized");
     await ctx.db.patch(args.userId, { emailOptOut: args.optOut });
   },
 });
@@ -229,7 +193,7 @@ export const updateTimezone = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+    if (!user || user._id !== authUserId(identity)) throw new Error("Unauthorized");
     await ctx.db.patch(args.userId, { timezone: args.timezone });
   },
 });
@@ -240,7 +204,7 @@ export const getUserForScheduler = internalQuery({
   handler: async (ctx, args) => {
     const user = await ctx.db.get(args.userId);
     if (!user) return null;
-    return { name: user.name, timezone: user.timezone ?? "UTC", clerkId: user.clerkId };
+    return { name: user.name, timezone: user.timezone ?? "UTC" };
   },
 });
 
@@ -250,7 +214,7 @@ export const getStats = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
 
     const now = Date.now();
     const createdAt = user.createdAt;

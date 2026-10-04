@@ -1,5 +1,6 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
+import { authUserId } from "./authUser";
 
 /* ───────────────────────────────────────────────────────────────────────────
    Life Score - a weighted, credit-score-style measurement across six areas:
@@ -277,7 +278,7 @@ export const getCurrent = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
 
     const windowDays = Math.min(args.windowDays ?? 14, 60);
     const b = await loadBundle(ctx, args.userId, windowDays * 2 + 7);
@@ -315,7 +316,7 @@ export const getSeries = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return [];
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return [];
+    if (!user || user._id !== authUserId(identity)) return [];
 
     const days = Math.min(args.days ?? 30, 120);
     const windowDays = 14;

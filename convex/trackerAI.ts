@@ -2,6 +2,7 @@ import { action, query, internalMutation } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import { v } from "convex/values";
 import OpenAI from "openai";
+import { authUserId } from "./authUser";
 
 /**
  * AI tracker designer. The user describes what they want to measure in plain
@@ -114,7 +115,7 @@ export const getCoachInsight = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
     return ctx.db
       .query("trackerInsights")
       .withIndex("by_user_date", (q) => q.eq("userId", args.userId).eq("date", args.date))
@@ -240,7 +241,7 @@ export const getRecommendations = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
     return ctx.db
       .query("trackerRecommendations")
       .withIndex("by_user_date", (q) => q.eq("userId", args.userId).eq("date", args.date))

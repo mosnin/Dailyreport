@@ -1,5 +1,6 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
+import { authUserId } from "./authUser";
 
 /* Daily checklist status - one query powering the home page "what to check off"
    list. Returns done-state for every trackable daily action. */
@@ -9,7 +10,7 @@ export const getToday = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
 
     const { userId, date } = args;
     const [report, health, affSession, viz, eduToday, updatesToday, ritualLog, rituals, finance] =

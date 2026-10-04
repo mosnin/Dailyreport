@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getServerUser } from "@/lib/serverAuth";
 import { NextResponse } from "next/server";
 
 /**
@@ -82,8 +82,8 @@ async function tryActions(
 }
 
 export async function POST(req: Request) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getServerUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let body: { platform?: string; connectionId?: string };
   try {

@@ -1,11 +1,11 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { getServerUser } from "@/lib/serverAuth";
 import { NextResponse } from "next/server";
 
 const CREEM_API_URL = "https://api.creem.io/v1";
 
 export async function POST() {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getServerUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const apiKey = process.env.CREEM_API_KEY;
   const productId = process.env.CREEM_PRODUCT_ID;
@@ -13,15 +13,14 @@ export async function POST() {
     return NextResponse.json({ error: "Payment not configured" }, { status: 500 });
   }
 
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress;
+  const email = user.email || undefined;
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_CONVEX_URL?.replace("convex.cloud", "vercel.app") ?? "http://localhost:3000";
 
   const body: Record<string, unknown> = {
     product_id: productId,
     success_url: `${baseUrl}/settings?subscription=success`,
-    metadata: { clerkId: userId },
+    metadata: { userId: user._id },
   };
   if (email) body.customer = { email };
 

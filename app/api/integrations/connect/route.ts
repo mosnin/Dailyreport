@@ -1,9 +1,9 @@
-import { auth } from "@clerk/nextjs/server";
+import { getServerUser } from "@/lib/serverAuth";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getServerUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const platform = searchParams.get("platform")?.toUpperCase();
@@ -27,7 +27,8 @@ export async function GET(req: Request) {
       body: JSON.stringify({
         integrationId: platform,
         redirectUri,
-        userUuid: userId,
+        // Accounts from before Convex Auth keep their Clerk id as the Composio entity.
+        userUuid: user.clerkId ?? user._id,
         data: { redirectParams: `platform=${platform.toLowerCase()}` },
       }),
     });

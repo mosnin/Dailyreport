@@ -1,12 +1,13 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { authUserId } from "./authUser";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function assertOwner(ctx: any, userId: string) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
   const user = await ctx.db.get(userId);
-  if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+  if (!user || user._id !== authUserId(identity)) throw new Error("Unauthorized");
 }
 
 export const log = mutation({
@@ -44,7 +45,7 @@ export const getRecent = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return [];
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return [];
+    if (!user || user._id !== authUserId(identity)) return [];
     const days = Math.min(args.days ?? 90, 365);
     const cutoff = new Date(Date.now() - days * 86400000).toISOString().split("T")[0];
     const rows = await ctx.db
@@ -61,7 +62,7 @@ export const getForDate = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return [];
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return [];
+    if (!user || user._id !== authUserId(identity)) return [];
     return ctx.db
       .query("educationLogs")
       .withIndex("by_user_date", (q) => q.eq("userId", args.userId).eq("date", args.date))
@@ -76,7 +77,7 @@ export const getSkillSummary = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return [];
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return [];
+    if (!user || user._id !== authUserId(identity)) return [];
     const rows = await ctx.db
       .query("educationLogs")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))

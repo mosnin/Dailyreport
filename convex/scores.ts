@@ -1,5 +1,6 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
+import { authUserId } from "./authUser";
 
 export const getDailyScores = query({
   args: {
@@ -10,7 +11,7 @@ export const getDailyScores = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
 
     const numDays = Math.min(args.days ?? 60, 90);
     const today = new Date();

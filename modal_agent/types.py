@@ -3,7 +3,7 @@ from typing import Optional
 
 
 class AgentRequest(BaseModel):
-    userId: str                      # Clerk user ID
+    userId: str                      # Composio entity id (legacy Clerk id, else Convex user id)
     convexUserId: str                # Convex document ID for the user
     intent: str                      # What the user wants the agent to do
     jobId: str                       # Convex agentJobs document ID
