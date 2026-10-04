@@ -32,7 +32,7 @@ Stack: **Next.js 16 (App Router) + React 19 + Convex (with Convex Auth) + Tailwi
 
 ## Design system
 
-Light, flat **bento** system. See `STYLESHEET.md`. Use the primitives in `components/bento/` and chart wrappers in `components/charts/`. Each life area owns a color var (`--health`, `--goals`, `--finance`, `--emotional`, `--progress`, `--execution`). The old notebook aesthetic is removed - don't reintroduce serif/cream/ruled-line styling.
+Dark, flat **bento** system. See `STYLESHEET.md`. Use the primitives in `components/bento/` and chart wrappers in `components/charts/`. Each life area owns a color var (`--health`, `--goals`, `--finance`, `--emotional`, `--progress`, `--execution`). The old notebook aesthetic is removed - don't reintroduce serif/cream/ruled-line styling.
 
 ## Conventions
 
