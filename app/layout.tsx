@@ -19,11 +19,11 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/favicon.png" }],
   },
-  appleWebApp: { capable: true, statusBarStyle: "default", title: "Daily Report" },
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Daily Report" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#0b0b0c",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -32,7 +32,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ConvexAuthNextjsServerProvider>
-      <html lang="en" className={`${urbanist.variable} ${geistMono.variable} h-full antialiased`} style={{ colorScheme: "light" }} suppressHydrationWarning>
+      <html lang="en" className={`${urbanist.variable} ${geistMono.variable} h-full antialiased`} style={{ colorScheme: "dark" }} suppressHydrationWarning>
         <body className="min-h-full bg-background text-foreground">
           <ThemeProvider>
             <ConvexClientProvider>

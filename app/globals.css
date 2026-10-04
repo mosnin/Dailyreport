@@ -6,8 +6,9 @@
 
 /* ─────────────────────────────────────────────────────────────────────────
    Daily Report design system
-   Light, calm and flat. White pages, soft gray rounded surfaces, heavy
-   geometric headings, solid dark buttons. No shadows, glass or gradients.
+   Dark, calm and flat. Near-black pages, soft dark rounded surfaces, heavy
+   geometric headings, white pill buttons, burnt orange as the secondary
+   color. No shadows, glass or gradients.
    ───────────────────────────────────────────────────────────────────────── */
 
 @theme inline {
@@ -63,51 +64,51 @@
   --radius-3xl: calc(var(--radius) + 20px);
 }
 
-/* ── Light palette ──────────────────────────────────────────────────────── */
+/* ── Palette: black with burnt orange ───────────────────────────────────── */
 :root {
-  --background:           oklch(1 0 0);
-  --foreground:           oklch(0.2 0.012 285);
-  --card:                 oklch(0.97 0.003 286);
-  --card-foreground:      oklch(0.2 0.012 285);
-  --popover:              oklch(1 0 0);
-  --popover-foreground:   oklch(0.2 0.012 285);
-  --primary:              oklch(0.2 0.012 285);  /* near-black */
-  --primary-foreground:   oklch(0.99 0 0);
-  --secondary:            oklch(0.95 0.004 286);
-  --secondary-foreground: oklch(0.2 0.012 285);
-  --muted:                oklch(0.95 0.004 286);
-  --muted-foreground:     oklch(0.55 0.012 286);
-  --accent:               oklch(0.94 0.005 286);
-  --accent-foreground:    oklch(0.2 0.012 285);
-  --destructive:          oklch(0.58 0.22 25);
-  --border:               oklch(0.2 0.012 285 / 8%);
-  --input:                oklch(0.2 0.012 285 / 10%);
-  --ring:                 oklch(0.2 0.012 285 / 30%);
+  --background:           oklch(0.145 0.004 286);  /* near-black */
+  --foreground:           oklch(0.97 0.002 286);
+  --card:                 oklch(0.205 0.005 286);  /* soft dark tile */
+  --card-foreground:      oklch(0.97 0.002 286);
+  --popover:              oklch(0.205 0.005 286);
+  --popover-foreground:   oklch(0.97 0.002 286);
+  --primary:              oklch(0.97 0.002 286);   /* white pill buttons */
+  --primary-foreground:   oklch(0.145 0.004 286);
+  --secondary:            oklch(0.63 0.17 45);     /* burnt orange */
+  --secondary-foreground: oklch(0.99 0 0);
+  --muted:                oklch(0.25 0.005 286);
+  --muted-foreground:     oklch(0.68 0.008 286);
+  --accent:               oklch(0.26 0.006 286);
+  --accent-foreground:    oklch(0.97 0.002 286);
+  --destructive:          oklch(0.64 0.21 25);
+  --border:               oklch(1 0 0 / 8%);
+  --input:                oklch(1 0 0 / 10%);
+  --ring:                 oklch(0.63 0.17 45 / 60%);
 
-  --health:               oklch(0.62 0.15 158);  /* emerald */
-  --goals:                oklch(0.58 0.2 295);   /* violet  */
-  --finance:              oklch(0.7 0.16 70);    /* amber   */
-  --emotional:            oklch(0.62 0.2 15);    /* rose    */
-  --progress:             oklch(0.6 0.16 245);   /* blue    */
-  --execution:            oklch(0.66 0.18 45);   /* orange  */
+  --health:               oklch(0.76 0.15 158);  /* emerald */
+  --goals:                oklch(0.72 0.16 295);  /* violet  */
+  --finance:              oklch(0.82 0.15 85);   /* amber   */
+  --emotional:            oklch(0.72 0.17 12);   /* rose    */
+  --progress:             oklch(0.74 0.13 235);  /* blue    */
+  --execution:            oklch(0.7 0.17 45);    /* burnt orange */
 
-  --chart-1: oklch(0.7 0.16 70);
-  --chart-2: oklch(0.6 0.16 245);
-  --chart-3: oklch(0.62 0.15 158);
-  --chart-4: oklch(0.58 0.2 295);
-  --chart-5: oklch(0.62 0.2 15);
-  --chart-6: oklch(0.66 0.18 45);
+  --chart-1: oklch(0.63 0.17 45);
+  --chart-2: oklch(0.74 0.13 235);
+  --chart-3: oklch(0.76 0.15 158);
+  --chart-4: oklch(0.72 0.16 295);
+  --chart-5: oklch(0.72 0.17 12);
+  --chart-6: oklch(0.82 0.15 85);
 
-  --sidebar:              oklch(1 0 0);
-  --sidebar-foreground:   oklch(0.2 0.012 285);
-  --sidebar-accent:       oklch(0.95 0.004 286);
-  --sidebar-border:       oklch(0.2 0.012 285 / 7%);
-  --brand-blue:           oklch(0.2 0.012 285);
+  --sidebar:              oklch(0.145 0.004 286);
+  --sidebar-foreground:   oklch(0.97 0.002 286);
+  --sidebar-accent:       oklch(0.24 0.005 286);
+  --sidebar-border:       oklch(1 0 0 / 7%);
+  --brand-blue:           oklch(0.63 0.17 45);
 
   --radius: 1.25rem;
 }
 
-:root { color-scheme: light; }
+:root { color-scheme: dark; }
 
 @layer base {
   * {

@@ -56,14 +56,14 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
       onClick={onToggle}
       className={cn(
         "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none",
-        on ? "bg-primary" : "bg-muted"
+        on ? "bg-secondary" : "bg-muted"
       )}
     >
       <motion.span
         layout
         animate={{ x: on ? 24 : 4 }}
         transition={{ type: "spring", damping: 20, stiffness: 300 }}
-        className="inline-block h-4 w-4 rounded-full bg-white shadow"
+        className="inline-block h-4 w-4 rounded-full bg-white"
       />
     </button>
   );
@@ -253,7 +253,7 @@ export default function SettingsPage() {
         <div className="rounded-3xl bg-card px-5 py-1">
           <Row label="Push notifications" sub={subscribed ? "Active - you'll be reminded at 8pm" : "Off - enable to get daily reminders"}>
             {subscribed ? (
-              <span className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
+              <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 On
               </span>

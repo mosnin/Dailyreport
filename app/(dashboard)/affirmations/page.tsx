@@ -260,7 +260,7 @@ function RoundSession({
             onClick={() => { setDirection(i > index ? 1 : -1); setIndex(i); }}
             className={cn(
               "h-1.5 rounded-full transition-all duration-200",
-              i === index ? "w-6 bg-amber-400" : i < index ? "w-2 bg-amber-300" : "w-2 bg-neutral-200"
+              i === index ? "w-6 bg-secondary" : i < index ? "w-2 bg-secondary/60" : "w-2 bg-accent"
             )}
           />
         ))}
@@ -299,7 +299,7 @@ function RoundSession({
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={onComplete}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-900 font-medium text-sm transition-colors"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-secondary hover:bg-secondary/85 text-secondary-foreground font-bold text-sm transition-colors"
           >
             Complete round
           </motion.button>
@@ -616,7 +616,7 @@ export default function AffirmationsPage() {
             <p
               className={cn(
                 "text-[11px] font-semibold tracking-[0.16em] uppercase",
-                goalMet ? "text-emerald-600" : "text-background/50"
+                goalMet ? "text-emerald-400" : "text-background/50"
               )}
             >
               {goalMet ? "Daily goal complete" : "Today's practice"}

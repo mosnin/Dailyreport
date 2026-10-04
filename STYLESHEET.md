@@ -2,7 +2,7 @@
 
 This is the design system. Read it once. Then write code that disappears into it.
 
-The product is a **life-analytics dashboard**, not a notebook. Light, calm and flat: white pages, soft gray rounded tiles, heavy geometric headings, solid near-black pill buttons, lots of negative space. No shaders, glass, blur, shadows or gradients. Color carries meaning - each life area owns a hue, used for data, not decoration.
+The product is a **life-analytics dashboard**, not a notebook. Dark, calm and flat: near-black pages, soft dark rounded tiles, heavy geometric headings, white pill buttons, burnt orange as the secondary color, lots of negative space. No shaders, glass, blur, shadows or gradients. Color carries meaning - each life area owns a hue, used for data, not decoration.
 
 > The old warm "notebook" aesthetic (Lora serif, cream paper, ruled lines, violet) has been fully removed. Do not reintroduce it.
 
@@ -15,7 +15,7 @@ The product is a **life-analytics dashboard**, not a notebook. Light, calm and f
 - **Components**: ShadCN/UI v4 over `@base-ui/react` primitives (in `components/ui/`)
 - **Icons**: `lucide-react` only.
 - **Animation**: `motion` (Framer Motion).
-- **Theme**: `next-themes`, forced **light**. There is no dark mode.
+- **Theme**: `next-themes`, forced **dark**. There is no light mode.
 - **Charts**: `recharts`, always via the wrappers in `components/charts/Charts.tsx`.
 - **Toasts**: `sonner`.
 - **Fonts**: `Urbanist` (everything) + `Geist Mono` (numerals where useful). `h1`-`h3` and `font-heading` are Urbanist 800 with tight tracking.
@@ -24,7 +24,7 @@ The product is a **life-analytics dashboard**, not a notebook. Light, calm and f
 
 ## Color System
 
-`oklch`. Light only. `--background` is white, `--card` is a soft gray tile, `--primary` is near-black (buttons), `--accent` is the hover/active gray. The defining move: **each life area has its own accent**, exposed as a CSS variable and usable inline (`style={{ color: "var(--health)" }}`) and as a Tailwind color (`text-health`, `bg-finance`, …).
+`oklch`. Dark only. `--background` is near-black, `--card` is a soft dark tile, `--primary` is white (buttons), `--secondary` is burnt orange (active states, dots, toggles, focus rings, secondary actions), `--accent` is the hover/active gray. The defining move: **each life area has its own accent**, exposed as a CSS variable and usable inline (`style={{ color: "var(--health)" }}`) and as a Tailwind color (`text-health`, `bg-finance`, …).
 
 | Area | Var | Hue |
 |---|---|---|
@@ -33,8 +33,9 @@ The product is a **life-analytics dashboard**, not a notebook. Light, calm and f
 | Finance | `--finance` | amber |
 | Emotional | `--emotional` | rose |
 | Progress | `--progress` | blue |
-| Execution | `--execution` | orange |
-| Brand / primary | `--primary` | near-black |
+| Execution | `--execution` | burnt orange |
+| Primary | `--primary` | white |
+| Secondary | `--secondary` | burnt orange |
 
 Core tokens: `--background`, `--foreground`, `--card`, `--muted`, `--muted-foreground`, `--accent`, `--border`, `--ring`, `--sidebar*`, `--chart-1…6`. Always use tokens - never raw grays.
 

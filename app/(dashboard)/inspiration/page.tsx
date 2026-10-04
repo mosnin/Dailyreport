@@ -15,7 +15,7 @@ import { PageHeader } from "@/components/bento/PageHeader";
 
 const PRINCIPLE_COLORS: Record<string, string> = {
   "Focus":       "bg-blue-500/10 text-blue-600",
-  "Momentum":    "bg-emerald-500/10 text-emerald-600",
+  "Momentum":    "bg-emerald-500/10 text-emerald-400",
   "Resilience":  "bg-rose-500/10 text-rose-600",
   "Perspective": "bg-violet-500/10 text-violet-600",
   "Discipline":  "bg-orange-500/10 text-orange-600",

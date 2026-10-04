@@ -59,7 +59,7 @@ function AppIcon({
         className="relative grid aspect-square w-full place-items-center rounded-[28%] bg-card"
       >
         <Icon className="h-6 w-6" style={{ color }} />
-        {dot && <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-background bg-primary" />}
+        {dot && <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-background bg-secondary" />}
       </motion.span>
       <span className="w-full truncate text-center text-[11px] font-medium text-foreground/85">{label}</span>
     </Link>
@@ -192,9 +192,9 @@ export function BottomTabBar() {
                   style={{ touchAction: "manipulation" }}
                 >
                   <div className="relative">
-                    <Icon className={cn("w-5 h-5 transition-colors", active ? "text-foreground" : "text-muted-foreground/60")} />
+                    <Icon className={cn("w-5 h-5 transition-colors", active ? "text-secondary" : "text-muted-foreground/60")} />
                     {dotFor(tab.status) && !active && (
-                      <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary" />
+                      <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-secondary" />
                     )}
                   </div>
                   <span className={cn("text-[11px]", active ? "font-bold text-foreground" : "font-medium text-muted-foreground/60")}>{tab.label}</span>

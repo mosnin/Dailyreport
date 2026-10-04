@@ -58,14 +58,14 @@ export default async function LandingPage() {
   if (signedIn) redirect("/dashboard");
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900">
+    <div className="min-h-screen bg-background text-foreground">
 
       {/* ── Pill Header ────────────────────────────────────────────── */}
       <header className="fixed top-4 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
         <nav className="pointer-events-auto flex items-center gap-1 rounded-full bg-card px-2 py-2">
           <Link href="/" className="flex items-center px-3 mr-0.5">
             <Image
-              src="/logo-light.png"
+              src="/logo-dark.png"
               alt="DailyReport"
               width={1800}
               height={400}
@@ -84,29 +84,29 @@ export default async function LandingPage() {
             />
           </Link>
 
-          <div className="h-4 w-px bg-neutral-200 mx-0.5" />
+          <div className="h-4 w-px bg-accent mx-0.5" />
 
           <div className="hidden sm:flex items-center gap-0.5">
             <a
               href="#how-it-works"
-              className="px-3 py-1.5 text-sm text-neutral-500 hover:text-neutral-900 rounded-full transition-colors"
+              className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-full transition-colors"
             >
               How it works
             </a>
             <a
               href="#faq"
-              className="px-3 py-1.5 text-sm text-neutral-500 hover:text-neutral-900 rounded-full transition-colors"
+              className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-full transition-colors"
             >
               FAQ
             </a>
           </div>
 
-          <div className="hidden sm:block h-4 w-px bg-neutral-200 mx-0.5" />
+          <div className="hidden sm:block h-4 w-px bg-accent mx-0.5" />
 
           <div className="flex items-center gap-1">
             <Link
               href="/sign-in"
-              className="px-3 py-1.5 text-sm text-neutral-500 hover:text-neutral-900 rounded-full transition-colors"
+              className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-full transition-colors"
             >
               Log in
             </Link>
@@ -129,7 +129,7 @@ export default async function LandingPage() {
             Every day.
           </h1>
 
-          <p className="mx-auto mb-10 max-w-lg text-base leading-relaxed text-neutral-500 sm:text-lg">
+          <p className="mx-auto mb-10 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
             Track health, goals, money, and growth.
             <br />
             One score for the life you are building.
@@ -144,7 +144,7 @@ export default async function LandingPage() {
             </Link>
             <Link
               href="/sign-in"
-              className="inline-flex items-center rounded-full bg-card px-7 py-3.5 text-sm font-bold text-foreground transition-colors hover:bg-accent"
+              className="inline-flex items-center rounded-full bg-secondary px-7 py-3.5 text-sm font-bold text-secondary-foreground transition-opacity hover:opacity-90"
             >
               Log in
             </Link>
@@ -153,9 +153,9 @@ export default async function LandingPage() {
       </section>
 
       {/* ── One Truth ──────────────────────────────────────────────── */}
-      <section className="px-6 py-24 bg-neutral-50">
+      <section className="px-6 py-24 bg-card">
         <div className="max-w-2xl mx-auto text-center">
-          <p className="font-heading text-2xl sm:text-3xl leading-relaxed text-neutral-700">
+          <p className="font-heading text-2xl sm:text-3xl leading-relaxed text-foreground">
             &ldquo;Most people know what to do. Almost no one keeps a written
             record of whether they did it.&rdquo;
           </p>
@@ -170,14 +170,14 @@ export default async function LandingPage() {
             {/* Mockup */}
             <div className="bento p-8">
               <div className="mb-6">
-                <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-neutral-400 mb-1">
+                <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-muted-foreground/70 mb-1">
                   Wednesday evening
                 </p>
                 <div className="flex items-center justify-between">
-                  <h2 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-none text-neutral-900">
+                  <h2 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-none text-foreground">
                     April 29
                   </h2>
-                  <span className="text-xs font-bold text-neutral-500">
+                  <span className="text-xs font-bold text-muted-foreground">
                     14 day streak
                   </span>
                 </div>
@@ -185,36 +185,36 @@ export default async function LandingPage() {
 
               <div className="space-y-5">
                 <div>
-                  <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
+                  <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider mb-1.5">
                     What did you do today?
                   </p>
-                  <div className="h-11 rounded-full bg-white border border-neutral-200 px-3 flex items-center">
-                    <span className="text-sm text-neutral-400">Shipped the onboarding flow…</span>
+                  <div className="h-11 rounded-full bg-background border border-border px-3 flex items-center">
+                    <span className="text-sm text-muted-foreground/70">Shipped the onboarding flow…</span>
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
+                  <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider mb-1.5">
                     What drained you?
                   </p>
-                  <div className="h-11 rounded-full bg-white border border-neutral-200 px-3 flex items-center">
-                    <span className="text-sm text-neutral-400">The 3pm meeting that ran…</span>
+                  <div className="h-11 rounded-full bg-background border border-border px-3 flex items-center">
+                    <span className="text-sm text-muted-foreground/70">The 3pm meeting that ran…</span>
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
+                  <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider mb-1.5">
                     Plan for tomorrow
                   </p>
-                  <div className="h-11 rounded-full bg-white border border-neutral-200 px-3 flex items-center">
-                    <span className="text-sm text-neutral-400">Finish the auth flow by noon…</span>
+                  <div className="h-11 rounded-full bg-background border border-border px-3 flex items-center">
+                    <span className="text-sm text-muted-foreground/70">Finish the auth flow by noon…</span>
                   </div>
                 </div>
 
                 <div className="pt-2 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
+                  <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium">
                     Saved
                   </div>
-                  <div className="h-px flex-1 mx-4 bg-neutral-100" />
-                  <span className="text-[10px] text-neutral-300">
+                  <div className="h-px flex-1 mx-4 bg-accent" />
+                  <span className="text-[10px] text-muted-foreground/70">
                     Entry 214
                   </span>
                 </div>
@@ -225,10 +225,10 @@ export default async function LandingPage() {
             <div className="space-y-8">
               {FACTS.map(({ number, body }) => (
                 <div key={number} className="flex gap-5">
-                  <span className="text-xs font-mono font-bold text-neutral-400 mt-0.5 shrink-0 w-5">
+                  <span className="text-xs font-mono font-bold text-muted-foreground/70 mt-0.5 shrink-0 w-5">
                     {number}
                   </span>
-                  <p className="text-base sm:text-lg text-neutral-600 leading-relaxed">
+                  <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
                     {body}
                   </p>
                 </div>
@@ -256,7 +256,7 @@ export default async function LandingPage() {
           <h2 className="font-heading text-4xl font-semibold tracking-tight mb-4">
             The work starts tonight.
           </h2>
-          <p className="text-neutral-500 text-sm mb-10 max-w-sm mx-auto">
+          <p className="text-muted-foreground text-sm mb-10 max-w-sm mx-auto">
             Setup takes two minutes. Your first report takes less than five.
           </p>
           <Link
@@ -271,7 +271,7 @@ export default async function LandingPage() {
       {/* ── FAQ ────────────────────────────────────────────────────── */}
       <section
         id="faq"
-        className="px-6 py-24 bg-neutral-50"
+        className="px-6 py-24 bg-card"
       >
         <div className="max-w-2xl mx-auto">
           <div className="mb-12 text-center">
@@ -285,9 +285,9 @@ export default async function LandingPage() {
 
       {/* ── Pill Footer ────────────────────────────────────────────── */}
       <footer className="py-10 px-4 flex justify-center">
-        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 rounded-full border border-neutral-200 bg-neutral-50 px-7 py-3.5">
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 rounded-full border border-border bg-card px-7 py-3.5">
           <Image
-            src="/logo-light.png"
+            src="/logo-dark.png"
             alt="DailyReport"
             width={1800}
             height={400}
@@ -302,33 +302,33 @@ export default async function LandingPage() {
             quality={100}
             className="h-5 w-auto hidden"
           />
-          <div className="hidden sm:block h-3.5 w-px bg-neutral-300" />
-          <div className="flex items-center gap-4 text-xs text-neutral-400">
+          <div className="hidden sm:block h-3.5 w-px bg-border" />
+          <div className="flex items-center gap-4 text-xs text-muted-foreground/70">
             <Link
               href="/sign-in"
-              className="hover:text-neutral-700 transition-colors"
+              className="hover:text-foreground transition-colors"
             >
               Log in
             </Link>
             <Link
               href="/sign-up"
-              className="hover:text-neutral-700 transition-colors"
+              className="hover:text-foreground transition-colors"
             >
               Sign up
             </Link>
             <a
               href="#how-it-works"
-              className="hover:text-neutral-700 transition-colors"
+              className="hover:text-foreground transition-colors"
             >
               How it works
             </a>
             <a
               href="#faq"
-              className="hover:text-neutral-700 transition-colors"
+              className="hover:text-foreground transition-colors"
             >
               FAQ
             </a>
-            <span className="text-neutral-300">
+            <span className="text-muted-foreground/70">
               © {new Date().getFullYear()} DailyReport
             </span>
           </div>

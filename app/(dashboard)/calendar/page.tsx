@@ -180,7 +180,7 @@ function DailyReportView({ userId, date }: { userId: Id<"users">; date: string }
         <Section label="Affirmations">
           <div className="flex items-center gap-1.5">
             {didAffirmations ? (
-              <span className="text-sm text-emerald-600 font-medium">Done</span>
+              <span className="text-sm text-emerald-400 font-medium">Done</span>
             ) : (
               <span className="text-sm text-muted-foreground">Skipped</span>
             )}
@@ -309,7 +309,7 @@ function WeeklyReportView({ userId, weekStartDate }: { userId: Id<"users">; week
         <Section label="Affirmations">
           <div className="flex items-center gap-1.5">
             {didAffirmations ? (
-              <span className="text-sm text-emerald-600 font-medium">Done</span>
+              <span className="text-sm text-emerald-400 font-medium">Done</span>
             ) : (
               <span className="text-sm text-muted-foreground">Skipped</span>
             )}

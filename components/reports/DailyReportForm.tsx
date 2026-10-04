@@ -165,7 +165,7 @@ function GoalHealthPanel({
         >
           <CheckCircle className="w-5 h-5 text-emerald-500" />
         </motion.div>
-        <span className="text-sm font-medium text-emerald-600">
+        <span className="text-sm font-medium text-emerald-400">
           Report saved
         </span>
       </div>
@@ -497,7 +497,7 @@ export function DailyReportForm({
                   <div className="flex items-center gap-1 shrink-0">
                     <button type="button" onClick={() => updatePerson(person.id, { goalRelated: true })}
                       className={cn("text-[11px] px-2 py-0.5 rounded-full border transition-colors",
-                        person.goalRelated === true ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-600" : "border-border/50 text-muted-foreground/50 hover:border-emerald-400/50"
+                        person.goalRelated === true ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400" : "border-border/50 text-muted-foreground/50 hover:border-emerald-400/50"
                       )}>goal</button>
                     <button type="button" onClick={() => removePerson(person.id)}
                       className="text-muted-foreground/30 hover:text-muted-foreground transition-colors p-0.5">
@@ -632,8 +632,8 @@ export function DailyReportForm({
             className={cn(
               "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border text-sm font-medium transition-all",
               r.didAffirmations === true
-                ? "border-emerald-500/50 bg-emerald-500/8 text-emerald-600"
-                : "border-border/50 text-muted-foreground/60 hover:border-emerald-400/40 hover:text-emerald-600"
+                ? "border-emerald-500/50 bg-emerald-500/8 text-emerald-400"
+                : "border-border/50 text-muted-foreground/60 hover:border-emerald-400/40 hover:text-emerald-400"
             )}
           >
             <CheckCircle className="w-4 h-4" />

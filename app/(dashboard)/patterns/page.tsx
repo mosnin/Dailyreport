@@ -419,7 +419,7 @@ function PeopleTab({ userId }: { userId: Id<"users"> }) {
                         {format(parseISO(entry.date), "MMM d")}
                       </span>
                       {entry.goalRelated === true && (
-                        <span className="text-[10px] font-semibold bg-emerald-500/15 text-emerald-600 rounded-full px-2 py-0.5 shrink-0">
+                        <span className="text-[10px] font-semibold bg-emerald-500/15 text-emerald-400 rounded-full px-2 py-0.5 shrink-0">
                           goal
                         </span>
                       )}
@@ -538,7 +538,7 @@ function ProblemCard({
             </CardTitle>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
               {solved && problem.resolvedAt ? (
-                <span className="text-xs text-emerald-600 font-medium">
+                <span className="text-xs text-emerald-400 font-medium">
                   Resolved {format(new Date(problem.resolvedAt), "MMM d, yyyy")}
                 </span>
               ) : (

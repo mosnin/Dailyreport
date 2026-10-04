@@ -48,10 +48,10 @@ function NavLink({
           transition={{ type: "spring", damping: 30, stiffness: 320 }}
         />
       )}
-      <Icon className={cn("w-[18px] h-[18px] shrink-0 relative z-10", active && "text-primary")} />
+      <Icon className={cn("w-[18px] h-[18px] shrink-0 relative z-10", active && "text-secondary")} />
       <span className="flex-1 leading-none relative z-10">{label}</span>
       {dot === true && !active && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 relative z-10" />}
-      {dot === false && !active && <span className="w-1.5 h-1.5 rounded-full bg-primary relative z-10" />}
+      {dot === false && !active && <span className="w-1.5 h-1.5 rounded-full bg-secondary relative z-10" />}
     </Link>
   );
 }
@@ -78,7 +78,7 @@ export function Sidebar() {
       {/* Wordmark */}
       <div className="flex items-center px-5 h-16 shrink-0">
         <Link href="/today" className="flex items-center">
-          <Image src="/logo-light.png" alt="Daily Report" width={1800} height={400} quality={100} className="h-7 w-auto" />
+          <Image src="/logo-dark.png" alt="Daily Report" width={1800} height={400} quality={100} className="h-7 w-auto" />
         </Link>
       </div>
 
@@ -90,7 +90,7 @@ export function Sidebar() {
         </div>
         {streak > 0 && (
           <div className="flex items-center gap-1 rounded-full bg-background px-2 py-1">
-            <Flame className="w-3.5 h-3.5 text-primary" />
+            <Flame className="w-3.5 h-3.5 text-secondary" />
             <span className="text-xs font-bold numeral">{streak}</span>
           </div>
         )}
@@ -175,7 +175,7 @@ export function Sidebar() {
             {user.image ? (
               <Image src={user.image} alt={user.name || "User"} width={28} height={28} className="rounded-full w-7 h-7 object-cover shrink-0" />
             ) : (
-              <div className="w-7 h-7 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
+              <div className="w-7 h-7 rounded-full bg-secondary/15 text-secondary flex items-center justify-center text-xs font-semibold shrink-0">
                 {(user.name?.[0] ?? user.email?.[0] ?? "U").toUpperCase()}
               </div>
             )}

@@ -29,7 +29,7 @@ function CountdownRing({ seconds, total = 60 }: { seconds: number; total?: numbe
         <circle
           cx="54" cy="54" r={RADIUS}
           strokeWidth="3" fill="none"
-          className="stroke-neutral-200"
+          className="stroke-accent"
         />
         <circle
           cx="54" cy="54" r={RADIUS}
@@ -40,7 +40,7 @@ function CountdownRing({ seconds, total = 60 }: { seconds: number; total?: numbe
           className="stroke-sky-500 transition-[stroke-dashoffset] duration-1000 ease-linear"
         />
       </svg>
-      <span className="absolute text-2xl font-semibold tabular-nums text-neutral-900">
+      <span className="absolute text-2xl font-semibold tabular-nums text-foreground">
         {seconds}
       </span>
     </div>
@@ -87,7 +87,7 @@ function ScenarioCard({
 
       <div className="mt-auto pt-1">
         {completed ? (
-          <span className="text-xs font-medium text-emerald-600">
+          <span className="text-xs font-medium text-emerald-400">
             Visualized
           </span>
         ) : (
@@ -238,14 +238,14 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
           <div className="flex items-center gap-2">
             <Link
               href="/customize"
-              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-neutral-200 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50 transition-colors"
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-card transition-colors"
             >
               Style →
             </Link>
             <button
               onClick={handleRegenerate}
               disabled={generating}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-neutral-200 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50 transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-card transition-colors disabled:opacity-50"
             >
               Regenerate
             </button>
@@ -256,16 +256,16 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
       {/* ── Progress ── */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-neutral-500">
+          <span className="text-xs font-medium text-muted-foreground">
             <span className="numeral">{completedCount}</span> of <span className="numeral">{totalCount}</span> visualized
           </span>
           {allDone && (
-            <span className="text-xs font-medium text-emerald-600">
+            <span className="text-xs font-medium text-emerald-400">
               Complete for today
             </span>
           )}
         </div>
-        <div className="h-1.5 rounded-full bg-neutral-100 overflow-hidden">
+        <div className="h-1.5 rounded-full bg-accent overflow-hidden">
           <div
             className="h-full rounded-full bg-primary transition-all duration-500"
             style={{ width: `${(completedCount / totalCount) * 100}%` }}
@@ -283,7 +283,7 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
           <p className="font-semibold text-emerald-800">
             All 10 visualizations complete.
           </p>
-          <p className="text-sm text-emerald-600 mt-1">
+          <p className="text-sm text-emerald-400 mt-1">
             Come back tomorrow for a fresh set.
           </p>
         </div>
@@ -305,7 +305,7 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
         </div>
       ) : (
         !generating && (
-          <div className="text-center py-16 text-neutral-400">
+          <div className="text-center py-16 text-muted-foreground/70">
             <p className="text-sm">No visualizations generated yet.</p>
           </div>
         )
@@ -334,7 +334,7 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
                   <h2 className="text-base font-semibold mb-3 leading-snug">
                     {activeScenario.title}
                   </h2>
-                  <p className="text-sm text-neutral-600 leading-relaxed">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {activeScenario.description}
                   </p>
                 </div>
@@ -342,7 +342,7 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
                 {/* Phase: ready */}
                 {phase === "ready" && (
                   <div className="flex flex-col items-center gap-4 pt-2">
-                    <p className="text-xs text-neutral-400 text-center">
+                    <p className="text-xs text-muted-foreground/70 text-center">
                       Read the scene above. When you&rsquo;re ready, close your eyes and begin.
                     </p>
                     <button
@@ -358,12 +358,12 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
                 {phase === "timing" && (
                   <div className="flex flex-col items-center gap-4">
                     <CountdownRing seconds={seconds} />
-                    <p className="text-xs text-neutral-400 text-center">
+                    <p className="text-xs text-muted-foreground/70 text-center">
                       Close your eyes. Breathe slowly. See it clearly.
                     </p>
                     <button
                       onClick={skipTimer}
-                      className="text-xs text-neutral-400 hover:text-neutral-600 transition-colors"
+                      className="text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors"
                     >
                       Skip timer
                     </button>
@@ -373,13 +373,13 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
                 {/* Phase: done */}
                 {phase === "done" && (
                   <div className="flex flex-col items-center gap-4 pt-2">
-                    <p className="text-sm font-medium text-neutral-700">
+                    <p className="text-sm font-medium text-foreground">
                       Visualization complete.
                     </p>
                     <div className="flex items-center gap-3">
                       <button
                         onClick={closeDialog}
-                        className="px-4 py-2 text-sm text-neutral-500 hover:text-neutral-900 transition-colors"
+                        className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                       >
                         Close
                       </button>

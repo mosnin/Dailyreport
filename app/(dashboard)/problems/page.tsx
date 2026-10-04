@@ -121,7 +121,7 @@ function ProblemCard({
             </CardTitle>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
               {solved && problem.resolvedAt ? (
-                <span className="text-xs text-emerald-600 font-medium">
+                <span className="text-xs text-emerald-400 font-medium">
                   Resolved {format(new Date(problem.resolvedAt), "MMM d, yyyy")}
                 </span>
               ) : (

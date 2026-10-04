@@ -40,7 +40,7 @@ function ScoreTooltip({ active, payload, label }: {
         Score: <span className="font-semibold text-foreground">{payload[0].value}</span>
       </p>
       {d.earned === 1 && (
-        <p className="text-emerald-600 font-medium">+1 perfect day</p>
+        <p className="text-emerald-400 font-medium">+1 perfect day</p>
       )}
       <div className="pt-1 border-t border-border space-y-0.5">
         <div className={cn("flex items-center gap-1.5", d.report ? "text-foreground" : "text-muted-foreground/50")}>
@@ -195,12 +195,12 @@ export function ScoreChart({ userId }: { userId: Id<"users"> }) {
                   cy={cy}
                   r={3}
                   fill="#0ea5e9"
-                  stroke="#fff"
+                  stroke="var(--background)"
                   strokeWidth={1.5}
                 />
               );
             }}
-            activeDot={{ r: 4, fill: "#0ea5e9", stroke: "#fff", strokeWidth: 2 }}
+            activeDot={{ r: 4, fill: "#0ea5e9", stroke: "var(--background)", strokeWidth: 2 }}
           />
         </AreaChart>
       </ResponsiveContainer>

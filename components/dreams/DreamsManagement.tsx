@@ -20,7 +20,7 @@ const CATEGORY_META: Record<DreamCategory, {
 }> = {
   financial: {
     label: "Financial",
-    color: "text-emerald-600",
+    color: "text-emerald-400",
     ring: "focus:ring-emerald-400/30",
     dot: "bg-emerald-400",
     placeholder: "e.g. Worth multiple millions, own my dream home…",
@@ -102,7 +102,7 @@ function DreamRow({
             }}
             className="flex-1 text-sm bg-transparent border-b border-primary focus:outline-none pb-0.5"
           />
-          <button onClick={commit} className="text-emerald-500 hover:text-emerald-600">
+          <button onClick={commit} className="text-emerald-500 hover:text-emerald-400">
             <Check className="w-3.5 h-3.5" />
           </button>
           <button onClick={() => { setDraft(dream.title); setEditing(false); }} className="text-muted-foreground hover:text-foreground">
