@@ -2,10 +2,8 @@ import { isAuthenticatedNextjs } from "@convex-dev/auth/nextjs/server";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronRight, Flame, CheckCircle2 } from "lucide-react";
 import { TestimonialMarquee } from "@/components/landing/TestimonialMarquee";
 import { FAQ } from "@/components/landing/FAQ";
-import { HyperspeedHero } from "@/components/HyperspeedHero";
 
 const FACTS = [
   {
@@ -60,11 +58,11 @@ export default async function LandingPage() {
   if (signedIn) redirect("/dashboard");
 
   return (
-    <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
+    <div className="min-h-screen bg-white text-neutral-900">
 
       {/* ── Pill Header ────────────────────────────────────────────── */}
       <header className="fixed top-4 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
-        <nav className="pointer-events-auto flex items-center gap-1 rounded-full border border-neutral-200 dark:border-white/10 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md px-2 py-2 shadow-sm shadow-black/5">
+        <nav className="pointer-events-auto flex items-center gap-1 rounded-full bg-card px-2 py-2">
           <Link href="/" className="flex items-center px-3 mr-0.5">
             <Image
               src="/logo-light.png"
@@ -72,7 +70,7 @@ export default async function LandingPage() {
               width={1800}
               height={400}
               quality={100}
-              className="h-5 w-auto dark:hidden"
+              className="h-5 w-auto"
               priority
             />
             <Image
@@ -81,40 +79,40 @@ export default async function LandingPage() {
               width={1800}
               height={400}
               quality={100}
-              className="h-5 w-auto hidden dark:block"
+              className="h-5 w-auto hidden"
               priority
             />
           </Link>
 
-          <div className="h-4 w-px bg-neutral-200 dark:bg-white/10 mx-0.5" />
+          <div className="h-4 w-px bg-neutral-200 mx-0.5" />
 
           <div className="hidden sm:flex items-center gap-0.5">
             <a
               href="#how-it-works"
-              className="px-3 py-1.5 text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white rounded-full transition-colors"
+              className="px-3 py-1.5 text-sm text-neutral-500 hover:text-neutral-900 rounded-full transition-colors"
             >
               How it works
             </a>
             <a
               href="#faq"
-              className="px-3 py-1.5 text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white rounded-full transition-colors"
+              className="px-3 py-1.5 text-sm text-neutral-500 hover:text-neutral-900 rounded-full transition-colors"
             >
               FAQ
             </a>
           </div>
 
-          <div className="hidden sm:block h-4 w-px bg-neutral-200 dark:bg-white/10 mx-0.5" />
+          <div className="hidden sm:block h-4 w-px bg-neutral-200 mx-0.5" />
 
           <div className="flex items-center gap-1">
             <Link
               href="/sign-in"
-              className="px-3 py-1.5 text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white rounded-full transition-colors"
+              className="px-3 py-1.5 text-sm text-neutral-500 hover:text-neutral-900 rounded-full transition-colors"
             >
               Log in
             </Link>
             <Link
               href="/sign-up"
-              className="px-4 py-1.5 text-sm font-medium rounded-full bg-brand-blue hover:opacity-90 text-white transition-opacity"
+              className="px-4 py-1.5 text-sm font-medium rounded-full bg-primary hover:opacity-90 text-primary-foreground transition-opacity"
             >
               Start free
             </Link>
@@ -123,18 +121,15 @@ export default async function LandingPage() {
       </header>
 
       {/* ── Hero ───────────────────────────────────────────────────── */}
-      <section className="relative min-h-[92vh] flex items-center justify-center pt-40 pb-32 px-6 text-center overflow-hidden bg-black">
-        {/* Hyperspeed animated background */}
-        <HyperspeedHero />
-
-        <div className="max-w-3xl mx-auto relative z-10">
-          <h1 className="font-heading text-5xl sm:text-6xl lg:text-[4.5rem] font-semibold tracking-tight leading-[1.06] mb-6 text-white">
+      <section className="flex min-h-[88vh] items-center justify-center px-6 pt-36 pb-24 text-center">
+        <div className="mx-auto max-w-3xl">
+          <h1 className="font-heading mb-6 text-5xl leading-[1.04] sm:text-6xl lg:text-[4.75rem]">
             Measure your whole life.
             <br />
-            <span className="text-brand-blue">Every day.</span>
+            Every day.
           </h1>
 
-          <p className="text-base sm:text-lg text-neutral-300 leading-relaxed max-w-lg mx-auto mb-10">
+          <p className="mx-auto mb-10 max-w-lg text-base leading-relaxed text-neutral-500 sm:text-lg">
             Track health, goals, money, and growth.
             <br />
             One score for the life you are building.
@@ -143,14 +138,13 @@ export default async function LandingPage() {
           <div className="flex items-center justify-center gap-3">
             <Link
               href="/sign-up"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-brand-blue hover:opacity-90 text-white font-medium text-sm transition-opacity shadow-lg shadow-brand-blue/25"
+              className="inline-flex items-center rounded-full bg-primary px-7 py-3.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
             >
               Start for free
-              <ChevronRight className="w-4 h-4" />
             </Link>
             <Link
               href="/sign-in"
-              className="inline-flex items-center px-6 py-3 rounded-full border border-neutral-200 dark:border-white/10 hover:bg-neutral-50 dark:hover:bg-white/5 text-neutral-600 dark:text-neutral-400 font-medium text-sm transition-colors"
+              className="inline-flex items-center rounded-full bg-card px-7 py-3.5 text-sm font-bold text-foreground transition-colors hover:bg-accent"
             >
               Log in
             </Link>
@@ -159,9 +153,9 @@ export default async function LandingPage() {
       </section>
 
       {/* ── One Truth ──────────────────────────────────────────────── */}
-      <section className="px-6 py-24 bg-neutral-50 dark:bg-[#0d0d12]">
+      <section className="px-6 py-24 bg-neutral-50">
         <div className="max-w-2xl mx-auto text-center">
-          <p className="font-heading italic text-2xl sm:text-3xl leading-relaxed text-neutral-700 dark:text-neutral-300">
+          <p className="font-heading text-2xl sm:text-3xl leading-relaxed text-neutral-700">
             &ldquo;Most people know what to do. Almost no one keeps a written
             record of whether they did it.&rdquo;
           </p>
@@ -174,55 +168,53 @@ export default async function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
 
             {/* Mockup */}
-            <div className="notebook-lines rounded-2xl ring-1 ring-foreground/10 bg-white dark:bg-neutral-900 p-8">
+            <div className="bento p-8">
               <div className="mb-6">
-                <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-neutral-400 dark:text-neutral-500 mb-1">
+                <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-neutral-400 mb-1">
                   Wednesday evening
                 </p>
                 <div className="flex items-center justify-between">
-                  <h2 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-none text-neutral-900 dark:text-neutral-100">
+                  <h2 className="font-heading text-[1.9rem] font-semibold tracking-tight leading-none text-neutral-900">
                     April 29
                   </h2>
-                  <span className="flex items-center gap-1 text-xs font-semibold text-orange-500">
-                    <Flame className="w-3.5 h-3.5" />
-                    14d streak
+                  <span className="text-xs font-bold text-neutral-500">
+                    14 day streak
                   </span>
                 </div>
               </div>
 
               <div className="space-y-5">
                 <div>
-                  <p className="text-xs font-medium text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-1.5">
+                  <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
                     What did you do today?
                   </p>
-                  <div className="h-10 rounded-lg bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-white/8 px-3 flex items-center">
-                    <span className="text-sm text-neutral-400 dark:text-neutral-600">Shipped the onboarding flow…</span>
+                  <div className="h-11 rounded-full bg-white border border-neutral-200 px-3 flex items-center">
+                    <span className="text-sm text-neutral-400">Shipped the onboarding flow…</span>
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-1.5">
+                  <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
                     What drained you?
                   </p>
-                  <div className="h-10 rounded-lg bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-white/8 px-3 flex items-center">
-                    <span className="text-sm text-neutral-400 dark:text-neutral-600">The 3pm meeting that ran…</span>
+                  <div className="h-11 rounded-full bg-white border border-neutral-200 px-3 flex items-center">
+                    <span className="text-sm text-neutral-400">The 3pm meeting that ran…</span>
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-1.5">
+                  <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
                     Plan for tomorrow
                   </p>
-                  <div className="h-10 rounded-lg bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-white/8 px-3 flex items-center">
-                    <span className="text-sm text-neutral-400 dark:text-neutral-600">Finish the auth flow by noon…</span>
+                  <div className="h-11 rounded-full bg-white border border-neutral-200 px-3 flex items-center">
+                    <span className="text-sm text-neutral-400">Finish the auth flow by noon…</span>
                   </div>
                 </div>
 
                 <div className="pt-2 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
                     Saved
                   </div>
-                  <div className="h-px flex-1 mx-4 bg-neutral-100 dark:bg-white/5" />
-                  <span className="text-[10px] text-neutral-300 dark:text-neutral-600">
+                  <div className="h-px flex-1 mx-4 bg-neutral-100" />
+                  <span className="text-[10px] text-neutral-300">
                     Entry 214
                   </span>
                 </div>
@@ -233,10 +225,10 @@ export default async function LandingPage() {
             <div className="space-y-8">
               {FACTS.map(({ number, body }) => (
                 <div key={number} className="flex gap-5">
-                  <span className="text-xs font-mono font-bold text-brand-blue mt-0.5 shrink-0 w-5">
+                  <span className="text-xs font-mono font-bold text-neutral-400 mt-0.5 shrink-0 w-5">
                     {number}
                   </span>
-                  <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                  <p className="text-base sm:text-lg text-neutral-600 leading-relaxed">
                     {body}
                   </p>
                 </div>
@@ -245,10 +237,9 @@ export default async function LandingPage() {
               <div className="pt-4">
                 <Link
                   href="/sign-up"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-neutral-900 dark:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 font-medium text-sm transition-colors"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary hover:opacity-90 text-primary-foreground font-bold text-sm transition-colors"
                 >
                   Begin tonight
-                  <ChevronRight className="w-4 h-4" />
                 </Link>
               </div>
             </div>
@@ -265,15 +256,14 @@ export default async function LandingPage() {
           <h2 className="font-heading text-4xl font-semibold tracking-tight mb-4">
             The work starts tonight.
           </h2>
-          <p className="text-neutral-500 dark:text-neutral-400 text-sm mb-10 max-w-sm mx-auto">
+          <p className="text-neutral-500 text-sm mb-10 max-w-sm mx-auto">
             Setup takes two minutes. Your first report takes less than five.
           </p>
           <Link
             href="/sign-up"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-brand-blue hover:opacity-90 text-white font-medium text-sm transition-opacity shadow-xl shadow-brand-blue/20"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-primary hover:opacity-90 text-primary-foreground font-medium text-sm transition-opacity"
           >
             Start for free
-            <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
       </section>
@@ -281,7 +271,7 @@ export default async function LandingPage() {
       {/* ── FAQ ────────────────────────────────────────────────────── */}
       <section
         id="faq"
-        className="px-6 py-24 bg-neutral-50 dark:bg-[#0d0d12]"
+        className="px-6 py-24 bg-neutral-50"
       >
         <div className="max-w-2xl mx-auto">
           <div className="mb-12 text-center">
@@ -295,14 +285,14 @@ export default async function LandingPage() {
 
       {/* ── Pill Footer ────────────────────────────────────────────── */}
       <footer className="py-10 px-4 flex justify-center">
-        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 rounded-full border border-neutral-200 dark:border-white/8 bg-neutral-50 dark:bg-neutral-900 px-7 py-3.5">
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 rounded-full border border-neutral-200 bg-neutral-50 px-7 py-3.5">
           <Image
             src="/logo-light.png"
             alt="DailyReport"
             width={1800}
             height={400}
             quality={100}
-            className="h-5 w-auto dark:hidden"
+            className="h-5 w-auto"
           />
           <Image
             src="/logo-dark.png"
@@ -310,35 +300,35 @@ export default async function LandingPage() {
             width={1800}
             height={400}
             quality={100}
-            className="h-5 w-auto hidden dark:block"
+            className="h-5 w-auto hidden"
           />
-          <div className="hidden sm:block h-3.5 w-px bg-neutral-300 dark:bg-white/10" />
-          <div className="flex items-center gap-4 text-xs text-neutral-400 dark:text-neutral-500">
+          <div className="hidden sm:block h-3.5 w-px bg-neutral-300" />
+          <div className="flex items-center gap-4 text-xs text-neutral-400">
             <Link
               href="/sign-in"
-              className="hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+              className="hover:text-neutral-700 transition-colors"
             >
               Log in
             </Link>
             <Link
               href="/sign-up"
-              className="hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+              className="hover:text-neutral-700 transition-colors"
             >
               Sign up
             </Link>
             <a
               href="#how-it-works"
-              className="hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+              className="hover:text-neutral-700 transition-colors"
             >
               How it works
             </a>
             <a
               href="#faq"
-              className="hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+              className="hover:text-neutral-700 transition-colors"
             >
               FAQ
             </a>
-            <span className="text-neutral-300 dark:text-neutral-700">
+            <span className="text-neutral-300">
               © {new Date().getFullYear()} DailyReport
             </span>
           </div>

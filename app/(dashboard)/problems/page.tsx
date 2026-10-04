@@ -71,10 +71,10 @@ function statusLabel(p: Problem) {
 }
 
 function statusColor(p: Problem) {
-  if (p.solvedManually === true) return "text-green-600 dark:text-green-400";
-  if (p.solvedManually === false) return "text-red-500 dark:text-red-400";
-  if (p.aiResolved === true) return "text-emerald-500 dark:text-emerald-400";
-  if (p.aiResolved === false) return "text-amber-500 dark:text-amber-400";
+  if (p.solvedManually === true) return "text-green-600";
+  if (p.solvedManually === false) return "text-red-500";
+  if (p.aiResolved === true) return "text-emerald-500";
+  if (p.aiResolved === false) return "text-amber-500";
   return "text-muted-foreground";
 }
 
@@ -121,7 +121,7 @@ function ProblemCard({
             </CardTitle>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
               {solved && problem.resolvedAt ? (
-                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                <span className="text-xs text-emerald-600 font-medium">
                   Resolved {format(new Date(problem.resolvedAt), "MMM d, yyyy")}
                 </span>
               ) : (

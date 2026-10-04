@@ -79,7 +79,7 @@ export function PWAInstallBanner() {
             bottom: "calc(4.5rem + env(safe-area-inset-bottom) + 0.5rem)",
           }}
         >
-          <div className="bg-card border border-border/60 shadow-lg rounded-2xl mx-0 px-4 py-3 flex items-center gap-3">
+          <div className="bg-card rounded-2xl mx-0 px-4 py-3 flex items-center gap-3">
             <Download className="h-5 w-5 shrink-0 text-muted-foreground" />
 
             <p className="flex-1 text-sm text-foreground leading-snug">

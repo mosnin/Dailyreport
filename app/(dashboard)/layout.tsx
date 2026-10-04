@@ -8,7 +8,6 @@ import { PageTransition } from "@/components/layout/PageTransition";
 import { CommandPalette } from "@/components/CommandPalette";
 import { KeyboardNavMount } from "@/components/layout/KeyboardNavMount";
 import { PWAInstallBanner } from "@/components/PWAInstallBanner";
-import { DitherBackground } from "@/components/DitherBackground";
 import { WelcomeOverlay } from "@/components/WelcomeOverlay";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -17,8 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <OnboardingGate>
-      <DitherBackground />
-      <div className="relative z-10 flex min-h-screen items-start">
+      <div className="flex min-h-screen items-start">
         <Sidebar />
         <div className="flex flex-col flex-1 min-w-0 min-h-screen">
           <Navbar />

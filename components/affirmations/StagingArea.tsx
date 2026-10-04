@@ -58,7 +58,7 @@ export function StagingArea({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, x: 40, transition: { duration: 0.22 } }}
               transition={{ duration: 0.3, ease }}
-              className="rounded-xl border border-border bg-card px-4 py-3 flex items-start gap-3"
+              className="rounded-2xl bg-card px-4 py-3 flex items-start gap-3"
             >
               <p className="flex-1 text-sm leading-relaxed">{item.text}</p>
               <div className="shrink-0 flex items-center gap-1.5 mt-0.5">

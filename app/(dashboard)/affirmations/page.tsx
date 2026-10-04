@@ -151,7 +151,7 @@ function AffirmationRow({
       )}
 
       {isAI && (
-        <span className="text-[10px] font-medium bg-sky-500/10 text-sky-500 dark:text-sky-400 rounded-full px-1.5 py-0.5 shrink-0 leading-none">
+        <span className="text-[10px] font-medium bg-sky-500/10 text-sky-500 rounded-full px-1.5 py-0.5 shrink-0 leading-none">
           AI
         </span>
       )}
@@ -260,7 +260,7 @@ function RoundSession({
             onClick={() => { setDirection(i > index ? 1 : -1); setIndex(i); }}
             className={cn(
               "h-1.5 rounded-full transition-all duration-200",
-              i === index ? "w-6 bg-amber-400" : i < index ? "w-2 bg-amber-300" : "w-2 bg-neutral-200 dark:bg-neutral-700"
+              i === index ? "w-6 bg-amber-400" : i < index ? "w-2 bg-amber-300" : "w-2 bg-neutral-200"
             )}
           />
         ))}
@@ -276,7 +276,7 @@ function RoundSession({
             animate="center"
             exit="exit"
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-md rounded-2xl border border-border bg-card p-8 sm:p-12 text-center"
+            className="w-full max-w-md rounded-3xl bg-card p-8 sm:p-12 text-center"
           >
             <p className="text-xl sm:text-2xl font-medium leading-relaxed text-foreground">
               {current?.text}
@@ -616,7 +616,7 @@ export default function AffirmationsPage() {
             <p
               className={cn(
                 "text-[11px] font-semibold tracking-[0.16em] uppercase",
-                goalMet ? "text-emerald-600 dark:text-emerald-400" : "text-background/50"
+                goalMet ? "text-emerald-600" : "text-background/50"
               )}
             >
               {goalMet ? "Daily goal complete" : "Today's practice"}
@@ -657,7 +657,7 @@ export default function AffirmationsPage() {
           <motion.button
             whileTap={{ scale: 0.98 }}
             onClick={() => setShowRecap(true)}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-primary hover:opacity-90 text-primary-foreground font-bold text-sm transition-colors"
           >
             All done - view recap
           </motion.button>
@@ -755,7 +755,7 @@ export default function AffirmationsPage() {
           <p className="text-[11px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40 mb-3">
             From a vision
           </p>
-          <form onSubmit={handleParseVision} className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+          <form onSubmit={handleParseVision} className="rounded-3xl bg-card shadow-sm overflow-hidden">
             <div className="px-4 pt-4 pb-3">
               <textarea
                 value={visionText}

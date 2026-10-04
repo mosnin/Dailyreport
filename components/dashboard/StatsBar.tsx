@@ -51,7 +51,7 @@ export function StatsBar({ userId, compact = false }: { userId: Id<"users">; com
   if (!stats) {
     if (compact) {
       return (
-        <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+        <div className="rounded-3xl bg-card p-4 space-y-3">
           {[0, 1, 2].map((i) => (
             <div key={i} className="flex items-center justify-between">
               <Skeleton className="h-4 w-28" />
@@ -64,7 +64,7 @@ export function StatsBar({ userId, compact = false }: { userId: Id<"users">; com
     return (
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="rounded-2xl border border-border bg-card p-4">
+          <div key={i} className="rounded-3xl bg-card p-4">
             <Skeleton className="h-4 w-20 mb-2" />
             <Skeleton className="h-8 w-12" />
           </div>
@@ -76,7 +76,7 @@ export function StatsBar({ userId, compact = false }: { userId: Id<"users">; com
   if (compact) {
     return (
       <motion.div
-        className="rounded-2xl border border-border bg-card p-4 space-y-3"
+        className="rounded-3xl bg-card p-4 space-y-3"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
@@ -150,7 +150,7 @@ function StatCard({
   return (
     <motion.div
       variants={itemVariants}
-      className="rounded-2xl border border-border bg-card p-4 flex items-center gap-4"
+      className="rounded-3xl bg-card p-4 flex items-center gap-4"
     >
       <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
         <Icon className={`w-5 h-5 ${color}`} />

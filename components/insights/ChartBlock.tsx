@@ -46,7 +46,7 @@ const COLORS = [
 
 export function ChartBlock({ chart }: { chart: ChartSpec }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4 mt-3 space-y-1">
+    <div className="rounded-2xl bg-card p-4 mt-3 space-y-1">
       <p className="text-sm font-semibold">{chart.title}</p>
       {chart.description && (
         <p className="text-xs text-muted-foreground">{chart.description}</p>

@@ -20,28 +20,28 @@ const CATEGORY_META: Record<DreamCategory, {
 }> = {
   financial: {
     label: "Financial",
-    color: "text-emerald-600 dark:text-emerald-400",
+    color: "text-emerald-600",
     ring: "focus:ring-emerald-400/30",
     dot: "bg-emerald-400",
     placeholder: "e.g. Worth multiple millions, own my dream home…",
   },
   health: {
     label: "Health",
-    color: "text-rose-500 dark:text-rose-400",
+    color: "text-rose-500",
     ring: "focus:ring-rose-400/30",
     dot: "bg-rose-400",
     placeholder: "e.g. Feel vibrant every day, run a marathon…",
   },
   relationships: {
     label: "Relationships",
-    color: "text-amber-500 dark:text-amber-400",
+    color: "text-amber-500",
     ring: "focus:ring-amber-400/30",
     dot: "bg-amber-400",
     placeholder: "e.g. Deep friendships, a loving family…",
   },
   other: {
     label: "Other",
-    color: "text-sky-500 dark:text-sky-400",
+    color: "text-sky-500",
     ring: "focus:ring-sky-400/30",
     dot: "bg-sky-400",
     placeholder: "e.g. Travel the world, leave a lasting legacy…",
@@ -165,7 +165,7 @@ function DreamCategoryCard({
   }
 
   return (
-    <motion.div variants={itemVariants} className="rounded-2xl border border-border bg-card p-4 flex flex-col gap-3">
+    <motion.div variants={itemVariants} className="rounded-3xl bg-card p-4 flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <span className={cn("h-2 w-2 rounded-full", meta.dot)} />
         <h3 className={cn("text-sm font-semibold", meta.color)}>{meta.label}</h3>

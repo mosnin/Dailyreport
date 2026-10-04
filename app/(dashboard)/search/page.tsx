@@ -125,7 +125,7 @@ export default function SearchPage() {
 
       {/* Search bar */}
       <motion.form {...fadeUp(0.06)} onSubmit={handleSearch}>
-        <div className="flex items-center gap-3 rounded-2xl border border-border bg-card shadow-sm px-5 py-4">
+        <div className="flex items-center gap-3 rounded-3xl bg-card shadow-sm px-5 py-4">
           <Search className="w-4 h-4 shrink-0 text-muted-foreground/40" />
           <input
             ref={inputRef}

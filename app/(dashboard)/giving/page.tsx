@@ -354,7 +354,7 @@ export default function GivingPage() {
       </motion.div>
 
       {/* Today / Selected day entries */}
-      <motion.div {...fadeUp(0.13)} className="rounded-2xl border border-border bg-card p-4 space-y-0.5">
+      <motion.div {...fadeUp(0.13)} className="rounded-3xl bg-card p-4 space-y-0.5">
         <div className="flex items-center gap-2 px-2 mb-3">
           <Heart className="w-4 h-4 text-rose-400" />
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">

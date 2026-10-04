@@ -111,7 +111,7 @@ export function TrackerCreator({
               <button
                 key={t.name}
                 onClick={() => { setDraft(t); setReply(`Loaded ${t.name}. Save it, or tell me how to change it.`); }}
-                className="rounded-full border border-border px-3.5 py-1.5 text-xs font-medium hover:bg-white/5"
+                className="rounded-full border border-border px-3.5 py-1.5 text-xs font-medium hover:bg-accent"
               >
                 {t.name}
               </button>
@@ -138,7 +138,7 @@ export function TrackerCreator({
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send(message)}
           placeholder={draft ? "Tell the AI what to change..." : "Describe what you want to track..."}
-          className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          className="flex-1 rounded-2xl bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         />
         <button onClick={() => send(message)} disabled={loading || !message.trim()} className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
           {loading ? "Thinking..." : draft ? "Update" : "Build it"}
@@ -149,7 +149,7 @@ export function TrackerCreator({
 
       {/* Read-only draft preview - the AI owns the structure and scoring */}
       {draft && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-4 rounded-2xl border border-border bg-background/40 p-4">
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-4 rounded-2xl bg-background/40 p-4">
           <div className="mb-4 flex items-center gap-3">
             <TrackerMark name={draft.name} color={draft.color} size={44} />
             <div className="flex-1 min-w-0">
@@ -164,7 +164,7 @@ export function TrackerCreator({
             {draft.fields.map((f, i) => {
               const scored = (f.weight ?? 0) > 0 && f.type !== "text";
               return (
-                <div key={i} className="flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-background/40 px-3 py-2.5">
+                <div key={i} className="flex items-center justify-between gap-3 rounded-2xl bg-background/40 px-3 py-2.5">
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{f.label}</p>
                     <p className="text-xs text-muted-foreground">{fieldMeaning(f)}</p>

@@ -8,9 +8,8 @@ import { usePushSubscription } from "@/hooks/usePushSubscription";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useSignOut } from "@/hooks/useSignOut";
-import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import { Check, Sun, Moon, Monitor, CalendarDays, Mail, FolderKanban } from "lucide-react";
+import { Check, CalendarDays, Mail, FolderKanban } from "lucide-react";
 import { motion } from "motion/react";
 import { fadeUp } from "@/lib/motion";
 import Image from "next/image";
@@ -99,7 +98,6 @@ export default function SettingsPage() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
 
-  const { theme, setTheme } = useTheme();
   const [tz, setTz] = useState("");
   const [savingTz, setSavingTz] = useState(false);
 
@@ -223,7 +221,7 @@ export default function SettingsPage() {
       </motion.div>
 
       {/* ── Identity card ── */}
-      <motion.div {...fadeUp(0.06)} className="rounded-2xl bg-foreground text-background px-6 py-5 flex items-center gap-4">
+      <motion.div {...fadeUp(0.06)} className="rounded-3xl bg-card px-6 py-5 flex items-center gap-4">
         {convexUser?.image ? (
           <Image
             src={convexUser.image}
@@ -233,16 +231,16 @@ export default function SettingsPage() {
             className="w-12 h-12 rounded-full object-cover shrink-0"
           />
         ) : (
-          <div className="w-12 h-12 rounded-full bg-background/20 text-background flex items-center justify-center text-lg font-semibold shrink-0">
+          <div className="w-12 h-12 rounded-full bg-background text-foreground flex items-center justify-center text-lg font-semibold shrink-0">
             {(convexUser?.name?.[0] ?? convexUser?.email?.[0] ?? "?").toUpperCase()}
           </div>
         )}
         <div className="min-w-0">
-          <p className="font-semibold text-background leading-tight">
+          <p className="font-bold text-foreground leading-tight">
             {convexUser?.name || convexUser?.email || "Your account"}
           </p>
           {convexUser?.name && convexUser.name !== convexUser.email && (
-            <p className="text-sm text-background/60 truncate mt-0.5">
+            <p className="text-sm text-muted-foreground truncate mt-0.5">
               {convexUser.email}
             </p>
           )}
@@ -252,10 +250,10 @@ export default function SettingsPage() {
       {/* ── Notifications section ── */}
       <motion.div {...fadeUp(0.12)}>
         <SectionLabel>Notifications</SectionLabel>
-        <div className="rounded-2xl border border-border bg-card px-5 py-1">
+        <div className="rounded-3xl bg-card px-5 py-1">
           <Row label="Push notifications" sub={subscribed ? "Active - you'll be reminded at 8pm" : "Off - enable to get daily reminders"}>
             {subscribed ? (
-              <span className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+              <span className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 On
               </span>
@@ -282,38 +280,10 @@ export default function SettingsPage() {
         </div>
       </motion.div>
 
-      {/* ── Appearance section ── */}
-      <motion.div {...fadeUp(0.18)}>
-        <SectionLabel>Appearance</SectionLabel>
-        <div className="rounded-2xl border border-border bg-card px-5 py-4">
-          <div className="flex gap-1 p-1 rounded-xl bg-muted/60 w-fit">
-            {[
-              { value: "light", label: "Light", icon: Sun },
-              { value: "dark",  label: "Dark",  icon: Moon },
-              { value: "system",label: "System",icon: Monitor },
-            ].map(({ value, label, icon: Icon }) => (
-              <button
-                key={value}
-                onClick={() => setTheme(value)}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
-                  theme === value
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </motion.div>
-
       {/* ── Account section ── */}
       <motion.div {...fadeUp(0.24)}>
         <SectionLabel>Account</SectionLabel>
-        <div className="rounded-2xl border border-border bg-card px-5 py-1">
+        <div className="rounded-3xl bg-card px-5 py-1">
           <div className="py-3.5 border-b border-border/40">
             <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-wider mb-1.5">Name</p>
             <input
@@ -353,7 +323,7 @@ export default function SettingsPage() {
       {/* ── Timezone section ── */}
       <motion.div {...fadeUp(0.30)}>
         <SectionLabel>Timezone</SectionLabel>
-        <div className="rounded-2xl border border-border bg-card px-5 py-1">
+        <div className="rounded-3xl bg-card px-5 py-1">
           <Row label="Your timezone" sub="Reminders are sent at 8pm in your local time">
             <div className="flex items-center gap-2">
               <select
@@ -380,7 +350,7 @@ export default function SettingsPage() {
       {/* ── Connections section ── */}
       <motion.div {...fadeUp(0.33)}>
         <SectionLabel>Connections</SectionLabel>
-        <div className="rounded-2xl border border-border bg-card px-5 py-1">
+        <div className="rounded-3xl bg-card px-5 py-1">
           <Row
             label="Google Calendar"
             sub={gcalConnected ? "Connected - today's events appear in your morning brief" : "Show today's schedule in your morning brief"}
@@ -449,13 +419,13 @@ export default function SettingsPage() {
       {/* ── Plan section ── */}
       <motion.div {...fadeUp(0.36)}>
         <SectionLabel>Plan</SectionLabel>
-        <div className="rounded-2xl border border-border bg-card px-5 py-1">
+        <div className="rounded-3xl bg-card px-5 py-1">
           <Row label="Current plan" sub={hasPaidAccess ? "Full access to all features" : "Core features included"}>
             <span className={cn(
               "text-xs font-semibold px-2.5 py-1 rounded-full",
-              plan === "unlimited" ? "bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300"
-              : plan === "pro" ? "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300"
-              : role === "admin" ? "bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300"
+              plan === "unlimited" ? "bg-violet-100 text-violet-700"
+              : plan === "pro" ? "bg-amber-100 text-amber-700"
+              : role === "admin" ? "bg-rose-100 text-rose-700"
               : "bg-muted text-muted-foreground"
             )}>
               {role === "admin" ? "Admin" : plan.charAt(0).toUpperCase() + plan.slice(1)}

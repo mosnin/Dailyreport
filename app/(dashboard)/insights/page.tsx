@@ -246,7 +246,7 @@ export default function InsightsPage() {
           }}
           placeholder="Ask about your data…"
           rows={2}
-          className="flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+          className="flex-1 resize-none rounded-2xl bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
           disabled={loading}
         />
         <motion.div whileTap={{ scale: 0.93 }}>

@@ -17,7 +17,7 @@ const ACCENT = "var(--health)";
 const SECTION_LABEL =
   "text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60";
 const INPUT =
-  "w-full bg-background border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
+  "w-full bg-card border border-transparent rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
 
 /** Reusable 1-10 selector. Selected button filled with the section accent. */
 function Scale({
@@ -367,15 +367,14 @@ export default function HealthReportPage() {
       {/* Footer save */}
       <div className="sticky bottom-3 z-10 flex items-center justify-end gap-3">
         {savedAt && (
-          <span className="inline-flex items-center rounded-full bg-background/80 backdrop-blur border border-border px-3 py-1.5 text-xs font-medium" style={{ color: ACCENT }}>
+          <span className="inline-flex items-center rounded-full bg-card px-3 py-1.5 text-xs font-medium" style={{ color: ACCENT }}>
             Saved
           </span>
         )}
         <Button
           onClick={handleSave}
           disabled={saving}
-          className="rounded-full px-6 py-2 h-auto text-[oklch(0.2_0.03_264)] font-semibold shadow-lg"
-          style={{ background: ACCENT }}
+          className="rounded-full px-6 py-2 h-auto font-bold"
         >
           {saving ? "Saving…" : "Save check-in"}
         </Button>

@@ -312,7 +312,7 @@ function GoalRow({
     <div
       className={cn(
         "group flex items-center gap-2.5 rounded-xl px-2 py-2 transition-colors duration-500",
-        flash ? "bg-emerald-50 dark:bg-emerald-950/30" : "hover:bg-muted/50"
+        flash ? "bg-emerald-50" : "hover:bg-muted/50"
       )}
     >
       <motion.button

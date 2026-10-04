@@ -64,7 +64,7 @@ export function CommandPalette() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         showCloseButton={false}
-        className="p-0 sm:max-w-xl max-w-xl overflow-hidden border border-border/60 bg-popover shadow-2xl gap-0"
+        className="p-0 sm:max-w-xl max-w-xl overflow-hidden border border-border bg-popover gap-0"
       >
         <DialogTitle className="sr-only">Command palette</DialogTitle>
         <Command shouldFilter loop className="bg-transparent">

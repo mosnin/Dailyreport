@@ -56,10 +56,9 @@ function AppIcon({
     <Link href={href} onClick={onTap} className="flex flex-col items-center gap-2">
       <motion.span
         whileTap={{ scale: 0.9 }}
-        className="relative grid aspect-square w-full place-items-center rounded-[26%] shadow-lg shadow-black/40"
-        style={{ backgroundImage: `linear-gradient(150deg, ${color}, color-mix(in oklch, ${color} 62%, black))` }}
+        className="relative grid aspect-square w-full place-items-center rounded-[28%] bg-card"
       >
-        <Icon className="h-7 w-7" style={{ color: "oklch(0.16 0.02 264)" }} />
+        <Icon className="h-6 w-6" style={{ color }} />
         {dot && <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-background bg-primary" />}
       </motion.span>
       <span className="w-full truncate text-center text-[11px] font-medium text-foreground/85">{label}</span>
@@ -130,8 +129,8 @@ function MobileMenu() {
                   <Link key={t._id} href={`/trackers/${t._id}`} onClick={collapse} className="flex flex-col items-center gap-2">
                     <motion.span
                       whileTap={{ scale: 0.9 }}
-                      className="grid aspect-square w-full place-items-center rounded-[26%] text-lg font-bold shadow-lg shadow-black/40"
-                      style={{ backgroundImage: `linear-gradient(150deg, ${color}, color-mix(in oklch, ${color} 62%, black))`, color: "oklch(0.16 0.02 264)" }}
+                      className="grid aspect-square w-full place-items-center rounded-[28%] bg-card text-lg font-bold"
+                      style={{ color }}
                     >
                       {trackerInitial(t.name)}
                     </motion.span>
@@ -150,8 +149,8 @@ function MobileMenu() {
             <AppIcon href="/settings" label="Settings" icon={Settings} color={nextColor()} onTap={collapse} />
             {isAdmin && <AppIcon href="/admin" label="Admin" icon={ShieldAlert} color="var(--emotional)" onTap={collapse} />}
             <button onClick={() => { collapse(); setTimeout(() => void signOut(), 150); }} className="flex flex-col items-center gap-2">
-              <motion.span whileTap={{ scale: 0.9 }} className="grid aspect-square w-full place-items-center rounded-[26%] bg-white/8 shadow-lg shadow-black/40">
-                <LogOut className="h-7 w-7 text-foreground/80" />
+              <motion.span whileTap={{ scale: 0.9 }} className="grid aspect-square w-full place-items-center rounded-[28%] bg-card">
+                <LogOut className="h-6 w-6 text-foreground/80" />
               </motion.span>
               <span className="w-full truncate text-center text-[11px] font-medium text-foreground/85">Sign out</span>
             </button>
@@ -177,7 +176,7 @@ export function BottomTabBar() {
     <ExpandableScreen layoutId="mobile-nav" triggerRadius="9999px" contentRadius="0px" animationDuration={0.35}>
       <nav
         aria-label="Primary"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/70 backdrop-blur-xl border-t border-white/10"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background border-t border-border"
         style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
       >
         <ul className="flex items-stretch px-1 pt-1">
@@ -192,16 +191,13 @@ export function BottomTabBar() {
                   className="relative flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[56px] pt-2 pb-1 transition-transform active:scale-90"
                   style={{ touchAction: "manipulation" }}
                 >
-                  {active && (
-                    <span className="absolute top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
-                  )}
                   <div className="relative">
-                    <Icon className={cn("w-5 h-5 transition-colors", active ? "text-primary" : "text-muted-foreground/60")} />
+                    <Icon className={cn("w-5 h-5 transition-colors", active ? "text-foreground" : "text-muted-foreground/60")} />
                     {dotFor(tab.status) && !active && (
                       <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary" />
                     )}
                   </div>
-                  <span className={cn("text-[10px] font-medium", active ? "text-primary" : "text-muted-foreground/60")}>{tab.label}</span>
+                  <span className={cn("text-[11px]", active ? "font-bold text-foreground" : "font-medium text-muted-foreground/60")}>{tab.label}</span>
                 </Link>
               </li>
             );
@@ -213,7 +209,7 @@ export function BottomTabBar() {
                 className="flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[56px] pt-2 pb-1 text-muted-foreground/60"
               >
                 <Menu className="w-5 h-5" />
-                <span className="text-[10px] font-medium">More</span>
+                <span className="text-[11px] font-medium">More</span>
               </div>
             </ExpandableScreenTrigger>
           </li>
@@ -221,8 +217,8 @@ export function BottomTabBar() {
       </nav>
 
       <ExpandableScreenContent
-        className="bg-background/95 backdrop-blur-2xl overflow-y-auto"
-        closeButtonClassName="text-foreground bg-white/10 hover:bg-white/20 !top-[calc(env(safe-area-inset-top)+0.75rem)] !right-5"
+        className="bg-background overflow-y-auto"
+        closeButtonClassName="text-foreground bg-card hover:bg-accent !top-[calc(env(safe-area-inset-top)+0.75rem)] !right-5"
       >
         <MobileMenu />
       </ExpandableScreenContent>

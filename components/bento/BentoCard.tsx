@@ -3,31 +3,16 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
-// GlassSurface is plain JS (no types) - the universal card surface.
-import GlassSurface from "@/components/GlassSurface";
-
 type BentoCardProps = {
   children: React.ReactNode;
   className?: string;
-  /** accepted for backwards-compat; cards are uniform glass, so this is ignored */
+  /** accepted for backwards-compat; cards are uniform, so this is ignored */
   tint?: string;
   href?: string;
   onClick?: () => void;
   interactive?: boolean;
   delay?: number;
 };
-
-const Glass = GlassSurface as unknown as React.ComponentType<{
-  children: React.ReactNode;
-  width?: number | string;
-  height?: number | string;
-  borderRadius?: number;
-  backgroundOpacity?: number;
-  blur?: number;
-  displace?: number;
-  distortionScale?: number;
-  className?: string;
-}>;
 
 // Grid-placement classes must sit on the grid item (the outer wrapper); all
 // other classes (flex, padding, sizing, text) belong on the padded interior.
@@ -42,7 +27,7 @@ function partition(className?: string) {
 }
 
 /**
- * The universal card surface: a glass tile over the animated background.
+ * The universal card surface: a flat, soft gray rounded tile.
  * No icons, tints, or ornamental chrome - only content.
  */
 export function BentoCard({
@@ -61,20 +46,9 @@ export function BentoCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1], delay }}
-      className={cn("h-full w-full", isInteractive && "bento-hover")}
+      className={cn("bento h-full w-full", isInteractive && "bento-hover")}
     >
-      <Glass
-        width="100%"
-        height="100%"
-        borderRadius={28}
-        backgroundOpacity={0.4}
-        blur={12}
-        displace={1.2}
-        distortionScale={-150}
-        className="glass-card h-full w-full"
-      >
-        <div className={cn("h-full w-full p-5", rest)}>{children}</div>
-      </Glass>
+      <div className={cn("h-full w-full p-5", rest)}>{children}</div>
     </motion.div>
   );
 

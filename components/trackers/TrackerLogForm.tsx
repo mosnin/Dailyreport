@@ -74,7 +74,7 @@ export function TrackerLogForm({
               value={values[f.key] ?? ""}
               onChange={(e) => onChange(f.key, e.target.value)}
               placeholder="Add a note..."
-              className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full resize-none rounded-2xl bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
           ) : (
             <input
@@ -83,7 +83,7 @@ export function TrackerLogForm({
               value={values[f.key] ?? ""}
               onChange={(e) => onChange(f.key, e.target.value === "" ? "" : Number(e.target.value))}
               placeholder={f.target != null ? `target ${f.target}` : "0"}
-              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring numeral"
+              className="w-full rounded-2xl bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring numeral"
             />
           )}
         </div>

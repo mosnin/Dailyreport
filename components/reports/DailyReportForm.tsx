@@ -165,7 +165,7 @@ function GoalHealthPanel({
         >
           <CheckCircle className="w-5 h-5 text-emerald-500" />
         </motion.div>
-        <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+        <span className="text-sm font-medium text-emerald-600">
           Report saved
         </span>
       </div>
@@ -285,7 +285,7 @@ function GoalHealthPanel({
             type="button"
             onClick={onContinue}
             whileTap={{ scale: 0.98 }}
-            className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-foreground text-background font-heading text-[15px] font-medium hover:bg-foreground/90 transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-4 rounded-full bg-foreground text-background font-heading text-[15px] font-medium hover:bg-foreground/90 transition-colors"
           >
             Continue
             <ArrowRight className="w-4 h-4" />
@@ -497,7 +497,7 @@ export function DailyReportForm({
                   <div className="flex items-center gap-1 shrink-0">
                     <button type="button" onClick={() => updatePerson(person.id, { goalRelated: true })}
                       className={cn("text-[11px] px-2 py-0.5 rounded-full border transition-colors",
-                        person.goalRelated === true ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400" : "border-border/50 text-muted-foreground/50 hover:border-emerald-400/50"
+                        person.goalRelated === true ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-600" : "border-border/50 text-muted-foreground/50 hover:border-emerald-400/50"
                       )}>goal</button>
                     <button type="button" onClick={() => removePerson(person.id)}
                       className="text-muted-foreground/30 hover:text-muted-foreground transition-colors p-0.5">
@@ -632,7 +632,7 @@ export function DailyReportForm({
             className={cn(
               "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border text-sm font-medium transition-all",
               r.didAffirmations === true
-                ? "border-emerald-500/50 bg-emerald-500/8 text-emerald-600 dark:text-emerald-400"
+                ? "border-emerald-500/50 bg-emerald-500/8 text-emerald-600"
                 : "border-border/50 text-muted-foreground/60 hover:border-emerald-400/40 hover:text-emerald-600"
             )}
           >
@@ -645,7 +645,7 @@ export function DailyReportForm({
             className={cn(
               "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border text-sm font-medium transition-all",
               r.didAffirmations === false
-                ? "border-rose-500/50 bg-rose-500/8 text-rose-600 dark:text-rose-400"
+                ? "border-rose-500/50 bg-rose-500/8 text-rose-600"
                 : "border-border/50 text-muted-foreground/60 hover:border-rose-400/40 hover:text-rose-500"
             )}
           >
@@ -683,7 +683,7 @@ export function DailyReportForm({
           disabled={saving}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
-          className="w-full py-4 rounded-2xl bg-foreground text-background font-heading text-[15px] font-medium hover:bg-foreground/90 transition-colors disabled:opacity-40"
+          className="w-full py-4 rounded-full bg-foreground text-background font-heading text-[15px] font-medium hover:bg-foreground/90 transition-colors disabled:opacity-40"
         >
           {saving ? "Saving…" : initialResponses ? "Update entry" : "Close today's chapter"}
         </motion.button>

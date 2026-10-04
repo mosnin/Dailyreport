@@ -18,7 +18,7 @@ const ACCENT = "var(--progress)";
 const SECTION_LABEL =
   "text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60";
 const INPUT =
-  "w-full bg-background border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
+  "w-full bg-card border border-transparent rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
 
 const STATUSES = ["planning", "active", "blocked", "done"] as const;
 const STATUS_LABEL: Record<string, string> = {
@@ -120,7 +120,7 @@ function ConnectorRow({
   }
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2.5">
+    <div className="flex items-center justify-between gap-3 rounded-2xl bg-background px-3 py-2.5">
       <div className="flex items-center gap-2 min-w-0">
         <span className="text-sm font-medium truncate">{label}</span>
         {connected && (

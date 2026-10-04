@@ -28,7 +28,7 @@ const GRID = "var(--border)";
 function TooltipBox({ active, payload, label, suffix }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-border bg-popover px-3 py-2 shadow-xl text-xs">
+    <div className="rounded-xl border border-border bg-popover px-3 py-2 text-xs">
       {label != null && <p className="font-medium mb-1 text-foreground">{label}</p>}
       {payload.map((p: any, i: number) => (
         <div key={i} className="flex items-center gap-2">

@@ -94,7 +94,7 @@ export default function AnalyticsPage() {
             {recommendations.summary && <p className="text-sm text-muted-foreground mb-3">{recommendations.summary}</p>}
             <div className="space-y-2.5">
               {recommendations.items.map((it: any, i: number) => (
-                <div key={i} className="rounded-2xl border border-border/50 bg-background/40 px-4 py-3">
+                <div key={i} className="rounded-2xl bg-background/40 px-4 py-3">
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-sm font-semibold">{it.title}</p>
                     {it.focus && <span className="shrink-0 text-[11px] font-medium text-muted-foreground/70">{it.focus}</span>}

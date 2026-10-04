@@ -38,7 +38,7 @@ function PracticeCard({
         className={cn(
           "group rounded-2xl border p-4 flex flex-col gap-3 transition-colors hover:bg-accent/40",
           done
-            ? "border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/30 dark:bg-emerald-950/10"
+            ? "border-emerald-200 bg-emerald-50/30"
             : "border-border bg-card"
         )}
       >

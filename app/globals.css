@@ -5,17 +5,17 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ─────────────────────────────────────────────────────────────────────────
-   ASCEND - Bento analytics design system
-   A complete reset of the old "notebook" aesthetic. Dark-first, vibrant,
-   tile-based. Type is geometric sans. Surfaces are deep; accents are loud.
+   Daily Report design system
+   Light, calm and flat. White pages, soft gray rounded surfaces, heavy
+   geometric headings, solid dark buttons. No shadows, glass or gradients.
    ───────────────────────────────────────────────────────────────────────── */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-urbanist);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-geist-sans);
+  --font-heading: var(--font-urbanist);
 
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -63,53 +63,51 @@
   --radius-3xl: calc(var(--radius) + 20px);
 }
 
-/* ── Dark-only palette (applies to :root and .dark) ─────────────────────── */
-:root,
-.dark {
-  --background:           oklch(0.17 0.012 264);
-  --foreground:           oklch(0.97 0.004 264);
-  --card:                 oklch(0.215 0.014 264);
-  --card-foreground:      oklch(0.97 0.004 264);
-  --popover:              oklch(0.205 0.014 264);
-  --popover-foreground:   oklch(0.97 0.004 264);
-  --primary:              oklch(0.83 0.10 233);  /* baby blue */
-  --primary-foreground:   oklch(0.18 0.03 245);
-  --secondary:            oklch(0.27 0.015 264);
-  --secondary-foreground: oklch(0.97 0.004 264);
-  --muted:                oklch(0.255 0.013 264);
-  --muted-foreground:     oklch(0.66 0.012 264);
-  --accent:              oklch(0.28 0.016 264);
-  --accent-foreground:    oklch(0.97 0.004 264);
-  --destructive:          oklch(0.64 0.21 22);
-  --border:               oklch(1 0 0 / 9%);
-  --input:                oklch(1 0 0 / 12%);
-  --ring:                 oklch(0.83 0.10 233 / 55%);
+/* ── Light palette ──────────────────────────────────────────────────────── */
+:root {
+  --background:           oklch(1 0 0);
+  --foreground:           oklch(0.2 0.012 285);
+  --card:                 oklch(0.97 0.003 286);
+  --card-foreground:      oklch(0.2 0.012 285);
+  --popover:              oklch(1 0 0);
+  --popover-foreground:   oklch(0.2 0.012 285);
+  --primary:              oklch(0.2 0.012 285);  /* near-black */
+  --primary-foreground:   oklch(0.99 0 0);
+  --secondary:            oklch(0.95 0.004 286);
+  --secondary-foreground: oklch(0.2 0.012 285);
+  --muted:                oklch(0.95 0.004 286);
+  --muted-foreground:     oklch(0.55 0.012 286);
+  --accent:               oklch(0.94 0.005 286);
+  --accent-foreground:    oklch(0.2 0.012 285);
+  --destructive:          oklch(0.58 0.22 25);
+  --border:               oklch(0.2 0.012 285 / 8%);
+  --input:                oklch(0.2 0.012 285 / 10%);
+  --ring:                 oklch(0.2 0.012 285 / 30%);
 
-  --health:               oklch(0.78 0.16 162);  /* emerald   */
-  --goals:                oklch(0.72 0.15 295);  /* violet    */
-  --finance:              oklch(0.83 0.16 85);   /* amber     */
-  --emotional:            oklch(0.74 0.16 12);   /* rose      */
-  --progress:             oklch(0.74 0.14 230);  /* sky       */
-  --execution:            oklch(0.75 0.16 55);   /* orange    */
+  --health:               oklch(0.62 0.15 158);  /* emerald */
+  --goals:                oklch(0.58 0.2 295);   /* violet  */
+  --finance:              oklch(0.7 0.16 70);    /* amber   */
+  --emotional:            oklch(0.62 0.2 15);    /* rose    */
+  --progress:             oklch(0.6 0.16 245);   /* blue    */
+  --execution:            oklch(0.66 0.18 45);   /* orange  */
 
-  --chart-1: oklch(0.82 0.17 85);
-  --chart-2: oklch(0.74 0.14 230);
-  --chart-3: oklch(0.78 0.16 162);
-  --chart-4: oklch(0.72 0.15 295);
-  --chart-5: oklch(0.74 0.16 12);
-  --chart-6: oklch(0.75 0.16 55);
+  --chart-1: oklch(0.7 0.16 70);
+  --chart-2: oklch(0.6 0.16 245);
+  --chart-3: oklch(0.62 0.15 158);
+  --chart-4: oklch(0.58 0.2 295);
+  --chart-5: oklch(0.62 0.2 15);
+  --chart-6: oklch(0.66 0.18 45);
 
-  --sidebar:              oklch(0.155 0.012 264);
-  --sidebar-foreground:   oklch(0.97 0.004 264);
-  --sidebar-accent:       oklch(0.26 0.015 264);
-  --sidebar-border:       oklch(1 0 0 / 8%);
-  --brand-blue:           #89b1fe;
+  --sidebar:              oklch(1 0 0);
+  --sidebar-foreground:   oklch(0.2 0.012 285);
+  --sidebar-accent:       oklch(0.95 0.004 286);
+  --sidebar-border:       oklch(0.2 0.012 285 / 7%);
+  --brand-blue:           oklch(0.2 0.012 285);
 
   --radius: 1.25rem;
 }
 
-/* App is dark-only */
-:root { color-scheme: dark; }
+:root { color-scheme: light; }
 
 @layer base {
   * {
@@ -131,67 +129,34 @@
   }
 }
 
-.font-heading {
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-  letter-spacing: -0.02em;
+.font-heading,
+h1, h2, h3 {
+  font-family: var(--font-urbanist), system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.025em;
 }
 
-/* ── Bento tile base ─────────────────────────────────────────────────────
-   The atomic surface. Soft inner highlight + deep shadow gives the "card
-   floating on a desk" feel from the reference. */
+/* ── Surface ─────────────────────────────────────────────────────────────
+   The atomic card: a flat, soft gray rounded tile on a white page. */
 .bento {
   position: relative;
   border-radius: 1.75rem;
   background: var(--card);
-  border: 1px solid var(--border);
-  box-shadow:
-    0 1px 0 0 oklch(1 0 0 / 4%) inset,
-    0 12px 30px -18px oklch(0 0 0 / 45%);
-}
-.dark .bento {
-  box-shadow:
-    0 1px 0 0 oklch(1 0 0 / 6%) inset,
-    0 20px 40px -24px oklch(0 0 0 / 70%);
 }
 .bento-hover {
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.2s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .bento-hover:hover {
-  transform: translateY(-2px);
+  background: var(--accent);
 }
-
-/* Tinted tiles - a vibrant solid surface keyed to a domain color */
-.tile-tint {
-  color: oklch(0.20 0.03 264);
-  border-color: transparent;
+.bento-hover:active {
+  transform: scale(0.99);
 }
 
 /* ── Display numerals ─────────────────────────────────────────────────── */
 .numeral {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.03em;
-}
-
-/* ── Ambient page glow ──────────────────────────────────────────────────── */
-.ambient-bg {
-  background-image:
-    radial-gradient(ellipse 70% 50% at 15% -8%, var(--primary) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 45% at 95% 5%, var(--progress) 0%, transparent 50%);
-  background-attachment: fixed;
-}
-.dark .ambient-bg { background-blend-mode: soft-light; opacity: 1; }
-.ambient-bg { position: relative; }
-.ambient-bg::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-  opacity: 0.05;
-  background-image:
-    radial-gradient(ellipse 70% 50% at 15% -8%, var(--primary) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 45% at 95% 5%, var(--progress) 0%, transparent 50%);
 }
 
 /* ── Page enter ─────────────────────────────────────────────────────────── */
@@ -233,41 +198,3 @@ html, body { overscroll-behavior-y: none; }
 
 /* ── Marquee (kept for landing) ─────────────────────────────────────────── */
 .notebook-lines, .writing-lines { background-image: none; }
-
-/* ── GlassSurface integration ───────────────────────────────────────────────
-   Cards are GlassSurface tiles. Override the component's default centered,
-   padded content box so our own layout/padding controls the card interior. */
-.glass-surface__content {
-  align-items: stretch !important;
-  justify-content: flex-start !important;
-  padding: 0 !important;
-}
-/* Force the dark glass look regardless of OS color-scheme (app is dark-only).
-   iOS Safari / Firefox use this fallback (SVG backdrop-filter unsupported). */
-.glass-surface--fallback {
-  background: rgba(18, 20, 28, 0.42) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(1.5) !important;
-  backdrop-filter: blur(20px) saturate(1.5) !important;
-  border: 1px solid rgba(255, 255, 255, 0.10) !important;
-  box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
-    0 18px 44px -26px rgba(0, 0, 0, 0.85) !important;
-}
-/* The SVG-displacement variant (desktop Chromium): add a readable dark frost. */
-.glass-surface--svg {
-  background: rgba(18, 20, 28, 0.30) !important;
-}
-
-/* Dither background canvas must fill the viewport, always. */
-.dither-container,
-.dither-container > div {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-}
-.dither-container canvas {
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-}

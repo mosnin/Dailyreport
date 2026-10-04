@@ -31,7 +31,7 @@ export function InsightCard({ userId }: { userId: Id<"users"> }) {
   return (
     <motion.div
       {...fadeUp(0.1)}
-      className="rounded-2xl border border-border bg-card p-5"
+      className="rounded-3xl bg-card p-5"
     >
       <div className="flex items-center justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">

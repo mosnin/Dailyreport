@@ -40,7 +40,7 @@ function ScoreTooltip({ active, payload, label }: {
         Score: <span className="font-semibold text-foreground">{payload[0].value}</span>
       </p>
       {d.earned === 1 && (
-        <p className="text-emerald-600 dark:text-emerald-400 font-medium">+1 perfect day</p>
+        <p className="text-emerald-600 font-medium">+1 perfect day</p>
       )}
       <div className="pt-1 border-t border-border space-y-0.5">
         <div className={cn("flex items-center gap-1.5", d.report ? "text-foreground" : "text-muted-foreground/50")}>
@@ -81,7 +81,7 @@ export function ScoreChart({ userId }: { userId: Id<"users"> }) {
   const todayEarned = data[data.length - 1]?.earned === 1;
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5">
+    <div className="rounded-3xl bg-card p-5">
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-5">
         <div>
@@ -89,7 +89,7 @@ export function ScoreChart({ userId }: { userId: Id<"users"> }) {
             <TrendingUp className="w-4 h-4 text-sky-500" />
             <h2 className="text-sm font-semibold">Consistency Score</h2>
             {todayEarned && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400">
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
                 +1 today
               </span>
             )}

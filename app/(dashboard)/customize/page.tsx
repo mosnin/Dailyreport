@@ -254,7 +254,7 @@ export default function CustomizePage() {
                 onChange={(e) => { setAffirmCustom(e.target.value); setDirty(true); }}
                 placeholder="e.g. Each affirmation should start with 'I choose...' and be written as a firm decision rather than a statement of current reality. Keep each to one short sentence."
                 rows={4}
-                className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none placeholder:text-muted-foreground/50"
+                className="w-full rounded-2xl bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none placeholder:text-muted-foreground/50"
               />
               <p className="text-xs text-muted-foreground/60">
                 Be specific. Describe the opening format, tone, length, and any phrases to use or avoid.
@@ -310,7 +310,7 @@ export default function CustomizePage() {
                 onChange={(e) => { setVizCustom(e.target.value); setDirty(true); }}
                 placeholder="e.g. Write each visualization as a 3rd-person observer watching the user succeed. Use past tense as if recounting a memory. Include specific numbers and sensory details."
                 rows={4}
-                className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none placeholder:text-muted-foreground/50"
+                className="w-full rounded-2xl bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none placeholder:text-muted-foreground/50"
               />
               <p className="text-xs text-muted-foreground/60">
                 Describe the perspective, tense, pacing, energy level, and any specific language patterns you want.

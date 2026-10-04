@@ -29,7 +29,7 @@ function CountdownRing({ seconds, total = 60 }: { seconds: number; total?: numbe
         <circle
           cx="54" cy="54" r={RADIUS}
           strokeWidth="3" fill="none"
-          className="stroke-neutral-200 dark:stroke-neutral-800"
+          className="stroke-neutral-200"
         />
         <circle
           cx="54" cy="54" r={RADIUS}
@@ -40,7 +40,7 @@ function CountdownRing({ seconds, total = 60 }: { seconds: number; total?: numbe
           className="stroke-sky-500 transition-[stroke-dashoffset] duration-1000 ease-linear"
         />
       </svg>
-      <span className="absolute text-2xl font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
+      <span className="absolute text-2xl font-semibold tabular-nums text-neutral-900">
         {seconds}
       </span>
     </div>
@@ -67,7 +67,7 @@ function ScenarioCard({
       className={cn(
         "flex flex-col gap-3 transition-colors",
         completed &&
-          "border-emerald-200 dark:border-emerald-800/50 bg-emerald-50/50 dark:bg-emerald-950/20"
+          "border-emerald-200 bg-emerald-50/50"
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -87,7 +87,7 @@ function ScenarioCard({
 
       <div className="mt-auto pt-1">
         {completed ? (
-          <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+          <span className="text-xs font-medium text-emerald-600">
             Visualized
           </span>
         ) : (
@@ -238,14 +238,14 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
           <div className="flex items-center gap-2">
             <Link
               href="/customize"
-              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-neutral-200 dark:border-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors"
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-neutral-200 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50 transition-colors"
             >
               Style →
             </Link>
             <button
               onClick={handleRegenerate}
               disabled={generating}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-neutral-200 dark:border-white/10 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-neutral-200 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50 transition-colors disabled:opacity-50"
             >
               Regenerate
             </button>
@@ -256,16 +256,16 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
       {/* ── Progress ── */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+          <span className="text-xs font-medium text-neutral-500">
             <span className="numeral">{completedCount}</span> of <span className="numeral">{totalCount}</span> visualized
           </span>
           {allDone && (
-            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+            <span className="text-xs font-medium text-emerald-600">
               Complete for today
             </span>
           )}
         </div>
-        <div className="h-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+        <div className="h-1.5 rounded-full bg-neutral-100 overflow-hidden">
           <div
             className="h-full rounded-full bg-primary transition-all duration-500"
             style={{ width: `${(completedCount / totalCount) * 100}%` }}
@@ -279,11 +279,11 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
 
       {/* ── All done state ── */}
       {allDone && (
-        <div className="mb-8 rounded-2xl border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/20 p-6 text-center">
-          <p className="font-semibold text-emerald-800 dark:text-emerald-300">
+        <div className="mb-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
+          <p className="font-semibold text-emerald-800">
             All 10 visualizations complete.
           </p>
-          <p className="text-sm text-emerald-600 dark:text-emerald-500 mt-1">
+          <p className="text-sm text-emerald-600 mt-1">
             Come back tomorrow for a fresh set.
           </p>
         </div>
@@ -305,7 +305,7 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
         </div>
       ) : (
         !generating && (
-          <div className="text-center py-16 text-neutral-400 dark:text-neutral-600">
+          <div className="text-center py-16 text-neutral-400">
             <p className="text-sm">No visualizations generated yet.</p>
           </div>
         )
@@ -334,7 +334,7 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
                   <h2 className="text-base font-semibold mb-3 leading-snug">
                     {activeScenario.title}
                   </h2>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                  <p className="text-sm text-neutral-600 leading-relaxed">
                     {activeScenario.description}
                   </p>
                 </div>
@@ -342,12 +342,12 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
                 {/* Phase: ready */}
                 {phase === "ready" && (
                   <div className="flex flex-col items-center gap-4 pt-2">
-                    <p className="text-xs text-neutral-400 dark:text-neutral-500 text-center">
+                    <p className="text-xs text-neutral-400 text-center">
                       Read the scene above. When you&rsquo;re ready, close your eyes and begin.
                     </p>
                     <button
                       onClick={startTimer}
-                      className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-sky-500 hover:bg-sky-400 text-white text-sm font-medium transition-colors"
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary hover:opacity-90 text-primary-foreground text-sm font-bold transition-colors"
                     >
                       Begin 60 seconds
                     </button>
@@ -358,12 +358,12 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
                 {phase === "timing" && (
                   <div className="flex flex-col items-center gap-4">
                     <CountdownRing seconds={seconds} />
-                    <p className="text-xs text-neutral-400 dark:text-neutral-500 text-center">
+                    <p className="text-xs text-neutral-400 text-center">
                       Close your eyes. Breathe slowly. See it clearly.
                     </p>
                     <button
                       onClick={skipTimer}
-                      className="text-xs text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+                      className="text-xs text-neutral-400 hover:text-neutral-600 transition-colors"
                     >
                       Skip timer
                     </button>
@@ -373,13 +373,13 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
                 {/* Phase: done */}
                 {phase === "done" && (
                   <div className="flex flex-col items-center gap-4 pt-2">
-                    <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    <p className="text-sm font-medium text-neutral-700">
                       Visualization complete.
                     </p>
                     <div className="flex items-center gap-3">
                       <button
                         onClick={closeDialog}
-                        className="px-4 py-2 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                        className="px-4 py-2 text-sm text-neutral-500 hover:text-neutral-900 transition-colors"
                       >
                         Close
                       </button>
@@ -390,7 +390,7 @@ export function DreamsClient({ userId }: { userId: Id<"users"> }) {
                             closeDialog();
                             setTimeout(() => openVisualization(nextIdx), 50);
                           }}
-                          className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-sky-500 hover:bg-sky-400 text-white text-sm font-medium transition-colors"
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary hover:opacity-90 text-primary-foreground text-sm font-bold transition-colors"
                         >
                           Next
                         </button>

@@ -180,7 +180,7 @@ export function CalendarGrid({
   const monthKey = format(current, "yyyy-MM");
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className="rounded-2xl bg-card p-4">
       <motion.div {...fadeUp(0)} className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-sm">{format(current, "MMMM yyyy")}</h3>
         <div className="flex gap-1">
@@ -240,9 +240,9 @@ export function CalendarGrid({
                 className={cn(
                   "relative aspect-square rounded-lg flex items-center justify-center text-xs font-medium transition-colors",
                   status === "outside" && "opacity-20 text-muted-foreground",
-                  status === "submitted" && "bg-green-500/20 text-green-600 dark:text-green-400",
-                  status === "missed" && "bg-red-500/10 text-red-500 dark:text-red-400",
-                  status === "today" && "bg-amber-500/20 text-amber-600 dark:text-amber-400 ring-1 ring-amber-400",
+                  status === "submitted" && "bg-green-500/20 text-green-600",
+                  status === "missed" && "bg-red-500/10 text-red-500",
+                  status === "today" && "bg-amber-500/20 text-amber-600 ring-1 ring-amber-400",
                   status === "future" && "text-muted-foreground",
                   isSelected && "ring-2 ring-primary ring-offset-1",
                   isClickable && "cursor-pointer",

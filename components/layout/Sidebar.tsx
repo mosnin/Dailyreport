@@ -74,22 +74,22 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden lg:flex flex-col shrink-0 w-60 border-r border-sidebar-border bg-sidebar/55 backdrop-blur-xl sticky top-0 h-screen">
+    <aside className="hidden lg:flex flex-col shrink-0 w-60 border-r border-sidebar-border bg-sidebar sticky top-0 h-screen">
       {/* Wordmark */}
       <div className="flex items-center px-5 h-16 shrink-0">
         <Link href="/today" className="flex items-center">
-          <Image src="/logo-dark.png" alt="Daily Report" width={1800} height={400} quality={100} className="h-7 w-auto" />
+          <Image src="/logo-light.png" alt="Daily Report" width={1800} height={400} quality={100} className="h-7 w-auto" />
         </Link>
       </div>
 
       {/* Today strip */}
-      <div className="mx-3 mb-2 rounded-2xl bg-accent/60 px-4 py-3 flex items-center justify-between">
+      <div className="mx-3 mb-3 rounded-2xl bg-card px-4 py-3 flex items-center justify-between">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Today</p>
           <p className="text-sm font-semibold numeral">{totalDone} done</p>
         </div>
         {streak > 0 && (
-          <div className="flex items-center gap-1 rounded-full bg-background/60 px-2 py-1">
+          <div className="flex items-center gap-1 rounded-full bg-background px-2 py-1">
             <Flame className="w-3.5 h-3.5 text-primary" />
             <span className="text-xs font-bold numeral">{streak}</span>
           </div>
@@ -100,11 +100,11 @@ export function Sidebar() {
       <div className="px-3 mb-1">
         <button
           onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
-          className="w-full flex items-center gap-2 rounded-xl border border-border bg-background/50 px-3 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          className="w-full flex items-center gap-2 rounded-full bg-card px-3.5 py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <Search className="w-3.5 h-3.5" />
           <span>Search</span>
-          <kbd className="ml-auto text-[10px] font-mono bg-muted rounded px-1 py-0.5">⌘K</kbd>
+          <kbd className="ml-auto text-[10px] font-mono bg-background rounded-md px-1.5 py-0.5">⌘K</kbd>
         </button>
       </div>
 
@@ -183,7 +183,7 @@ export function Sidebar() {
           </div>
         )}
         {isAdmin && (
-          <Link href="/admin" className={cn("flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sm font-medium transition-colors", is("/admin") ? "bg-rose-500 text-white" : "text-rose-500 hover:bg-rose-500/10")}>
+          <Link href="/admin" className={cn("flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sm font-medium transition-colors", is("/admin") ? "bg-destructive text-primary-foreground" : "text-rose-500 hover:bg-rose-500/10")}>
             <ShieldAlert className="w-4 h-4 shrink-0" /> Admin
           </Link>
         )}
