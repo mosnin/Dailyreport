@@ -6,13 +6,12 @@ Guidance for Claude Code when working in this repository.
 
 These are absolute and apply to the entire application:
 
-1. **Dark only.** The app is a permanently dark color scheme. The theme is forced dark; do not add light-mode UI or theme toggles.
-2. **Animated background.** The whole app sits on the full-page animated `DitherBackground` (`components/DitherBackground.tsx` wrapping `components/Dither.tsx`). Headers and page surfaces are transparent so it shows through.
-3. **Glass everything.** Every card and surface is a glass element built on `components/GlassSurface.jsx` (used via `components/bento/BentoCard.tsx`). Do not create opaque cards; do not hand-roll card chrome.
-4. **No icons or decorations on cards.** Cards contain zero icons and zero ornamental decoration (no lucide icons, no colored icon chips, no accent dots/gradients). Only text and real data visualizations (charts, score rings, progress bars) are allowed inside cards. Navigation chrome (sidebar/bottom bar/command palette) may keep its icons.
-5. **If an icon is genuinely needed** for decoration anywhere, use `components/GlassIcons.jsx` (ReactBits GlassIcons) - never raw lucide icons as decoration. Pass `items={[{ icon, color, label }]}`.
+1. **Dark only.** Near-black pages, soft dark rounded surfaces (`bg-card`), white text. Burnt orange (`--secondary`) is the secondary color for active states, status dots, toggles, focus rings and secondary actions. The theme is forced dark; do not add light-mode UI or theme toggles.
+2. **Flat surfaces.** No shaders, animated backgrounds, glass, blur, drop shadows or gradients (including gradient buttons). Cards are `BentoCard` (`components/bento/BentoCard.tsx`), a flat `bg-card` tile with a large radius and no border. Do not hand-roll card chrome.
+3. **Solid pill buttons.** Primary actions are white pills (`bg-primary text-primary-foreground rounded-full`); secondary actions are burnt orange pills (`bg-secondary text-secondary-foreground`) or quiet dark pills (`bg-card`). Inputs are filled (`bg-card`) with no visible border.
+4. **Heavy headings.** Type is Urbanist everywhere; `h1`-`h3` and `.font-heading` are weight 800 with tight tracking.
+5. **No icons or decorations on cards.** Cards contain zero icons and zero ornamental decoration (no icon chips, accent dots or gradients). Only text and real data visualizations (charts, score rings, progress bars) are allowed inside cards. Navigation chrome (sidebar, bottom bar, command palette) may keep its icons.
 6. **Zero em dashes.** Never use an em dash or en dash anywhere in the codebase or copy. Use a hyphen, comma, or rephrase.
-7. **Logged-out landing** uses the `components/Hyperspeed.jsx` (ReactBits Hyperspeed) animation as the hero background. The logged-in app uses the Dither background.
 
 ## What this is
 
@@ -33,7 +32,7 @@ Stack: **Next.js 16 (App Router) + React 19 + Convex (with Convex Auth) + Tailwi
 
 ## Design system
 
-Dark-first **bento** system. See `STYLESHEET.md`. Use the primitives in `components/bento/` and chart wrappers in `components/charts/`. Each life area owns a color var (`--health`, `--goals`, `--finance`, `--emotional`, `--progress`, `--execution`). The old notebook aesthetic is removed - don't reintroduce serif/cream/ruled-line styling.
+Dark, flat **bento** system. See `STYLESHEET.md`. Use the primitives in `components/bento/` and chart wrappers in `components/charts/`. Each life area owns a color var (`--health`, `--goals`, `--finance`, `--emotional`, `--progress`, `--execution`). The old notebook aesthetic is removed - don't reintroduce serif/cream/ruled-line styling.
 
 ## Conventions
 

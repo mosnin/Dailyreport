@@ -348,7 +348,7 @@ export function WeeklyReportForm({
                         className={cn(
                           "text-[11px] px-2 py-0.5 rounded-full border transition-colors",
                           person.goalRelated === true
-                            ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                            ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"
                             : "border-border/50 text-muted-foreground/50 hover:border-emerald-400/50"
                         )}
                       >
@@ -515,8 +515,8 @@ export function WeeklyReportForm({
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border text-sm font-medium transition-all",
                 r.didAffirmations === true
-                  ? "border-emerald-500/50 bg-emerald-500/8 text-emerald-600 dark:text-emerald-400"
-                  : "border-border/50 text-muted-foreground/60 hover:border-emerald-400/40 hover:text-emerald-600"
+                  ? "border-emerald-500/50 bg-emerald-500/8 text-emerald-400"
+                  : "border-border/50 text-muted-foreground/60 hover:border-emerald-400/40 hover:text-emerald-400"
               )}
             >
               <CheckCircle className="w-4 h-4" />
@@ -528,7 +528,7 @@ export function WeeklyReportForm({
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border text-sm font-medium transition-all",
                 r.didAffirmations === false
-                  ? "border-rose-500/50 bg-rose-500/8 text-rose-600 dark:text-rose-400"
+                  ? "border-rose-500/50 bg-rose-500/8 text-rose-600"
                   : "border-border/50 text-muted-foreground/60 hover:border-rose-400/40 hover:text-rose-500"
               )}
             >
@@ -566,7 +566,7 @@ export function WeeklyReportForm({
             disabled={saving}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
-            className="w-full py-4 rounded-2xl bg-foreground text-background font-heading text-[15px] font-medium hover:bg-foreground/90 transition-colors disabled:opacity-40"
+            className="w-full py-4 rounded-full bg-foreground text-background font-heading text-[15px] font-medium hover:bg-foreground/90 transition-colors disabled:opacity-40"
           >
             {saving ? "Saving…" : initialResponses ? "Update review" : "Close this week"}
           </motion.button>

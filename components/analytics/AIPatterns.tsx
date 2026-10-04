@@ -59,7 +59,7 @@ export function AIPatterns({ userId }: { userId: Id<"users"> }) {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="rounded-2xl border border-border bg-background/40 p-3.5"
+              className="rounded-2xl bg-background/40 p-3.5"
             >
               <div className="min-w-0">
                 <p className="text-sm font-semibold">{p.title}</p>

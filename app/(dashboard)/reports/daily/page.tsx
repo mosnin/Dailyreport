@@ -41,7 +41,7 @@ function CompletionOverlay({
   const today = new Date();
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/96 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background"
       onClick={onDismiss}
     >
       <div className="text-center space-y-8 max-w-sm px-6 pointer-events-none select-none">

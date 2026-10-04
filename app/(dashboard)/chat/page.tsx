@@ -33,7 +33,7 @@ function AssistantMessage({ content }: { content: string }) {
   return (
     <div className="flex justify-start">
       <div className="max-w-[85%] border-l-2 border-primary/40 pl-4 py-1">
-        <div className="text-sm leading-[1.85] text-foreground prose prose-sm dark:prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+        <div className="text-sm leading-[1.85] text-foreground prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
           <ReactMarkdown>{content}</ReactMarkdown>
         </div>
       </div>
@@ -196,7 +196,7 @@ export default function ChatPage() {
 
       {/* Input */}
       <div className="shrink-0 pt-3 pb-2">
-        <div className="flex items-end gap-2 rounded-2xl border border-border bg-background px-4 py-3 focus-within:ring-2 focus-within:ring-primary/30 transition-all">
+        <div className="flex items-end gap-2 rounded-2xl bg-background px-4 py-3 focus-within:ring-2 focus-within:ring-primary/30 transition-all">
           <textarea
             ref={inputRef}
             value={input}

@@ -34,9 +34,9 @@ function PlanBadge({ plan }: { plan?: Plan }) {
       className={cn(
         "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold",
         p === "unlimited"
-          ? "bg-violet-100 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300"
+          ? "bg-violet-100 text-violet-700"
           : p === "pro"
-          ? "bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300"
+          ? "bg-amber-100 text-amber-700"
           : "bg-muted text-muted-foreground"
       )}
     >
@@ -50,7 +50,7 @@ function PlanBadge({ plan }: { plan?: Plan }) {
 function RoleBadge({ role }: { role?: Role }) {
   if (!role || role === "user") return null;
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-700">
       <ShieldAlert className="w-3 h-3" />
       Admin
     </span>
@@ -99,9 +99,9 @@ function PlanSelect({
             "px-2 py-1 rounded-lg text-[11px] font-medium transition-colors disabled:opacity-50",
             (current ?? "free") === opt.value
               ? opt.value === "unlimited"
-                ? "bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300"
+                ? "bg-violet-100 text-violet-700"
                 : opt.value === "pro"
-                ? "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300"
+                ? "bg-amber-100 text-amber-700"
                 : "bg-muted text-foreground"
               : "text-muted-foreground hover:text-foreground hover:bg-muted"
           )}
@@ -153,7 +153,7 @@ function AdminToggle({
       className={cn(
         "p-1.5 rounded-lg transition-colors disabled:opacity-40",
         isAdmin
-          ? "bg-rose-100 dark:bg-rose-950/50 text-rose-600 hover:bg-rose-200 dark:hover:bg-rose-900/50"
+          ? "bg-rose-100 text-rose-600 hover:bg-rose-200"
           : "text-muted-foreground hover:text-foreground hover:bg-muted"
       )}
     >
@@ -166,7 +166,7 @@ function AdminToggle({
 
 function StatTile({ label, value, accent }: { label: string; value: number; accent?: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-card px-5 py-4 space-y-1">
+    <div className="rounded-3xl bg-card px-5 py-4 space-y-1">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className={cn("text-3xl font-bold tabular-nums", accent)}>{value}</p>
     </div>
@@ -215,7 +215,7 @@ export default function AdminPage() {
   if (users === null) {
     return (
       <div className="max-w-4xl">
-        <div className="rounded-2xl border border-border bg-card p-12 text-center space-y-3">
+        <div className="rounded-3xl bg-card p-12 text-center space-y-3">
           <ShieldAlert className="w-10 h-10 text-muted-foreground mx-auto" />
           <p className="font-semibold">Access denied</p>
           <p className="text-sm text-muted-foreground">
@@ -250,9 +250,9 @@ export default function AdminPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatTile label="Total users" value={stats.total} />
-        <StatTile label="Pro" value={stats.pro} accent="text-amber-600 dark:text-amber-400" />
-        <StatTile label="Unlimited" value={stats.unlimited} accent="text-violet-600 dark:text-violet-400" />
-        <StatTile label="Admins" value={stats.admins} accent="text-rose-600 dark:text-rose-400" />
+        <StatTile label="Pro" value={stats.pro} accent="text-amber-600" />
+        <StatTile label="Unlimited" value={stats.unlimited} accent="text-violet-600" />
+        <StatTile label="Admins" value={stats.admins} accent="text-rose-600" />
       </div>
 
       {/* Search */}
@@ -262,7 +262,7 @@ export default function AdminPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by name or email…"
-          className="w-full rounded-xl border border-border bg-background pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+          className="w-full rounded-full border border-transparent bg-card pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
         />
       </div>
 

@@ -180,7 +180,7 @@ function DailyReportView({ userId, date }: { userId: Id<"users">; date: string }
         <Section label="Affirmations">
           <div className="flex items-center gap-1.5">
             {didAffirmations ? (
-              <span className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Done</span>
+              <span className="text-sm text-emerald-400 font-medium">Done</span>
             ) : (
               <span className="text-sm text-muted-foreground">Skipped</span>
             )}
@@ -309,7 +309,7 @@ function WeeklyReportView({ userId, weekStartDate }: { userId: Id<"users">; week
         <Section label="Affirmations">
           <div className="flex items-center gap-1.5">
             {didAffirmations ? (
-              <span className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Done</span>
+              <span className="text-sm text-emerald-400 font-medium">Done</span>
             ) : (
               <span className="text-sm text-muted-foreground">Skipped</span>
             )}
@@ -387,7 +387,7 @@ function ReportPanel({ userId, date, isEditable }: { userId: Id<"users">; date: 
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 8 }}
       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-      className="rounded-xl border border-border bg-card overflow-hidden"
+      className="rounded-2xl bg-card overflow-hidden"
     >
       {/* Date header */}
       <div className="px-5 pt-5 pb-4 border-b border-border/50 flex items-start justify-between gap-3">

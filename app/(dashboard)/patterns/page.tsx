@@ -105,7 +105,7 @@ function EnergyHeatmap({ dayScores }: { dayScores: DayScore[] }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.15 }}
-            className="rounded-xl border border-border/50 bg-card px-3 py-2 w-fit text-xs"
+            className="rounded-2xl bg-card px-3 py-2 w-fit text-xs"
           >
             <span className={cn("font-semibold", scoreText(tooltip.score))}>
               {tooltip.dateStr} - {tooltip.score}/10
@@ -146,7 +146,7 @@ function FactorList({ factors, label, variant }: {
     : { bar: "bg-emerald-500" };
 
   return (
-    <motion.div {...fadeUp(variant === "drain" ? 0.2 : 0.25)} className="rounded-2xl border border-border bg-card p-5 space-y-4">
+    <motion.div {...fadeUp(variant === "drain" ? 0.2 : 0.25)} className="rounded-3xl bg-card p-5 space-y-4">
       <div>
         <p className="text-[10px] font-semibold tracking-[0.14em] uppercase text-muted-foreground/40">{label}</p>
       </div>
@@ -228,7 +228,7 @@ function EnergyTab({ userId }: { userId: Id<"users"> }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="rounded-2xl border border-border bg-card p-5 space-y-4"
+            className="rounded-3xl bg-card p-5 space-y-4"
           >
             <Skeleton className="h-4 w-40" />
             <div className="grid grid-cols-7 gap-1.5">
@@ -243,7 +243,7 @@ function EnergyTab({ userId }: { userId: Id<"users"> }) {
           </motion.div>
         ) : analysis ? (
           <motion.div key="data" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-            <motion.div {...fadeUp(0.08)} className="rounded-2xl border border-border bg-card p-5 space-y-4">
+            <motion.div {...fadeUp(0.08)} className="rounded-3xl bg-card p-5 space-y-4">
               <p className="text-[10px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40">
                 60-Day Energy Heatmap
               </p>
@@ -347,13 +347,13 @@ function PeopleTab({ userId }: { userId: Id<"users"> }) {
       {data && (
         <>
           <motion.div {...fadeUp(0.06)} className="flex gap-3">
-            <div className="flex-1 rounded-2xl border border-border bg-card px-4 py-3">
+            <div className="flex-1 rounded-3xl bg-card px-4 py-3">
               <div>
                 <p className="text-2xl font-bold tabular-nums leading-none">{data.uniqueThisMonth}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">this month</p>
               </div>
             </div>
-            <div className="flex-1 rounded-2xl border border-border bg-card px-4 py-3">
+            <div className="flex-1 rounded-3xl bg-card px-4 py-3">
               <div>
                 <p className="text-2xl font-bold tabular-nums leading-none">{data.totalUnique}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">total unique</p>
@@ -366,7 +366,7 @@ function PeopleTab({ userId }: { userId: Id<"users"> }) {
               <p className="text-[10px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40 mb-3">
                 Top Connections
               </p>
-              <div className="rounded-2xl border border-border bg-card overflow-hidden">
+              <div className="rounded-3xl bg-card overflow-hidden">
                 <motion.ul
                   variants={listVariants}
                   initial="hidden"
@@ -401,7 +401,7 @@ function PeopleTab({ userId }: { userId: Id<"users"> }) {
               <p className="text-[10px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40 mb-3">
                 Last 7 Days
               </p>
-              <div className="rounded-2xl border border-border bg-card overflow-hidden">
+              <div className="rounded-3xl bg-card overflow-hidden">
                 <motion.ul
                   variants={listVariants}
                   initial="hidden"
@@ -419,7 +419,7 @@ function PeopleTab({ userId }: { userId: Id<"users"> }) {
                         {format(parseISO(entry.date), "MMM d")}
                       </span>
                       {entry.goalRelated === true && (
-                        <span className="text-[10px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-full px-2 py-0.5 shrink-0">
+                        <span className="text-[10px] font-semibold bg-emerald-500/15 text-emerald-400 rounded-full px-2 py-0.5 shrink-0">
                           goal
                         </span>
                       )}
@@ -492,10 +492,10 @@ function statusLabel(p: Problem) {
 }
 
 function statusColor(p: Problem) {
-  if (p.solvedManually === true) return "text-green-600 dark:text-green-400";
-  if (p.solvedManually === false) return "text-red-500 dark:text-red-400";
-  if (p.aiResolved === true) return "text-emerald-500 dark:text-emerald-400";
-  if (p.aiResolved === false) return "text-amber-500 dark:text-amber-400";
+  if (p.solvedManually === true) return "text-green-600";
+  if (p.solvedManually === false) return "text-red-500";
+  if (p.aiResolved === true) return "text-emerald-500";
+  if (p.aiResolved === false) return "text-amber-500";
   return "text-muted-foreground";
 }
 
@@ -538,7 +538,7 @@ function ProblemCard({
             </CardTitle>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
               {solved && problem.resolvedAt ? (
-                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                <span className="text-xs text-emerald-400 font-medium">
                   Resolved {format(new Date(problem.resolvedAt), "MMM d, yyyy")}
                 </span>
               ) : (
@@ -1083,7 +1083,7 @@ function GivingTab({ userId }: { userId: Id<"users"> }) {
       </motion.div>
 
       {/* Today / Selected day entries */}
-      <motion.div {...fadeUp(0.13)} className="rounded-2xl border border-border bg-card p-4 space-y-0.5">
+      <motion.div {...fadeUp(0.13)} className="rounded-3xl bg-card p-4 space-y-0.5">
         <div className="flex items-center gap-2 px-2 mb-3">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {isToday ? "Today's giving" : givingDateLabel(selectedDate, todayStr)}

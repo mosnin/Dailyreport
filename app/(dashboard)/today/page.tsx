@@ -177,7 +177,7 @@ export default function TodayPage() {
                   </div>
                   <div className="space-y-1.5">
                     {items.map((item: any) => (
-                      <Link key={item._id} href={`/trackers/${item._id}`} className={cn("flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors", item.done ? "bg-white/5" : "hover:bg-white/5")}>
+                      <Link key={item._id} href={`/trackers/${item._id}`} className={cn("flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors", item.done ? "bg-background" : "hover:bg-background")}>
                         <span
                           className="grid h-7 w-7 place-items-center rounded-xl text-xs font-semibold shrink-0"
                           style={

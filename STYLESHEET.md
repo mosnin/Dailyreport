@@ -2,7 +2,7 @@
 
 This is the design system. Read it once. Then write code that disappears into it.
 
-The product is a **life-analytics dashboard**, not a notebook. Dark, vibrant, tile-based. Big numerals, bold sans, lots of negative space. Every surface is a bento tile. Color carries meaning - each life area owns a hue.
+The product is a **life-analytics dashboard**, not a notebook. Dark, calm and flat: near-black pages, soft dark rounded tiles, heavy geometric headings, white pill buttons, burnt orange as the secondary color, lots of negative space. No shaders, glass, blur, shadows or gradients. Color carries meaning - each life area owns a hue, used for data, not decoration.
 
 > The old warm "notebook" aesthetic (Lora serif, cream paper, ruled lines, violet) has been fully removed. Do not reintroduce it.
 
@@ -15,16 +15,16 @@ The product is a **life-analytics dashboard**, not a notebook. Dark, vibrant, ti
 - **Components**: ShadCN/UI v4 over `@base-ui/react` primitives (in `components/ui/`)
 - **Icons**: `lucide-react` only.
 - **Animation**: `motion` (Framer Motion).
-- **Theme**: `next-themes` - **default is dark**. Light is a supported secondary.
+- **Theme**: `next-themes`, forced **dark**. There is no light mode.
 - **Charts**: `recharts`, always via the wrappers in `components/charts/Charts.tsx`.
 - **Toasts**: `sonner`.
-- **Fonts**: `Geist Sans` (everything) + `Geist Mono` (numerals where useful). One family. `font-heading` = Geist with tight tracking.
+- **Fonts**: `Urbanist` (everything) + `Geist Mono` (numerals where useful). `h1`-`h3` and `font-heading` are Urbanist 800 with tight tracking.
 
 ---
 
 ## Color System
 
-`oklch`. Dark-first. The defining move: **each life area has its own accent**, exposed as a CSS variable and usable inline (`style={{ color: "var(--health)" }}`) and as a Tailwind color (`text-health`, `bg-finance`, …).
+`oklch`. Dark only. `--background` is near-black, `--card` is a soft dark tile, `--primary` is white (buttons), `--secondary` is burnt orange (active states, dots, toggles, focus rings, secondary actions), `--accent` is the hover/active gray. The defining move: **each life area has its own accent**, exposed as a CSS variable and usable inline (`style={{ color: "var(--health)" }}`) and as a Tailwind color (`text-health`, `bg-finance`, …).
 
 | Area | Var | Hue |
 |---|---|---|
@@ -32,9 +32,10 @@ The product is a **life-analytics dashboard**, not a notebook. Dark, vibrant, ti
 | Goals | `--goals` | violet |
 | Finance | `--finance` | amber |
 | Emotional | `--emotional` | rose |
-| Progress | `--progress` | sky |
-| Execution | `--execution` | orange |
-| Brand / primary | `--primary` | yellow |
+| Progress | `--progress` | blue |
+| Execution | `--execution` | burnt orange |
+| Primary | `--primary` | white |
+| Secondary | `--secondary` | burnt orange |
 
 Core tokens: `--background`, `--foreground`, `--card`, `--muted`, `--muted-foreground`, `--accent`, `--border`, `--ring`, `--sidebar*`, `--chart-1…6`. Always use tokens - never raw grays.
 
@@ -46,7 +47,7 @@ Core tokens: `--background`, `--foreground`, `--card`, `--muted`, `--muted-foreg
 
 Everything is a tile. Use the primitives - don't hand-roll card chrome.
 
-- **`BentoCard`** (`components/bento/BentoCard.tsx`) - the atomic surface. Props: `tint?` (a CSS color var → vibrant solid tile with dark text), `href?`, `onClick?`, `className?`, `delay?`. Renders padding (`p-5`), border, radius (`1.75rem`), inner highlight + drop shadow, and an entrance animation. Override padding with `!p-6` when wrapping forms.
+- **`BentoCard`** (`components/bento/BentoCard.tsx`) - the atomic surface. Props: `tint?` (a CSS color var → vibrant solid tile with dark text), `href?`, `onClick?`, `className?`, `delay?`. Renders padding (`p-5`), a flat `bg-card` surface with a `1.75rem` radius (no border, no shadow), and an entrance animation. `tint` is ignored. Override padding with `!p-6` when wrapping forms.
 - **`BentoGrid`** - responsive `grid-cols-2 lg:grid-cols-4`. Most pages just use a raw `grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4` and size tiles with `col-span-2`, `lg:row-span-2`, etc.
 - **`ScoreRing`** - circular gauge. `value` (0-100), `color`, `size?`, `stroke?`, `track?`, centered children.
 - **`PageHeader`** - every page opens with `<PageHeader eyebrow title subtitle? action? />`.

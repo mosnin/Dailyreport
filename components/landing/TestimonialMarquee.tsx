@@ -42,7 +42,7 @@ export function TestimonialMarquee() {
     <section className="py-24 overflow-hidden">
       <div className="mb-14 text-center px-6">
         <h2 className="font-heading text-3xl font-semibold tracking-tight mb-3">What people say</h2>
-        <p className="text-neutral-500 dark:text-neutral-400 text-base max-w-sm mx-auto">
+        <p className="text-muted-foreground text-base max-w-sm mx-auto">
           From people who show up every day.
         </p>
       </div>
@@ -63,12 +63,12 @@ export function TestimonialMarquee() {
         {doubled.map((t, i) => (
           <div
             key={i}
-            className="w-72 shrink-0 rounded-2xl border border-neutral-200 dark:border-white/8 bg-white dark:bg-neutral-900 p-5 flex flex-col gap-3"
+            className="w-72 shrink-0 rounded-2xl border border-border bg-background p-5 flex flex-col gap-3"
           >
-            <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">
+            <p className="text-sm text-foreground leading-relaxed">
               &ldquo;{t.quote}&rdquo;
             </p>
-            <span className="text-xs text-neutral-400 dark:text-neutral-500 font-medium mt-auto">
+            <span className="text-xs text-muted-foreground/70 font-medium mt-auto">
               - {t.name}
             </span>
           </div>

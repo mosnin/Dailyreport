@@ -68,7 +68,7 @@ function EnergyHeatmap({ dayScores }: { dayScores: DayScore[] }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.15 }}
-            className="rounded-xl border border-border/50 bg-card px-3 py-2 w-fit text-xs"
+            className="rounded-2xl bg-card px-3 py-2 w-fit text-xs"
           >
             <span className={cn("font-semibold", scoreText(tooltip.score))}>
               {tooltip.dateStr} - {tooltip.score}/10
@@ -109,7 +109,7 @@ function FactorList({ factors, label, variant }: {
     : { icon: "bg-emerald-500/10 text-emerald-500", bar: "bg-emerald-500", dot: "bg-emerald-400" };
 
   return (
-    <motion.div {...fadeUp(variant === "drain" ? 0.2 : 0.25)} className="rounded-2xl border border-border bg-card p-5 space-y-4">
+    <motion.div {...fadeUp(variant === "drain" ? 0.2 : 0.25)} className="rounded-3xl bg-card p-5 space-y-4">
       <div className="flex items-center gap-2.5">
         <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center shrink-0", accent.icon)}>
           {variant === "drain"
@@ -206,7 +206,7 @@ export default function EnergyPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="rounded-2xl border border-border bg-card p-5 space-y-4"
+            className="rounded-3xl bg-card p-5 space-y-4"
           >
             <Skeleton className="h-4 w-40" />
             <div className="grid grid-cols-7 gap-1.5">
@@ -221,7 +221,7 @@ export default function EnergyPage() {
           </motion.div>
         ) : analysis ? (
           <motion.div key="data" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-            <motion.div {...fadeUp(0.08)} className="rounded-2xl border border-border bg-card p-5 space-y-4">
+            <motion.div {...fadeUp(0.08)} className="rounded-3xl bg-card p-5 space-y-4">
               <p className="text-[10px] font-semibold tracking-[0.16em] uppercase text-muted-foreground/40">
                 60-Day Energy Heatmap
               </p>

@@ -143,7 +143,7 @@ export function ProgressDashboard({ userId }: { userId: Id<"users"> }) {
   }));
 
   return (
-    <div className="rounded-2xl border border-border/50 bg-card p-5 space-y-5">
+    <div className="rounded-3xl bg-card p-5 space-y-5">
       {/* Headline metric */}
       <MomentumDisplay value={latest.momentum} />
 

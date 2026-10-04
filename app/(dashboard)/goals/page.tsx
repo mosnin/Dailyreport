@@ -221,7 +221,7 @@ function GoalList({ category, label }: { category: GoalCategory; label: string }
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={`Add a ${label.toLowerCase()} goal…`}
-          className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full bg-card border border-transparent rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         />
         <Button
           type="submit"

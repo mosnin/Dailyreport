@@ -14,16 +14,16 @@ import { PageHeader } from "@/components/bento/PageHeader";
 // ── Principle badge colors ────────────────────────────────────────────────
 
 const PRINCIPLE_COLORS: Record<string, string> = {
-  "Focus":       "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  "Momentum":    "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  "Resilience":  "bg-rose-500/10 text-rose-600 dark:text-rose-400",
-  "Perspective": "bg-violet-500/10 text-violet-600 dark:text-violet-400",
-  "Discipline":  "bg-orange-500/10 text-orange-600 dark:text-orange-400",
-  "Relationships": "bg-teal-500/10 text-teal-600 dark:text-teal-400",
-  "Energy":      "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  "Clarity":     "bg-sky-500/10 text-sky-600 dark:text-sky-400",
-  "Courage":     "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
-  "Growth":      "bg-lime-500/10 text-lime-600 dark:text-lime-400",
+  "Focus":       "bg-blue-500/10 text-blue-600",
+  "Momentum":    "bg-emerald-500/10 text-emerald-400",
+  "Resilience":  "bg-rose-500/10 text-rose-600",
+  "Perspective": "bg-violet-500/10 text-violet-600",
+  "Discipline":  "bg-orange-500/10 text-orange-600",
+  "Relationships": "bg-teal-500/10 text-teal-600",
+  "Energy":      "bg-amber-500/10 text-amber-600",
+  "Clarity":     "bg-sky-500/10 text-sky-600",
+  "Courage":     "bg-indigo-500/10 text-indigo-600",
+  "Growth":      "bg-lime-500/10 text-lime-600",
 };
 
 function PrincipleBadge({ principle, inverted }: { principle: string; inverted?: boolean }) {
@@ -64,7 +64,7 @@ function StoryCard({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <motion.div variants={itemVariants} className="rounded-xl border border-border bg-card overflow-hidden">
+    <motion.div variants={itemVariants} className="rounded-2xl bg-card overflow-hidden">
       <button
         onClick={() => setExpanded((v) => !v)}
         className="w-full text-left px-4 py-3.5 hover:bg-muted/30 transition-colors"
@@ -120,7 +120,7 @@ function StorySkeleton({ index }: { index: number }) {
     );
   }
   return (
-    <div className="rounded-xl border border-border bg-card px-4 py-3.5 space-y-2">
+    <div className="rounded-2xl bg-card px-4 py-3.5 space-y-2">
       <Skeleton className="h-4 w-1/4 rounded-full" />
       <Skeleton className="h-4 w-2/3" />
     </div>

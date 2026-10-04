@@ -161,7 +161,7 @@ export default function PeoplePage() {
                         {format(parseISO(entry.date), "MMM d")}
                       </span>
                       {entry.goalRelated === true && (
-                        <span className="text-[10px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-full px-2 py-0.5 shrink-0">
+                        <span className="text-[10px] font-semibold bg-emerald-500/15 text-emerald-400 rounded-full px-2 py-0.5 shrink-0">
                           goal
                         </span>
                       )}

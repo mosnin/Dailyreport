@@ -14,7 +14,7 @@ type Step =
   | { kind: "reset"; email: string };
 
 const inputClass =
-  "h-10 w-full rounded-lg border border-input bg-input/30 px-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+  "h-12 w-full rounded-full border border-transparent bg-card px-5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 function friendlyError(err: unknown, mode: Mode) {
   const msg = err instanceof Error ? err.message : String(err);
@@ -144,7 +144,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
   return (
     <div className="w-full max-w-sm space-y-6">
       <div className="space-y-1 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+        <h1 className="font-heading text-3xl">{title}</h1>
         <p className="text-sm text-muted-foreground">{subtitle}</p>
       </div>
 

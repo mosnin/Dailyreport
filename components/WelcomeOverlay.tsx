@@ -56,7 +56,7 @@ function StreakDisplay({ streak }: { streak: number }) {
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.95 }}
-        className="text-sm text-neutral-500 font-medium"
+        className="text-sm text-muted-foreground font-medium"
       >
         day{streak === 1 ? "" : "s"} in a row
       </motion.p>
@@ -121,7 +121,7 @@ export function WelcomeOverlay() {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, scale: 1.04 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:hidden fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center gap-7"
+          className="lg:hidden fixed inset-0 z-[100] bg-background flex flex-col items-center justify-center gap-7"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -149,7 +149,7 @@ export function WelcomeOverlay() {
                   transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <TypingAnimation
-                    className="text-xl font-semibold text-neutral-900 leading-tight tracking-tight"
+                    className="text-xl font-semibold text-foreground leading-tight tracking-tight"
                     duration={55}
                     delay={300}
                   >
