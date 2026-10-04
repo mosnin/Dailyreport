@@ -1,12 +1,13 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
+import { authUserId } from "./authUser";
 
 async function assertOwner(ctx: any, userId: string) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
   const user = await ctx.db.get(userId);
-  if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+  if (!user || user._id !== authUserId(identity)) throw new Error("Unauthorized");
 }
 
 export const submitDaily = mutation({
@@ -111,7 +112,7 @@ export const getDailyReport = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
 
     return await ctx.db
       .query("dailyReports")
@@ -128,7 +129,7 @@ export const getWeeklyReport = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
 
     return await ctx.db
       .query("weeklyReports")
@@ -145,7 +146,7 @@ export const getCalendarData = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return { daily: {}, weekly: {} };
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return { daily: {}, weekly: {} };
+    if (!user || user._id !== authUserId(identity)) return { daily: {}, weekly: {} };
 
     // Fetch a ±8-day window around the queried month to cover calendar padding
     // (month is 0-indexed from the client)
@@ -188,7 +189,7 @@ export const getRecentReports = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return [];
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return [];
+    if (!user || user._id !== authUserId(identity)) return [];
 
     const limit = args.limit ?? 10;
     return await ctx.db
@@ -205,7 +206,7 @@ export const getPeopleInsights = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
 
     const reports = await ctx.db
       .query("dailyReports")
@@ -269,7 +270,7 @@ export const getYearSubmissions = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return [];
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return [];
+    if (!user || user._id !== authUserId(identity)) return [];
 
     const startStr = `${args.year}-01-01`;
     const endStr = `${args.year}-12-31`;

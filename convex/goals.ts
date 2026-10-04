@@ -1,5 +1,6 @@
 import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
+import { authUserId } from "./authUser";
 
 type GoalCategory = "yearly" | "quarterly" | "monthly" | "weekly";
 
@@ -41,7 +42,7 @@ async function assertOwner(ctx: any, userId: string) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
   const user = await ctx.db.get(userId);
-  if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+  if (!user || user._id !== authUserId(identity)) throw new Error("Unauthorized");
 }
 
 export const getCurrentSummary = query({
@@ -50,7 +51,7 @@ export const getCurrentSummary = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
 
     const categories: GoalCategory[] = ["yearly", "quarterly", "monthly", "weekly"];
     const result: Record<string, { total: number; completed: number; periodKey: string }> = {};
@@ -84,7 +85,7 @@ export const list = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return [];
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return [];
+    if (!user || user._id !== authUserId(identity)) return [];
 
     return ctx.db
       .query("goals")

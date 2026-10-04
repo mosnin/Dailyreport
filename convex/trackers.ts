@@ -1,12 +1,13 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { authUserId } from "./authUser";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function assertOwner(ctx: any, userId: string) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
   const user = await ctx.db.get(userId);
-  if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+  if (!user || user._id !== authUserId(identity)) throw new Error("Unauthorized");
 }
 
 const clamp = (x: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, x));
@@ -136,7 +137,7 @@ export const list = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return [];
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return [];
+    if (!user || user._id !== authUserId(identity)) return [];
     const rows = await ctx.db.query("trackers").withIndex("by_user", (q) => q.eq("userId", args.userId)).collect();
     const filtered = args.includeArchived ? rows : rows.filter((r) => !r.archived);
     return filtered.sort((a, b) => a.order - b.order);
@@ -151,7 +152,7 @@ export const get = query({
     const tracker = await ctx.db.get(args.trackerId);
     if (!tracker) return null;
     const user = await ctx.db.get(tracker.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
     return tracker;
   },
 });
@@ -251,7 +252,7 @@ export const getEntry = query({
     const tracker = await ctx.db.get(args.trackerId);
     if (!tracker) return null;
     const user = await ctx.db.get(tracker.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
     return ctx.db
       .query("trackerEntries")
       .withIndex("by_tracker_date", (q) => q.eq("trackerId", args.trackerId).eq("date", args.date))
@@ -267,7 +268,7 @@ export const getEntries = query({
     const tracker = await ctx.db.get(args.trackerId);
     if (!tracker) return [];
     const user = await ctx.db.get(tracker.userId);
-    if (!user || user.clerkId !== identity.subject) return [];
+    if (!user || user._id !== authUserId(identity)) return [];
     const days = Math.min(args.days ?? 60, 365);
     const cutoff = dayStr(Date.now() - days * DAY);
     const rows = await ctx.db
@@ -285,7 +286,7 @@ export const getOverview = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
 
     const trackers = (await ctx.db.query("trackers").withIndex("by_user", (q) => q.eq("userId", args.userId)).collect())
       .filter((t) => !t.archived)
@@ -334,7 +335,7 @@ export const getTodayChecklist = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return [];
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return [];
+    if (!user || user._id !== authUserId(identity)) return [];
     const trackers = (await ctx.db.query("trackers").withIndex("by_user", (q) => q.eq("userId", args.userId)).collect())
       .filter((t) => !t.archived && t.cadence === "daily")
       .sort((a, b) => a.order - b.order);
@@ -367,7 +368,7 @@ export const getDueToday = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return [];
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return [];
+    if (!user || user._id !== authUserId(identity)) return [];
     const trackers = (await ctx.db.query("trackers").withIndex("by_user", (q) => q.eq("userId", args.userId)).collect())
       .filter((t) => !t.archived && t.cadence === "daily")
       .sort((a, b) => a.order - b.order);
@@ -399,7 +400,7 @@ export const getSeries = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return { series: [], trackers: [] };
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return { series: [], trackers: [] };
+    if (!user || user._id !== authUserId(identity)) return { series: [], trackers: [] };
 
     const days = Math.min(args.days ?? 30, 120);
     const trackers = (await ctx.db.query("trackers").withIndex("by_user", (q) => q.eq("userId", args.userId)).collect())

@@ -18,11 +18,11 @@ These are absolute and apply to the entire application:
 
 **Daily Report** (reports.quest) - a life-tracking web app built around a daily report and user-defined trackers. Users log daily, each tracker is scored, and a composite Life Score (out of 850) surfaces patterns over time. The earlier "Ascend" six-dimension redesign was abandoned - do not reintroduce it.
 
-Stack: **Next.js 16 (App Router) + React 19 + Convex + Clerk + Tailwind v4**. Charts via `recharts`. AI via OpenAI (`gpt-4o`). Optional integrations via **Composio** (Google Calendar, Gmail, ClickUp, Trello, …). Deployed on Vercel with `npx convex deploy --cmd 'next build'`.
+Stack: **Next.js 16 (App Router) + React 19 + Convex (with Convex Auth) + Tailwind v4**. Charts via `recharts`. AI via OpenAI (`gpt-4o`). Optional integrations via **Composio** (Google Calendar, Gmail, ClickUp, Trello, …). Deployed on Vercel with `npx convex deploy --cmd 'next build'`.
 
 ## Architecture
 
-- `app/(dashboard)/*` - authenticated pages. `app/(auth)/*` - Clerk auth. `app/api/*` - route handlers (Composio connect/sync, billing, push).
+- `app/(dashboard)/*` - authenticated pages. `app/(auth)/*` - sign-in/sign-up pages built on `components/auth/AuthForm.tsx`. `app/api/*` - route handlers (Composio connect/sync, billing, push).
 - `convex/` - backend. Schema in `convex/schema.ts`. Domain modules: `reports`, `goals`, `health`, `finances`, `education`, `growth`, `projects`, `checklist`, `affirmations`, `visualizations`, `rituals`, `dreams`, `integrations`, `externalTasks`, `users`, `ai`, `aiInternal`, `lifeScore`, `lifePatterns`, `analytics`, `scores`, `crons`.
 - **`convex/lifeScore.ts`** - the deterministic, weighted "credit-score for your life" engine. `getCurrent` (snapshot of the six areas + composite + trends) and `getSeries` (per-day time series for charts).
 - **`convex/lifePatterns.ts`** - AI action that reads across all areas and returns cross-domain patterns.
@@ -39,7 +39,13 @@ Dark-first **bento** system. See `STYLESHEET.md`. Use the primitives in `compone
 
 - Pages are client components; guard Convex queries with `convexUserId ? {...} : "skip"`.
 - Validate changes with `npx tsc --noEmit` (the real build gate - ESLint is not build-gating here). Dev: `npm run dev`.
-- Auth in Convex: check `identity.subject === user.clerkId` before returning user data.
+- Auth in Convex: check `user._id === authUserId(identity)` (from `convex/authUser.ts`) before returning user data.
+
+### Auth (Convex Auth)
+- Config in `convex/auth.ts` (Google OAuth + email/password with Resend OTP verification and password reset), routes in `convex/http.ts`, JWT issuer in `convex/auth.config.ts`.
+- `createOrUpdateUser` in `convex/auth.ts` creates the app `users` document and links a verified email to an existing profile, which carries over accounts created under Clerk (those keep `clerkId` set).
+- Client: `useConvexUser()` (profile via `api.users.current`) and `useSignOut()`. Route protection lives in `proxy.ts`. Route handlers use `getServerUser()` from `lib/serverAuth.ts`.
+- Convex env vars: `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL` (set them with `npx @convex-dev/auth`), `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `RESEND_API_KEY`, `RESEND_FROM_ADDRESS`.
 
 ## Development Branch Convention
 

@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { isAuthenticatedNextjs } from "@convex-dev/auth/nextjs/server";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -56,8 +56,8 @@ const FAQS = [
 ];
 
 export default async function LandingPage() {
-  const { userId } = await auth();
-  if (userId) redirect("/dashboard");
+  const signedIn = await isAuthenticatedNextjs();
+  if (signedIn) redirect("/dashboard");
 
   return (
     <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">

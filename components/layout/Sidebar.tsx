@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useClerk, useUser } from "@clerk/nextjs";
+import { useSignOut } from "@/hooks/useSignOut";
 import { useConvexUser } from "@/hooks/useConvexUser";
 import { useTodayStatus } from "@/hooks/useTodayStatus";
 import {
@@ -58,9 +58,9 @@ function NavLink({
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { signOut } = useClerk();
-  const { user } = useUser();
+  const signOut = useSignOut();
   const { convexUserId, convexUser } = useConvexUser();
+  const user = convexUser;
   const { reportDone, affirmDone, totalDone, streak } = useTodayStatus(convexUserId);
   const overview = useQuery(api.trackers.getOverview, convexUserId ? { userId: convexUserId } : "skip");
   const userTrackers = overview?.trackers ?? [];
@@ -172,14 +172,14 @@ export function Sidebar() {
       <div className="shrink-0 border-t border-sidebar-border p-2 space-y-1">
         {user && (
           <div className="flex items-center gap-2.5 px-2.5 py-2">
-            {user.imageUrl ? (
-              <Image src={user.imageUrl} alt={user.fullName ?? "User"} width={28} height={28} className="rounded-full w-7 h-7 object-cover shrink-0" />
+            {user.image ? (
+              <Image src={user.image} alt={user.name || "User"} width={28} height={28} className="rounded-full w-7 h-7 object-cover shrink-0" />
             ) : (
               <div className="w-7 h-7 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
-                {(user.firstName?.[0] ?? "U").toUpperCase()}
+                {(user.name?.[0] ?? user.email?.[0] ?? "U").toUpperCase()}
               </div>
             )}
-            <span className="text-xs font-medium truncate">{user.fullName ?? user.primaryEmailAddress?.emailAddress}</span>
+            <span className="text-xs font-medium truncate">{user.name || user.email}</span>
           </div>
         )}
         {isAdmin && (
@@ -190,7 +190,7 @@ export function Sidebar() {
         <Link href="/settings" className={cn("flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sm font-medium transition-colors", is("/settings") ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground")}>
           <SlidersHorizontal className="w-4 h-4 shrink-0" /> Settings
         </Link>
-        <button onClick={() => signOut({ redirectUrl: "/" })} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+        <button onClick={() => void signOut()} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
           <LogOut className="w-4 h-4 shrink-0" /> Sign out
         </button>
       </div>

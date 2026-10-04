@@ -8,10 +8,9 @@ import {
   useMotionValue,
   useTransform,
 } from "motion/react";
-import { useUser } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useConvexUser } from "@/hooks/useConvexUser";
+import { firstNameOf, useConvexUser } from "@/hooks/useConvexUser";
 import Image from "next/image";
 import { Flame } from "lucide-react";
 import { TypingAnimation } from "@/components/magicui/typing-animation";
@@ -66,8 +65,9 @@ function StreakDisplay({ streak }: { streak: number }) {
 }
 
 export function WelcomeOverlay() {
-  const { user, isLoaded, isSignedIn } = useUser();
-  const { convexUserId } = useConvexUser();
+  const { convexUser, convexUserId, isLoading, isAuthenticated } = useConvexUser();
+  const isLoaded = !isLoading;
+  const isSignedIn = isAuthenticated;
   const stats = useQuery(
     api.users.getStats,
     convexUserId ? { userId: convexUserId } : "skip",
@@ -110,7 +110,7 @@ export function WelcomeOverlay() {
 
   if (!isLoaded) return null;
 
-  const firstName = user?.firstName ?? null;
+  const firstName = firstNameOf(convexUser);
   const greeting = firstName ? `Welcome Back, ${firstName}` : "Welcome Back";
 
   return (

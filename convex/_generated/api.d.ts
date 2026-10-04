@@ -41,6 +41,10 @@ import type * as checklist from "../checklist.js";
 import type * as lifePatterns from "../lifePatterns.js";
 import type * as trackers from "../trackers.js";
 import type * as trackerAI from "../trackerAI.js";
+import type * as auth from "../auth.js";
+import type * as authUser from "../authUser.js";
+import type * as http from "../http.js";
+import type * as ResendOTP from "../ResendOTP.js";
 
 import type {
   ApiFromModules,
@@ -82,6 +86,10 @@ declare const fullApi: ApiFromModules<{
   lifePatterns: typeof lifePatterns;
   trackers: typeof trackers;
   trackerAI: typeof trackerAI;
+  auth: typeof auth;
+  authUser: typeof authUser;
+  http: typeof http;
+  ResendOTP: typeof ResendOTP;
 }>;
 
 /**

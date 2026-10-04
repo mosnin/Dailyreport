@@ -1,11 +1,12 @@
 import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
+import { authUserId } from "./authUser";
 
 async function assertOwner(ctx: any, userId: string) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
   const user = await ctx.db.get(userId);
-  if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+  if (!user || user._id !== authUserId(identity)) throw new Error("Unauthorized");
 }
 
 export const list = query({
@@ -14,7 +15,7 @@ export const list = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return [];
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return [];
+    if (!user || user._id !== authUserId(identity)) return [];
 
     return ctx.db
       .query("affirmations")
@@ -73,7 +74,7 @@ export const getTodaySession = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
     return ctx.db
       .query("affirmationSessions")
       .withIndex("by_user_date", (q) =>
@@ -89,7 +90,7 @@ export const recordRound = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+    if (!user || user._id !== authUserId(identity)) throw new Error("Unauthorized");
     const existing = await ctx.db
       .query("affirmationSessions")
       .withIndex("by_user_date", (q) =>
@@ -137,7 +138,7 @@ export const wasGeneratedToday = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return false;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return false;
+    if (!user || user._id !== authUserId(identity)) return false;
 
     const today = new Date().toISOString().split("T")[0];
     const usage = await ctx.db

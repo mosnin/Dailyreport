@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { authUserId } from "./authUser";
 
 export const DREAM_CATEGORY = v.union(
   v.literal("financial"),
@@ -13,7 +14,7 @@ async function assertOwner(ctx: any, userId: string) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
   const user = await ctx.db.get(userId);
-  if (!user || user.clerkId !== identity.subject) throw new Error("Unauthorized");
+  if (!user || user._id !== authUserId(identity)) throw new Error("Unauthorized");
 }
 
 export const list = query({
@@ -22,7 +23,7 @@ export const list = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
     return ctx.db
       .query("dreams")
       .withIndex("by_user_category", (q) => q.eq("userId", args.userId))

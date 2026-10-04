@@ -1,11 +1,16 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { authTables } from "@convex-dev/auth/server";
 
 export default defineSchema({
+  ...authTables,
+
   users: defineTable({
-    clerkId: v.string(),
+    // Set only for accounts created before the move from Clerk to Convex Auth.
+    clerkId: v.optional(v.string()),
     email: v.string(),
     name: v.string(),
+    image: v.optional(v.string()),
     timezone: v.optional(v.string()),
     bio: v.optional(v.string()),
     onboardingComplete: v.optional(v.boolean()),
@@ -23,6 +28,7 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_clerk_id", ["clerkId"])
+    .index("by_email", ["email"])
     .index("by_creem_subscription", ["creemSubscriptionId"]),
 
   dailyReports: defineTable({

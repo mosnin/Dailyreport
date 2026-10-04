@@ -2,6 +2,7 @@ import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { QueryCtx, MutationCtx } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
+import { authUserId } from "./authUser";
 
 async function assertOwner(
   ctx: QueryCtx | MutationCtx,
@@ -10,7 +11,7 @@ async function assertOwner(
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
   const user = await ctx.db.get(userId);
-  if (!user || user.clerkId !== identity.subject) {
+  if (!user || user._id !== authUserId(identity)) {
     throw new Error("Unauthorized");
   }
 }
@@ -75,7 +76,7 @@ export const getSubscription = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const user = await ctx.db.get(args.userId);
-    if (!user || user.clerkId !== identity.subject) return null;
+    if (!user || user._id !== authUserId(identity)) return null;
     return ctx.db
       .query("pushSubscriptions")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))

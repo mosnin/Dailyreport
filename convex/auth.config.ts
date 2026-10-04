@@ -1,7 +1,7 @@
 export default {
   providers: [
     {
-      domain: "https://clerk.reports.quest",
+      domain: process.env.CONVEX_SITE_URL,
       applicationID: "convex",
     },
   ],

@@ -5,7 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { Menu, Settings, LogOut, ShieldAlert } from "lucide-react";
-import { useClerk, useUser } from "@clerk/nextjs";
+import { useSignOut } from "@/hooks/useSignOut";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { cn } from "@/lib/utils";
@@ -69,9 +69,9 @@ function AppIcon({
 
 function MobileMenu() {
   const { collapse } = useExpandableScreen();
-  const { signOut } = useClerk();
-  const { user } = useUser();
+  const signOut = useSignOut();
   const { convexUserId, convexUser } = useConvexUser();
+  const user = convexUser;
   const { reportDone, affirmDone } = useTodayStatus(convexUserId);
   const overview = useQuery(api.trackers.getOverview, convexUserId ? { userId: convexUserId } : "skip");
   const userTrackers = overview?.trackers ?? [];
@@ -149,7 +149,7 @@ function MobileMenu() {
           <div className="grid grid-cols-4 gap-x-4 gap-y-5">
             <AppIcon href="/settings" label="Settings" icon={Settings} color={nextColor()} onTap={collapse} />
             {isAdmin && <AppIcon href="/admin" label="Admin" icon={ShieldAlert} color="var(--emotional)" onTap={collapse} />}
-            <button onClick={() => { collapse(); setTimeout(() => signOut({ redirectUrl: "/" }), 150); }} className="flex flex-col items-center gap-2">
+            <button onClick={() => { collapse(); setTimeout(() => void signOut(), 150); }} className="flex flex-col items-center gap-2">
               <motion.span whileTap={{ scale: 0.9 }} className="grid aspect-square w-full place-items-center rounded-[26%] bg-white/8 shadow-lg shadow-black/40">
                 <LogOut className="h-7 w-7 text-foreground/80" />
               </motion.span>
@@ -160,7 +160,7 @@ function MobileMenu() {
       </div>
 
       {user && (
-        <p className="mt-8 text-center text-xs text-muted-foreground">{user.fullName ?? user.primaryEmailAddress?.emailAddress}</p>
+        <p className="mt-8 text-center text-xs text-muted-foreground">{user.name || user.email}</p>
       )}
     </div>
   );
